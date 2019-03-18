@@ -1,0 +1,26 @@
+Package: predictModelTestPkg
+Type: Package
+Title: package for model prediction server
+Version: 0.1.0
+Author: Mike Famulare
+Maintainer: Mike Famulare <mfamulare@idmod.org>
+Description: serves cached model to test server
+License: aGPL-3.0
+Encoding: UTF-8
+LazyData: true
+Imports: 
+  dplyr,
+  tidyr,
+  magrittr
+Suggests: 
+  knitr,
+  rmarkdown,
+  utils,
+  ggplot2,
+  ggmap,
+  viridis,
+  sf,
+  sp,
+  INLA
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1

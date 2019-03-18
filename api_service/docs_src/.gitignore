@@ -1,0 +1,5 @@
+modules.rst
+rse_boilterplate*.rst
+_build/*
+
+.idea/*

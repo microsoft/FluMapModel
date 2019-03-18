@@ -1,0 +1,5 @@
+=======
+Credits
+=======
+
+See setup.py

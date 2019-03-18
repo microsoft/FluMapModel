@@ -1,0 +1,42 @@
+version: '3'
+
+
+services:
+  redis:
+    # We use management so we can have a nice gui
+    # Default login is guest/guest
+    image: redis
+    ports:
+      - "6379:6379"
+  # Our queue container
+  rabbit:
+    # We use management so we can have a nice gui
+    # Default login is guest/guest
+    image: rabbitmq:3.7-management
+    ports:
+    - "5672:5672"
+    - "8081:15672"
+  workers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: idm-docker-production.packages.idmod.org/sfim
+    command: python3 seattle_flu/app.py workers start
+    environment:
+      - "DRAMATIQ_USE_PROD=True"
+  service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: idm-docker-production.packages.idmod.org/sfim
+    ports:
+      - 5000:5000
+    volumes:
+      - "./seattle_flu:/app/seattle_flu"
+    environment:
+    - "DEBUG=1"
+    - "FLASK_ENV=development"
+    - "DRAMATIQ_USE_PROD=True"
+
+
+

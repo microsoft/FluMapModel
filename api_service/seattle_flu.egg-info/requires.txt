@@ -1,0 +1,17 @@
+flask_marshmallow<1.0,>=0.9.0
+flask_restful
+rse-api==1.0.4
+dramatiq==1.4.3
+pika
+redis
+
+[dev]
+check-manifest
+nose
+sphinx
+
+[production]
+uwsgi
+
+[test]
+coverage

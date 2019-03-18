@@ -1,0 +1,37 @@
+Metadata-Version: 2.1
+Name: seattle-flu
+Version: 1.0.0
+Summary: Seattle Flu Incidence Mapper List
+Home-page: https://github.com/InstituteforDiseaseModeling/seattle_flu
+Author: Institute for Disease Modeling, Mike Famulare, Clinton Collins
+Author-email: mfamulare@idmod.org, ccollins@idmod.org
+License: UNKNOWN
+Project-URL: Bug Reports, https://github.com/InstituteforDiseaseModeling/Seattle-Flu-Incidence-Mapper/issues
+Project-URL: Source, https://github.com/InstituteforDiseaseModeling/Seattle-Flu-Incidence-Mapper
+Description: Seattle Flu Incidence Mapper
+        ============================
+        
+        Seattle Flu Incidence Mapper
+        
+        
+        * Documentation: https://institutefordiseasemodeling.github.io/Seattle-Flu-Incidence-Mapper
+        
+        
+        Features
+        --------
+        
+        * TODO
+        
+        Credits
+        -------
+        
+Keywords: seattle_flu epidemiology,flu
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.6
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Provides-Extra: test
+Provides-Extra: production

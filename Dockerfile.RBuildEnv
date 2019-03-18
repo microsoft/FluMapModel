@@ -1,0 +1,22 @@
+FROM r-base:3.5.2
+LABEL description="Environment to Package the Seattle Flu Models for Autmoated Builds"
+LABEL authors="ccollins@idmod.org"
+
+# Disable interactive questions like Timezone selection
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+
+# install packages required and then cleanup
+RUN apt-get update && apt-get install -y \
+    # required by devtools and ggmap
+    libssl-dev libcurl4-openssl-dev \
+    # required by sf
+    libudunits2-dev libgdal-dev \
+    # required by INLA or a dependencu of INLA
+    libxml2-dev libx11-dev texlive-binaries libglu1-mesa-dev libfreetype6-dev && \
+    # cleanup apt cache to reduce final image size
+    rm -rf /var/lib/apt/lists/*
+
+RUN Rscript -e "install.packages(c('knitr', 'tidyr', 'dplyr', 'magrittr', 'rmarkdown', 'ggplot2', 'ggmap', 'viridis', 'sf', 'sp', 'devtools'))"
+RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
+

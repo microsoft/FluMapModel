@@ -1,0 +1,44 @@
+@startuml "Request Sequence"
+participant User
+participant "API Service" as API
+participant "Model Manager" as MM
+participant "Model Workers" as MW
+
+User -> API: Request Model Result
+activate API
+
+API -> API: Validate Input matches expected
+API -> MM: Get Model Result
+activate MM
+
+MM -> MW: Is Model Running
+MW -> MM: Yes Model is running
+MM -> MW: What is Prediction Result
+return "Prediction as Object"
+
+return "Prediction as JSON"
+
+@enduml
+
+@startuml "Request Sequence if Model not Running"
+participant User
+participant "API Service" as API
+participant "Model Manager" as MM
+participant "Model Workers" as MW
+
+User -> API: Request Model Result
+activate API
+
+API -> API: Validate Input matches expected
+API -> MM: Get Model Result
+activate MM
+
+MM -> MW: Is Model Running
+MW -> MM: Model not running
+MM -> MW: Start Model X
+MM -> MW: What is Prediction Result
+return "Prediction as Object"
+
+return "Prediction as JSON"
+
+@enduml

@@ -1,0 +1,17 @@
+package "API Server" {
+    HTTP - [ModelController]
+}
+
+package "API Workers" {
+    INTERNAL_HTTP - [Model Worker]
+    [Model Worker 2]
+    [Model Worker ....]
+    [ModelController] -> INTERNAL_HTTP
+    [Model Worker ....] -> [Model Database]
+}
+
+database "Model Database" {
+    folder "Model Binaries" {
+	    [Model Binary]
+  }
+}

@@ -1,0 +1,7 @@
+seattle_flu
+===========
+
+.. toctree::
+   :maxdepth: 4
+
+   seattle_flu
