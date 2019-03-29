@@ -5,7 +5,7 @@
 \title{saveModel: function to save models and register them in modelDB.csv}
 \usage{
 saveModel(modelList,
-  cloudDir = "C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models/")
+  cloudDir = "C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models")
 }
 \arguments{
 \item{model}{INLA object}

@@ -6,7 +6,8 @@
 \usage{
 expandDB(db = dbViewR::selectFromDB(),
   linelist = dbViewR::selectFromDB(db$queryList[names(db$queryList)
-  \%in\% c("SELECT", "WHERE")]), shp = dbViewR::masterSpatialDB())
+  \%in\% c("SELECT", "WHERE", "MUTATE")]),
+  shp = dbViewR::masterSpatialDB())
 }
 \arguments{
 \item{db}{tibble with valid column names for INLA model}

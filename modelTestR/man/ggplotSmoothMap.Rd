@@ -7,9 +7,9 @@
 ggplotSmoothMap(model, shp)
 }
 \arguments{
-\item{shp}{sf object with GEOID shapes (all higher levels assume iid and not local smoothing)}
+\item{model}{model object from incidenceMapR::modelTrainR}
 
-\item{plotDat}{data.frame that joins dbViewR::modeledData and shp}
+\item{shp}{sf object with GEOID shapes (GEOID only for now)}
 }
 \value{
 ggplot object

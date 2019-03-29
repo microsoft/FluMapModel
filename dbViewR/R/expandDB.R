@@ -22,7 +22,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
     sex = unique(linelist$observedData$sex),
     fluShot = unique(linelist$observedData$fluShot),
     age = unique(linelist$observedData$age),
-    ageBin = unique(linelist$observedData$ageBin),
+    ageBin = unique(pmin(floor(linelist$observedData$age),90)),
     hasFever = unique(linelist$observedData$hasFever),
     hasCough = unique(linelist$observedData$hasCough),
     hasMyalgia = unique(linelist$observedData$hasMyalgia),
@@ -52,8 +52,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   if(any(grepl('age',names(db$observedData))) & !any(grepl('ageBin',names(db$observedData)))){
     db$observedData$ageBin <- pmin(floor(db$observedData$age),90)
-    ageBin <- sort(pmin(floor(validColumnData$age),90))
-    validColumnData$ageBin <- seq(min(ageBin),max(ageBin),by= 1) 
+    validColumnData$ageBin <- seq(0,90,by=1)
   }
   
   # expand.grid for non-nested variables
@@ -75,7 +74,15 @@ expandDB <- function( db = dbViewR::selectFromDB(),
       db$observedData$positive[!idx]<-0
     }
   
-  
+  # age and timeInfected
+    if(any(names(db$obervedData) == 'ageBin' )){
+      db$observedData$age <- db$observedData$ageBin
+    }
+    
+    if(any(names(db$obervedData) == 'timeBin' )){
+      db$observedData$timeInfected <- db$observedData$timeBin
+    }
+    
   # nested variables
   if(length(nestedVariables) > 0) {
     colIdx <- which(( names(validColumnData) %in% names(db$observedData) ) & ( names(validColumnData) %in% names(nestedVariables) ) )

@@ -23,7 +23,7 @@ modelTrainR <- function(modelDefinition){
   
   # format output
   if(modelDefinition$type =='smooth'){
-    modeledData <- appendSmoothData(model,db)
+    modeledData <- appendSmoothData(model,db, family = modelDefinition$family)
   } else if (modelDefinition$type == 'latent'){
     
   } else if (modelDefinition$type == 'effects'){
@@ -81,18 +81,18 @@ constructAdjacencyNetwork <- function( shp ){
 #' 
 #' @export
 #'
-saveModel <- function(modelList, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models/'){
+saveModel <- function(modelList, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models'){
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
   
   # this needs to also output latent field!
   ts <- as.character(Sys.time())
   filename <- digest::digest(paste(digest::digest(modelList$modeledData),ts,sep=''))
                              
-  saveRDS(modelList$inla,paste(cloudDir,filename,'.RDS',sep=''))
-  write.csv(modelList$modeledData,paste(cloudDir,filename,'.csv',sep=''),row.names = FALSE)
+  saveRDS(modelList$inla,paste(cloudDir,'/',filename,'.RDS',sep=''))
+  write.csv(modelList$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE)
 
   newRow <- list(filename=filename,queryJSON=as.character(jsonlite::toJSON(modelList$queryList)), created = ts)
-  modelDBfilename<-paste(cloudDir,'modelDB.tsv',sep='')
+  modelDBfilename<-paste(cloudDir,'/','modelDB.tsv',sep='')
   if(!file.exists(modelDBfilename)){
     write.table(newRow,file=modelDBfilename,sep='\t',row.names = FALSE, col.names = TRUE)
   } else {

@@ -70,7 +70,7 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
                           f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local) )
     }
     
-    if(COLUMN %in% c('PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')){
+    if(COLUMN %in% c('PUMA5CE')){
       
       inputData$PUMA5CERow <- match(inputData$PUMA5CE,unique(inputData$PUMA5CE))
       
@@ -86,6 +86,37 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       }
     }
     
+    if(COLUMN %in% c('CRA_NAME')){
+      
+      inputData$CRA_NAMERow <- match(inputData$CRA_NAME,unique(inputData$CRA_NAME))
+      
+      if('timeRow' %in% names(inputData)){
+        
+        inputData$timeRow_CRA_NAME <- inputData$timeRow
+        
+        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE,
+                                            group = timeRow_CRA_NAME, control.group=list(model="rw2")))
+      } else {
+        
+        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global))
+      }
+    }
+    
+    if(COLUMN %in% c('NEIGHBORHOOD_DISTRICT_NAME')){
+      
+      inputData$NEIGHBORHOOD_DISTRICT_NAMERow <- match(inputData$NEIGHBORHOOD_DISTRICT_NAME,unique(inputData$NEIGHBORHOOD_DISTRICT_NAME))
+      
+      if('timeRow' %in% names(inputData)){
+        
+        inputData$timeRow_NEIGHBORHOOD_DISTRICT_NAME <- inputData$timeRow
+        
+        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE,
+                                            group = timeRow_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
+      } else {
+        
+        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global))
+      }
+    }
     # Do we want the option of neighbor smoothing at larger scales?
     if(COLUMN == 'GEOID'){
       if(exists('shp')){
@@ -118,6 +149,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       }
     }
     
+    # factors interactions?  I don't think we want factor interactions in smoothing, but this is placeholder to think about it...
+    # Independent smoothing by factor levels should be handled at the outer level as separate modelDefinitions on selected data.
+    if(COLUMN %in% c('pathogen','samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')){
+    }
+    
   }
   
   modelDefinition <- list(type='smooth', family = family, formula = formula, 
@@ -134,12 +170,16 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 #' @param db object from dbViewer with observedData tibble and query
 #' @return db with added modeledData tibble
 #'
-appendSmoothData <- function(model,db){
+appendSmoothData <- function(model,db, family = 'poisson'){
 
   modeledData <- db$observedData
   
+  if(family == 'binomial'){
+    modeledData$fraction <- modeledData$positive/modeledData$n
+  }
+  
   # summary.fitted.values is only relevant output for smoothModel
-  nCol <- ncol(db$observedData)
+  nCol <- ncol(modeledData)
   modeledData[,nCol+1:ncol(model$summary.fitted.values)]<-model$summary.fitted.values
   names(modeledData)[nCol+1:ncol(model$summary.fitted.values)]<-paste('fitted.values',names(model$summary.fitted.values),sep='.')
   

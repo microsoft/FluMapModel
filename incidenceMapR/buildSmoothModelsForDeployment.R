@@ -24,8 +24,72 @@ model <- modelTrainR(modelDefinition)
 saveModel(model, cloudDir = 'P:/Seattle-Flu-Incidence-Mapper/models/')
 
 
+##################################################
+#########   catchment maps #######################
+##################################################
 
-# factors: do a likelihood for each factor level
-# this should happen at a higher level for parallelization 
-if(COLUMN %in% c('pathogen','samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')){
-}
+# get samplingLocations
+  queryIn <- list(
+    SELECT   =list(COLUMN=c('samplingLocation')),
+    GROUP_BY =list(COLUMN=c('samplingLocation')),
+    SUMMARIZE=list(COLUMN='samplingLocation', IN= "all")
+  )
+  db <- selectFromDB(queryIn)
+
+  columnLevels <- db$observedData$samplingLocation
+
+  geoLevels <- c('GEOID','PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')  
+
+# find catchment maps for each samplingLocation and geoLevel
+  for(geo in geoLevels){
+    for(level in columnLevels){
+      queryIn <- list(
+        SELECT   =list(COLUMN=c('samplingLocation',geo)),
+        WHERE   =list(COLUMN='samplingLocation', IN = level),
+        GROUP_BY =list(COLUMN=c('samplingLocation',geo)),
+        SUMMARIZE=list(COLUMN='samplingLocation', IN= level)
+      )
+      db <- expandDB( selectFromDB(  queryIn ) )
+      
+      modelDefinition <- smoothModel(db=db, shp=shp)
+      model <- modelTrainR(modelDefinition)
+      
+      saveModel(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models')
+      
+    }
+  }
+
+
+  
+  ##################################################
+  #########   age distributions ####################
+  ##################################################
+  
+  # get pathogens
+  queryIn <- list(
+    SELECT   =list(COLUMN=c('pathogen')),
+    GROUP_BY =list(COLUMN=c('pathogen')),
+    SUMMARIZE=list(COLUMN='pathogen', IN= "all")
+  )
+  db <- selectFromDB(queryIn)
+  
+  columnLevels <- db$observedData$pathogen
+  
+  # find age distributions for each pathogen
+  for(level in columnLevels){
+    queryIn <- list(
+      SELECT   =list(COLUMN=c('pathogen','age')),
+      GROUP_BY =list(COLUMN=c('age')),
+      SUMMARIZE=list(COLUMN='pathogen', IN= level)
+    )
+    db <- expandDB( selectFromDB(  queryIn ) )
+    db$observedData$pathogen <- level
+    
+    modelDefinition <- smoothModel(db=db, shp=shp)
+    model <- modelTrainR(modelDefinition)
+    
+    saveModel(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models')
+    
+    ggplot(model$modeledData) + geom_line(aes(x=ageBin,y=fitted.values.mean)) + geom_point(aes(x=ageBin,y=positive/n))
+    
+  }

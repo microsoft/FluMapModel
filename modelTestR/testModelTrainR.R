@@ -131,21 +131,23 @@ model <- modelTrainR(modelDefinition)
 plotDat <- model$modeledData
 p1 <- plotSettings + geom_point(data=plotDat,aes(x=timeBin,y=positive, group=GEOID, color=GEOID))
 p1 <- p1 + geom_line(data=plotDat,aes(x=timeBin,y=fitted.values.mode, group=GEOID, color=GEOID))
-p1 + ggtitle('h3n2 counts')
+p1 + ggtitle('h3n2 counts') + guides(color=FALSE)
 
 plotDat <- plotDat %>% group_by(GEOID) %>% mutate(peak = max(fitted.values.mode))
 
 p2 <- plotSettings + geom_point(data=plotDat,aes(x=timeBin,y=positive/peak, group=GEOID, color=GEOID))
 p2 <- p2 + geom_line(data=plotDat,aes(x=timeBin,y=fitted.values.mode/peak, group=GEOID, color=GEOID))
-p2 + ggtitle('h3n2 peak timing')
+p2 + ggtitle('h3n2 peak timing')+ guides(color=FALSE)
+
 
 # coerce peak timing into ggplotSmoothMap expected format
-plotDat <- plotDat %>% group_by(GEOID) %>% summarize(fitted.values.mode = max(fitted.values.mode), positive = max(positive))
-tmp$modeledData<-plotMap
+plotDat <- plotDat %>% group_by(GEOID) %>% summarize(fitted.values.mode = timeBin[fitted.values.mode==max(fitted.values.mode)],
+                                                     positive = mean(timeBin[positive==max(positive)]))
+tmp<- list(modeledData = plotDat)
 ggplotSmoothMap(tmp,shp)
 
 
-
+# overfitting right now....
 
 
 
