@@ -4,12 +4,12 @@
 \alias{ggplotSmoothMap}
 \title{ggplotSmoothMap: function for plotting data and smoothed model next to each other on map}
 \usage{
-ggplotSmoothMap(plotDat, shp)
+ggplotSmoothMap(model, shp)
 }
 \arguments{
-\item{plotDat}{data.frame that joins dbViewR::modeledData and shp}
-
 \item{shp}{sf object with GEOID shapes (all higher levels assume iid and not local smoothing)}
+
+\item{plotDat}{data.frame that joins dbViewR::modeledData and shp}
 }
 \value{
 ggplot object

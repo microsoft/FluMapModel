@@ -73,18 +73,20 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
           db <- db %>% dplyr::mutate( timeBin = floor((timeInfected)*52)/52)
         }
     }
-
-
+    
+    if('GROUP_BY' %in% names(queryList)){
+      db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
+    }
+    
     if('SUMMARIZE' %in% names(queryList)){
 
-      summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryList$SUMMARIZE$COLUMN), x = queryList$SUMMARIZE$IN))
-
-      if('GROUP_BY' %in% names(queryList)){
-
-          db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
-
+      if (queryList$SUMMARIZE$IN != 'all'){
+        summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryList$SUMMARIZE$COLUMN), x = queryList$SUMMARIZE$IN))
+      } else {
+        summary_criteria <- lazyeval::interp(~n())  # must always output n and positive for downstream interpretation!
       }
-      db <- db %>% dplyr::summarise_(n = lazyeval::interp(~n()), positive = summary_criteria)
+        
+      db <- db %>% dplyr::summarise_(n = lazyeval::interp(~n()), positive = summary_criteria) 
     }
 
   # type harmonization

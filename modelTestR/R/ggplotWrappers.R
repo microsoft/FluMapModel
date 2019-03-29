@@ -1,7 +1,7 @@
 #' ggplotSmoothMap: function for plotting data and smoothed model next to each other on map
 #'
-#' @param plotDat data.frame that joins dbViewR::modeledData and shp
-#' @param shp sf object with GEOID shapes (all higher levels assume iid and not local smoothing)
+#' @param model model object from incidenceMapR::modelTrainR
+#' @param shp sf object with GEOID shapes (GEOID only for now)
 #' @return ggplot object
 #'
 #' @import ggplot2
@@ -14,7 +14,12 @@
 #' plotDat$positive[plotDat$positive==0]<-NaN
 #' ggplotSmoothMap(plotDat,shp)
 #'
-ggplotSmoothMap <- function(plotDat, shp){
+ggplotSmoothMap <- function(model, shp){
+
+
+plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
+plotDat$positive[plotDat$n==0]<-NaN
+
 
 mapSettings <- ggplot() + xlim(c(122.5,121.7)) + ylim(c(47.17,47.76)) +  theme_bw() +
   theme(axis.text=element_blank(),axis.ticks=element_blank(),panel.grid.major=element_line(colour="transparent"), panel.border = element_blank())
@@ -24,7 +29,7 @@ p<-mapSettings + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 #   theme(axis.text=element_blank(),axis.ticks=element_blank(),panel.grid.major=element_line(colour="transparent"), panel.border = element_blank())
 # p<-mapSettingsTight + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 
-colorLimits<-c(0,max(c(plotDat$positive,plotDat$fitted.values.mode),na.rm=TRUE))
+colorLimits<-c(min(c(plotDat$positive,plotDat$fitted.values.mode),max(c(plotDat$positive,plotDat$fitted.values.mode),na.rm=TRUE))
 colorBreaks<-round(seq(min(colorLimits),sqrt(max(colorLimits)), length.out = 6)^2)
 
 p1 <- p + geom_sf(data=plotDat,size=0, aes(fill=positive))  +

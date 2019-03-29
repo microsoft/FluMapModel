@@ -17,6 +17,136 @@ plotSettings <- ggplot() + theme_bw() +  theme(panel.border = element_blank()) +
 ##### smoothing models ############
 ###################################
 
+# simulated data kiosk catchment map
+queryIn <- list(
+  SELECT   =list(COLUMN=c('samplingLocation','GEOID')),
+  WHERE    =list(COLUMN='samplingLocation', IN = c('kiosk')),
+  GROUP_BY =list(COLUMN=c('samplingLocation','GEOID')),
+  SUMMARIZE=list(COLUMN='samplingLocation', IN= c('kiosk'))
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+ggplotSmoothMap(model,shp)
+
+
+# simulated data atHome catchment map
+queryIn <- list(
+  SELECT   =list(COLUMN=c('samplingLocation','GEOID')),
+  WHERE    =list(COLUMN='samplingLocation', IN = c('atHome')),
+  GROUP_BY =list(COLUMN=c('samplingLocation','GEOID')),
+  SUMMARIZE=list(COLUMN='samplingLocation', IN= c('atHome'))
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+ggplotSmoothMap(model,shp)
+
+
+
+
+# simulated data h1n1pdm age fraction
+
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen','age')),
+  GROUP_BY =list(COLUMN=c('age')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= 'h1n1pdm')
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+plotDat <- model$modeledData
+p1 <- plotSettings + geom_point(data=plotDat,aes(x=ageBin,y=positive/n))
+p1 <- p1 + geom_line(data=plotDat,aes(x=ageBin,y=fitted.values.mode)) +
+  geom_ribbon(data=plotDat,aes(x=ageBin,ymin=fitted.values.0.025quant,ymax=fitted.values.0.975quant),alpha=0.3)
+p1 + ggtitle('h1n1pdm fraction')
+
+
+# simulated data rsva age fraction
+
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen','age')),
+  GROUP_BY =list(COLUMN=c('age')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= 'rsva')
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+plotDat <- model$modeledData
+p1 <- plotSettings + geom_point(data=plotDat,aes(x=ageBin,y=positive/n))
+p1 <- p1 + geom_line(data=plotDat,aes(x=ageBin,y=fitted.values.mode)) +
+  geom_ribbon(data=plotDat,aes(x=ageBin,ymin=fitted.values.0.025quant,ymax=fitted.values.0.975quant),alpha=0.3)
+p1 + ggtitle('rsva fraction')
+
+
+# h3n2 PUMA5CE-time smoother
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen','timeInfected','PUMA5CE')),
+  WHERE    =list(COLUMN=c('pathogen'), IN=c('h3n2')),
+  MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+  GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= c('h3n2'))
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+plotDat <- model$modeledData
+p1 <- plotSettings + geom_point(data=plotDat,aes(x=timeBin,y=positive))
+p1 <- p1 + geom_line(data=plotDat,aes(x=timeBin,y=fitted.values.mode)) +
+  geom_ribbon(data=plotDat,aes(x=timeBin,ymin=fitted.values.0.025quant,ymax=fitted.values.0.975quant),alpha=0.3)
+p1 + ggtitle('h3n2 counts') + facet_wrap(~PUMA5CE)
+
+plotDat <- plotDat %>% group_by(PUMA5CE) %>% mutate(peak = max(fitted.values.mode))
+
+p2 <- plotSettings + geom_point(data=plotDat,aes(x=timeBin,y=positive/peak, group=PUMA5CE, color=PUMA5CE))
+p2 <- p2 + geom_line(data=plotDat,aes(x=timeBin,y=fitted.values.mode/peak, group=PUMA5CE, color=PUMA5CE)) +
+  # geom_ribbon(data=plotDat,aes(x=timeBin,ymin=fitted.values.0.025quant/peak,ymax=fitted.values.0.975quant/peak, group=PUMA5CE, fill=PUMA5CE),alpha=0.3) +
+  ggtitle('h3n2 peak timing')
+p2
+
+
+# h3n2 GEOID-time smoother
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen','timeInfected','GEOID')),
+  WHERE    =list(COLUMN=c('pathogen'), IN=c('h3n2')),
+  MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+  GROUP_BY =list(COLUMN=c('timeBin','GEOID')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= c('h3n2'))
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+plotDat <- model$modeledData
+p1 <- plotSettings + geom_point(data=plotDat,aes(x=timeBin,y=positive, group=GEOID, color=GEOID))
+p1 <- p1 + geom_line(data=plotDat,aes(x=timeBin,y=fitted.values.mode, group=GEOID, color=GEOID))
+p1 + ggtitle('h3n2 counts')
+
+plotDat <- plotDat %>% group_by(GEOID) %>% mutate(peak = max(fitted.values.mode))
+
+p2 <- plotSettings + geom_point(data=plotDat,aes(x=timeBin,y=positive/peak, group=GEOID, color=GEOID))
+p2 <- p2 + geom_line(data=plotDat,aes(x=timeBin,y=fitted.values.mode/peak, group=GEOID, color=GEOID))
+p2 + ggtitle('h3n2 peak timing')
+
+# coerce peak timing into ggplotSmoothMap expected format
+plotDat <- plotDat %>% group_by(GEOID) %>% summarize(fitted.values.mode = max(fitted.values.mode), positive = max(positive))
+tmp$modeledData<-plotMap
+ggplotSmoothMap(tmp,shp)
+
+
+
+
 
 
 
@@ -39,47 +169,7 @@ plotSettings <- ggplot() + theme_bw() +  theme(panel.border = element_blank()) +
 ####################################
 ###### catchment models  ###########
 ####################################
-
-# kiosk
-queryIn <- list(
-  SELECT   =list(COLUMN=c('samplingLocation','GEOID')),
-  WHERE   =list(COLUMN='samplingLocation', IN = c('kiosk')),
-  GROUP_BY =list(COLUMN=c('samplingLocation','GEOID')),
-  SUMMARIZE=list(COLUMN='samplingLocation', IN= c('kiosk'))
-)
-db <- expandDB( selectFromDB(  queryIn ) )
-db$observedData$positive<-db$observedData$n
-
-model <- modelTrainR(family='poisson',db=db, shp=shp)
-
-# cache model object
-# saveModel(model)
-
-plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
-plotDat$positive[plotDat$positive==0]<-NaN
-ggplotSmoothMap(plotDat,shp)
-
-
-# hospital
-queryIn <- list(
-  SELECT   =list(COLUMN=c('samplingLocation','GEOID')),
-  WHERE   =list(COLUMN='samplingLocation', IN = c('hospital')),
-  GROUP_BY =list(COLUMN=c('samplingLocation','GEOID')),
-  SUMMARIZE=list(COLUMN='samplingLocation', IN= c('hospital'))
-)
-db2 <- expandDB( selectFromDB(  queryIn ) )
-db2$observedData$positive<-db2$observedData$n
-
-model2 <- modelTrainR(family='poisson',db=db2, shp=shp)
-
-# saveModel(model2)
-
-plotDat <- right_join(model2$modeledData,shp, by=c('GEOID'))
-plotDat$positive[plotDat$positive==0]<-NaN
-ggplotSmoothMap(plotDat,shp)
-
-
-# TO DO: different ways of doing catchment models
+### OLD! ###
 
 
 ####################################

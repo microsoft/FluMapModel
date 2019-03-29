@@ -2,24 +2,18 @@
 % Please edit documentation in R/modelTrainR.R
 \name{modelTrainR}
 \alias{modelTrainR}
-\title{modelTrainR: function for training binomial (logistic) regression models on data from dbViewR}
+\title{modelTrainR: function for training INLA models from modelDefintion objects}
 \usage{
-modelTrainR(family = "binomial", db = dbViewR::selectFromDB(),
-  shp = dbViewR::masterSpatialDB(), formula = NULL, inputData = NULL,
-  neighborGraph = NULL)
+modelTrainR(modelDefinition)
 }
 \arguments{
-\item{family}{regression model family (binomial (default) or poisson)}
-
-\item{db}{dbViewR object with valid column names for INLA model}
-
-\item{shp}{sf object with GEOID shapes (all higher levels assume iid and not local smoothing)}
+\item{modelDefinition}{modelDefinition object from one of smoothModel.R, latentFieldModel.R, or effectModel.R}
 }
 \value{
 observedData table that has been prepared for defineModels.R
 }
 \description{
-modelTrainR: function for training binomial (logistic) regression models on data from dbViewR
+modelTrainR: function for training INLA models from modelDefintion objects
 }
 \examples{
 return h1n1pdm incidence model by time and location
