@@ -4,7 +4,7 @@
 \alias{saveModel}
 \title{saveModel: function to save models and register them in modelDB.csv}
 \usage{
-saveModel(modelList,
+saveModel(model,
   cloudDir = "C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models")
 }
 \arguments{

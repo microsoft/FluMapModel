@@ -81,22 +81,25 @@ constructAdjacencyNetwork <- function( shp ){
 #' 
 #' @export
 #'
-saveModel <- function(modelList, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models'){
+saveModel <- function(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models'){
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
   
-  # this needs to also output latent field!
   ts <- as.character(Sys.time())
-  filename <- digest::digest(paste(digest::digest(modelList$modeledData),ts,sep=''))
+  filename <- digest::digest(paste(digest::digest(model$modeledData),ts,sep=''))
                              
-  saveRDS(modelList$inla,paste(cloudDir,'/',filename,'.RDS',sep=''))
-  write.csv(modelList$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE)
+  saveRDS(model,paste(cloudDir,'/',filename,'.RDS',sep=''))
+  write.csv(model$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
 
-  newRow <- list(filename=filename,queryJSON=as.character(jsonlite::toJSON(modelList$queryList)), created = ts)
+  # register in modelDB
+  newRow <- list(filename=filename,
+                 queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
+                 type = model$modelDefinition$type,
+                 created = ts)
   modelDBfilename<-paste(cloudDir,'/','modelDB.tsv',sep='')
   if(!file.exists(modelDBfilename)){
-    write.table(newRow,file=modelDBfilename,sep='\t',row.names = FALSE, col.names = TRUE)
+    write.table(newRow,file=modelDBfilename,sep='\t',row.names = FALSE, col.names = TRUE,quote = FALSE)
   } else {
-    write.table(newRow,file=modelDBfilename,sep='\t',row.names = FALSE, col.names = FALSE, append=TRUE)
+    write.table(newRow,file=modelDBfilename,sep='\t',row.names = FALSE, col.names = FALSE,quote = FALSE, append=TRUE)
   }
 
 }

@@ -17,12 +17,10 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   # bounded columns
   validColumnData <- list(
     timeInfected = unique(linelist$observedData$timeInfected),
-    timeBin = unique(linelist$observedData$timeBin),
     samplingLocation = unique(linelist$observedData$samplingLocation),
     sex = unique(linelist$observedData$sex),
     fluShot = unique(linelist$observedData$fluShot),
     age = unique(linelist$observedData$age),
-    ageBin = unique(pmin(floor(linelist$observedData$age),90)),
     hasFever = unique(linelist$observedData$hasFever),
     hasCough = unique(linelist$observedData$hasCough),
     hasMyalgia = unique(linelist$observedData$hasMyalgia),

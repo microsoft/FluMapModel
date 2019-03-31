@@ -29,7 +29,7 @@ This branch contains most of the workflow on seattleflu/simulated-data.  The mai
 - remove predictModelTestPkg
 - hook api_service to modelServR.
 - **dbViewR** 
-  - handle poisson vs binomial automatically
+  - fix bug in age normalization 
 - **incidenceMapR** needs a ton of work
   - build model definitions for modelTrainR with
     - modelSmooth
@@ -45,7 +45,7 @@ This branch contains most of the workflow on seattleflu/simulated-data.  The mai
     - repoint to a more accessible data store. 
     - improve description database for better lookup
 
-- **modelServR** needs a ton of work
+- **modelServR**
   - in coordination with incidenceMapR::saveModel, we need a better model lookup API
   - it needs to know about both smoothing and latent-field models (to come)
   - what format does Antonio want back? Flat or nested json? (R prefers flat.)
