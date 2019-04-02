@@ -10,7 +10,7 @@ R packages encapsulate key aspects of the workflow.
 - **modelTestR** is a few simple test functions and scripts for playing with the workflow locally. 
 
 ### webservice to deliver model results
-- **modelServR** interacts with the api_service to find requested model data and return it to the visualization service.  (This may migrate over to the Hutch or into the python layer in the future.)
+- **modelServR** interacts with the **api_service** to find requested model data and return it to the visualization service.  (This may migrate over to the Hutch or into the python layer in the future.)
 
 
 ## Cognitive tasks 
@@ -20,16 +20,11 @@ Incidence-mapper exists to perform three different classes of routine tasks on e
 - **latent field inference** to infer population-wide infectious disease processes that are driving our observations.  This is the most challenging and most powerful aspect of the modeling, and is critical for proper public health understanding.   For example, what is the space-time series of flu incidence in the whole population, given the non-representative space-and-age distributions of study participants?  In this language, the true incidence is a latent field (set of unobserved variables with some structure) that drives the observed data. 
 - **quantify effects of factors** on outcomes using generalized linear regression, after adjusting for confounders (ie covariates that aren't of interest).  This is useful for individual-level understanding of things like vaccine efficacy, and for predicting individual priors for DeDx based on measured covariates. This is not a priority for April as it applies to individuals and isn't the fundamental "flu map".
 
-# Branch: incidence-mapper/Mike-simulated-data-test-workflow
 
-This branch contains most of the workflow on seattleflu/simulated-data.  The main missing component of a solution on real data are dockerized R model builds--currently, all R packages must be installed locally and run interactively. 
+## To-do on simulated data
+Currently, this service pulls data from seattleflu/simulated-data.  There are remaining tasks to finish before swapping over to live data:
 
-## To-do in branch
-
-- remove predictModelTestPkg
-- hook api_service to modelServR.
-- **dbViewR** 
-  - fix bug in age normalization 
+- hook api_service to modelServR **OR** jettison R connection and handle modelServR tasks solely in python layer. 
 - **incidenceMapR** needs a ton of work
   - build model definitions for modelTrainR with
     - modelSmooth
@@ -43,10 +38,10 @@ This branch contains most of the workflow on seattleflu/simulated-data.  The mai
   - **saveModel** improvements
     - generalize to output fitted.values, coefficients, and latent fields
     - repoint to a more accessible data store. 
-    - improve description database for better lookup
+    - improve description database for better lookup.
 
 - **modelServR**
-  - in coordination with incidenceMapR::saveModel, we need a better model lookup API
+  - in coordination with incidenceMapR::saveModel, we need a better model lookup API.  Some sort of artifact storage and recall tool. 
   - it needs to know about both smoothing and latent-field models (to come)
   - what format does Antonio want back? Flat or nested json? (R prefers flat.)
   
@@ -55,8 +50,11 @@ This branch contains most of the workflow on seattleflu/simulated-data.  The mai
 ## dbViewR
 
 - dbViewR::selectFromDB connect to research DB at Hutch
-- dbViewR::masterSpatialDB connect to shapefiles repo and add option to call different levels of aggregation
+    - this should probably just be replaced with a SQL query handle to the database that pulls specified views into R, instead of all this dplyr junk. 
+- dbViewR::masterSpatialDB connect to shapefiles repo and add option to call different levels of aggregation.
+    - am I happy with our geo_jsons?  Consider updated canonical set. 
 - dbViewR::expandDB needs to know about permitted columns from real database and rules for table expansion.
+    - get database schema from Hutch. 
 
 ## incidenceMapR
 - define standard models to fit and output
@@ -64,8 +62,8 @@ This branch contains most of the workflow on seattleflu/simulated-data.  The mai
 
 ## modelServR
 - Define API with James, Antonio, and Thomas.
-  - viable option may just be to ship CSVs to the Hutch instead of live webservice at IDM.  (Having developed a webservice is/was still a good idea, as future model data may be generated with live function calls instead of cached results.)
-
+  - We intend to ship models as JSON blobs.
+  - We will propose some example JSON queries to request model blobs soon. 
 
 # To-do to improve science
 
