@@ -5,6 +5,7 @@ library(dbViewR)
 library(incidenceMapR)
 library(modelTestR)
 library(dplyr)
+library(magrittr)
 
 library(INLA)
 
@@ -30,7 +31,7 @@ queryIn <- list(
 db <- expandDB( selectFromDB(  queryIn ) )
 
 # multiple likelihood
-uniqueCategories <- unique(db$observedData$samplingLocation)
+uniqueCategories <- sort(unique(db$observedData$samplingLocation))
 numLikelihoods <- length(uniqueCategories)
 
 family <- rep('poisson',numLikelihoods)  # must be list of valid families
@@ -58,7 +59,7 @@ hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01)
 
 # replicate field with different offset
 
-formula <- y ~ f(i, model="bym2", graph=neighborGraph, replicate=r, constr=TRUE, hyper = hyper$global) + rf - 1
+formula <- y ~ f(i, model="besag", graph=neighborGraph, replicate=r, constr=TRUE, hyper = hyper$global) + rf - 1
 data <- data.frame(y, i, r, rf)
 
 summary(result <- inla(formula = formula, family = family, data = data,
@@ -80,7 +81,20 @@ summary(result <- inla(formula = formula, family = family, data = data,
   }
   # this works great!
 
+# random effects vis
+  modeledData <- inputData %>% arrange(samplingLocation,GEOIDRow)
+  nCol <- ncol(modeledData)
+  tmp<-result$summary.random$i
+  modeledData[,nCol+1:ncol(result$summary.random$i)]<-tmp
+  names(modeledData)[nCol+1:ncol(result$summary.random$i)]<-paste('fitted.values',names(result$summary.random$i),sep='.')
+  rownames(modeledData)<-c()
+  modeledData$fitted.values.mode <- exp(modeledData$fitted.values.mode)
 
+  # plot
+  for(k in uniqueCategories){
+    model<-list(modeledData = modeledData[modeledData$samplingLocation==k,])
+    ggplotSmoothMap(model,shp,k)
+  }
 
 
 
