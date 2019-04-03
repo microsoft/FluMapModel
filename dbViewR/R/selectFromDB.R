@@ -19,7 +19,7 @@
 #'   list(
 #'       SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
 #'       MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
-#'       GROUP_BY =list(COLUMN=c('timeBin','timeRow','PUMA5CE','GEOID')),
+#'       GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
 #'       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 #'       )
 #'    )
@@ -68,10 +68,14 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     }
 
     if('MUTATE' %in% names(queryList)){
-      for( newCol in queryList$MUTATE$COLUMN)
+      for( newCol in queryList$MUTATE$COLUMN){
         if(newCol == 'num_date'){
           db <- db %>% dplyr::mutate( timeBin = floor((num_date)*52)/52)
         }
+        if(newCol == 'age'){
+          db <- db %>% dplyr::mutate( ageBin = floor(pmin(age,90)))
+        }
+      }
     }
     
     if('GROUP_BY' %in% names(queryList)){

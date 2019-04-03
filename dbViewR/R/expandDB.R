@@ -43,13 +43,11 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # transformations
-  if(any(grepl('num_date',names(db$observedData))) & !any(grepl('timeBin',names(db$observedData)))){
-    db$observedData$timeBin <- floor((db$observedData$num_date)*52)/52
+  if(any(grepl('timeBin',names(db$observedData)))) {
     timeBin <- floor((validColumnData$num_date)*52)/52
     validColumnData$timeBin <- seq(min(timeBin),max(timeBin)+4/52,by= 1/52) 
   }
-  if(any(grepl('age',names(db$observedData))) & !any(grepl('ageBin',names(db$observedData)))){
-    db$observedData$ageBin <- pmin(floor(db$observedData$age),90)
+  if(any(grepl('ageBin',names(db$observedData)))) {
     validColumnData$ageBin <- seq(0,90,by=1)
   }
   
@@ -73,11 +71,11 @@ expandDB <- function( db = dbViewR::selectFromDB(),
     }
   
   # age and num_date
-    if(any(names(db$obervedData) == 'ageBin' )){
+    if(any(names(db$observedData) == 'ageBin' )){
       db$observedData$age <- db$observedData$ageBin
     }
     
-    if(any(names(db$obervedData) == 'timeBin' )){
+    if(any(names(db$observedData) == 'timeBin' )){
       db$observedData$num_date <- db$observedData$timeBin
     }
     

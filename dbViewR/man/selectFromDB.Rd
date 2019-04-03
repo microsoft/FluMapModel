@@ -6,10 +6,10 @@
 (Currently pulls from simulated data at https://github.com/seattleflu/simulated-data)}
 \usage{
 selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
-  c("pathogen", "num_date", "PUMA5CE", "GEOID")), MUTATE = list(COLUMN
-  = c("num_date"), AS = c("timeBin")), GROUP_BY = list(COLUMN =
-  c("timeBin", "PUMA5CE", "GEOID")), SUMMARIZE = list(COLUMN = "pathogen",
-  IN = c("h1n1pdm")))))
+  c("pathogen", "num_date", "PUMA5CE", "GEOID")), MUTATE = list(COLUMN =
+  c("num_date"), AS = c("timeBin")), GROUP_BY = list(COLUMN = c("timeBin",
+  "PUMA5CE", "GEOID")), SUMMARIZE = list(COLUMN = "pathogen", IN =
+  c("h1n1pdm")))))
 }
 \arguments{
 \item{queryIn}{list or json specifying query  (See example)}
@@ -26,7 +26,7 @@ queryJSON <- jsonlite::toJSON(
   list(
       SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
       MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
-      GROUP_BY =list(COLUMN=c('timeBin','timeRow','PUMA5CE','GEOID')),
+      GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
       )
    )
