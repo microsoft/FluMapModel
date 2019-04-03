@@ -17,8 +17,8 @@
 #' return h1n1pdm summary by time and location
 #' queryJSON <- jsonlite::toJSON(
 #'   list(
-#'       SELECT   =list(COLUMN=c('pathogen','timeInfected','PUMA5CE','GEOID')),
-#'       MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+#'       SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
+#'       MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
 #'       GROUP_BY =list(COLUMN=c('timeBin','timeRow','PUMA5CE','GEOID')),
 #'       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 #'       )
@@ -27,8 +27,8 @@
 #'
 selectFromDB <- function( queryIn = jsonlite::toJSON(
                             list(
-                              SELECT   =list(COLUMN=c('pathogen','timeInfected','PUMA5CE','GEOID')),
-                              MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+                              SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
+                              MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
                               GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
@@ -69,8 +69,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     if('MUTATE' %in% names(queryList)){
       for( newCol in queryList$MUTATE$COLUMN)
-        if(newCol == 'timeInfected'){
-          db <- db %>% dplyr::mutate( timeBin = floor((timeInfected)*52)/52)
+        if(newCol == 'num_date'){
+          db <- db %>% dplyr::mutate( timeBin = floor((num_date)*52)/52)
         }
     }
     

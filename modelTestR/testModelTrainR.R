@@ -89,9 +89,9 @@ p1 + ggtitle('rsva fraction')
 
 # h3n2 PUMA5CE-time smoother
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','timeInfected','PUMA5CE')),
+  SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE')),
   WHERE    =list(COLUMN=c('pathogen'), IN=c('h3n2')),
-  MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+  MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
   GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h3n2'))
 )
@@ -117,9 +117,9 @@ p2
 
 # h3n2 GEOID-time smoother
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','timeInfected','GEOID')),
+  SELECT   =list(COLUMN=c('pathogen','num_date','GEOID')),
   WHERE    =list(COLUMN=c('pathogen'), IN=c('h3n2')),
-  MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+  MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
   GROUP_BY =list(COLUMN=c('timeBin','GEOID')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h3n2'))
 )
@@ -215,8 +215,8 @@ plot(model$modeledData$offset,db$observedData$positive)
 
 # h1n1 PUMA5CE with time
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','timeInfected','PUMA5CE')),
-  MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+  SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE')),
+  MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
   GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
@@ -260,8 +260,8 @@ p2
 
 # h1n1 PUMA5CE and GEOID with time
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','timeInfected','PUMA5CE','GEOID')),
-  MUTATE   =list(COLUMN=c('timeInfected'), AS=c('timeBin')),
+  SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
+  MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
   GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )

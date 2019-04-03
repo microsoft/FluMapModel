@@ -16,7 +16,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   
   # bounded columns
   validColumnData <- list(
-    timeInfected = unique(linelist$observedData$timeInfected),
+    num_date = unique(linelist$observedData$num_date),
     samplingLocation = unique(linelist$observedData$samplingLocation),
     sex = unique(linelist$observedData$sex),
     fluShot = unique(linelist$observedData$fluShot),
@@ -43,9 +43,9 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # transformations
-  if(any(grepl('timeInfected',names(db$observedData))) & !any(grepl('timeBin',names(db$observedData)))){
-    db$observedData$timeBin <- floor((db$observedData$timeInfected)*52)/52
-    timeBin <- floor((validColumnData$timeInfected)*52)/52
+  if(any(grepl('num_date',names(db$observedData))) & !any(grepl('timeBin',names(db$observedData)))){
+    db$observedData$timeBin <- floor((db$observedData$num_date)*52)/52
+    timeBin <- floor((validColumnData$num_date)*52)/52
     validColumnData$timeBin <- seq(min(timeBin),max(timeBin)+4/52,by= 1/52) 
   }
   if(any(grepl('age',names(db$observedData))) & !any(grepl('ageBin',names(db$observedData)))){
@@ -56,7 +56,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   # expand.grid for non-nested variables
   colIdx <- ( names(validColumnData) %in% names(db$observedData) ) & 
     !( names(validColumnData) %in% names(nestedVariables)) &
-    !( names(validColumnData) %in% c('timeInfected','age'))  
+    !( names(validColumnData) %in% c('num_date','age'))
   tmp<-expand.grid(validColumnData[colIdx])
                                    
   
@@ -72,13 +72,13 @@ expandDB <- function( db = dbViewR::selectFromDB(),
       db$observedData$positive[!idx]<-0
     }
   
-  # age and timeInfected
+  # age and num_date
     if(any(names(db$obervedData) == 'ageBin' )){
       db$observedData$age <- db$observedData$ageBin
     }
     
     if(any(names(db$obervedData) == 'timeBin' )){
-      db$observedData$timeInfected <- db$observedData$timeBin
+      db$observedData$num_date <- db$observedData$timeBin
     }
     
   # nested variables
