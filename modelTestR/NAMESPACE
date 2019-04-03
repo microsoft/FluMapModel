@@ -3,5 +3,6 @@
 export(ggplotSmoothMap)
 export(ggplotSmoothSequential)
 import(ggplot2)
+import(grid)
 import(gridExtra)
 import(viridis)

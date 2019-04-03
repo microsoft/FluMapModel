@@ -4,7 +4,7 @@
 \alias{ggplotSmoothMap}
 \title{ggplotSmoothMap: function for plotting data and smoothed model next to each other on map}
 \usage{
-ggplotSmoothMap(model, shp)
+ggplotSmoothMap(model, shp, title = "")
 }
 \arguments{
 \item{model}{model object from incidenceMapR::modelTrainR}

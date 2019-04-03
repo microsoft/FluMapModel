@@ -5,6 +5,7 @@
 #' @return ggplot object
 #'
 #' @import ggplot2
+#' @import grid
 #' @import gridExtra
 #' @import viridis
 #'
@@ -14,7 +15,7 @@
 #' plotDat$positive[plotDat$positive==0]<-NaN
 #' ggplotSmoothMap(plotDat,shp)
 #'
-ggplotSmoothMap <- function(model, shp){
+ggplotSmoothMap <- function(model, shp, title=''){
 
 
 plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
@@ -40,7 +41,7 @@ p2 <- p + geom_sf(data=plotDat,size=0, aes(fill=fitted.values.mode))  +
   guides(fill=guide_legend(title="expected")) +
   scale_fill_viridis(na.value="transparent",trans = "sqrt",breaks=colorBreaks,limits=colorLimits)
 
-grid.arrange(p1,p2,nrow=1)
+grid.arrange(p1,p2,nrow=1, top=textGrob(title))
 }
 
 #' ggplotSmoothSequential: function for plotting data and smoothed model next to each other as sequential variable (timeseries, age)
