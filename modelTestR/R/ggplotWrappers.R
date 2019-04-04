@@ -8,6 +8,7 @@
 #' @import grid
 #' @import gridExtra
 #' @import viridis
+#' @import dplyr
 #'
 #' @export
 #' @examples
