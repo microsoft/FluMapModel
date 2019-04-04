@@ -15,6 +15,8 @@
 #'     
 #' @import INLA
 #' @import dbViewR
+#' @import magrittr
+#' @import dplyr
 #'
 #' @export
 #' @examples
@@ -23,7 +25,6 @@
 #'
 smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpatialDB(), family = NULL, neighborGraph = NULL){
 
-  
   #INLA data frame that may get augmented columns we don't need to see when we're done
   inputData <- db$observedData
   
@@ -43,22 +44,50 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
   hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
   hyper$age <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+ 
   
+  # we smooth across factor levels with random effects replicates: http://www.r-inla.org/models/tools#TOC-Models-with-more-than-one-type-of-likelihood
+  validFactorNames <- c('pathogen','samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')
+  factorIdx <- validFactorNames %in% names(db$observedData) 
   
-  # build formula
-  formula <- positive ~ 1
+  # combine factors for independent intercepts
+  inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
+  levelSet       <- levels(inputData$levelIntercept)
+  numLevels      <- length(levelSet)
+  
+  # set family across all levels
+  family <- rep(family,numLevels)
 
+  # build outcome matrix and replicate list for multiple likelihoods
+  outcome      <- matrix(NA,nrow(inputData),numLevels)
+  replicateIdx <- matrix(NA,nrow(inputData),1)
+  
+  for( k in levelSet){
+    idx <- inputData$levelIntercept %in% k
+    count <- which(levelSet %in% k)
+    outcome[idx, count] <- inputData$positive[idx]
+    replicateIdx[idx]<-count
+  }
+  
+  # initialize formula for each level
+  if (numLevels>1){
+    outcomeStr <- paste('cbind(',paste(paste('outcome',1:numLevels,sep='.'),sep='',collapse=', '),')',sep='',collapse = '')
+    formula <- as.formula(paste(outcomeStr,'~','levelIntercept - 1',sep=' '))
+  } else {
+    formula <- outcome ~ 1
+  }
+ 
+  # build out smoothing formula  
   for(COLUMN in names(inputData)[!(names(inputData) %in% c('positive','n'))]){
     
-    # random effects
     if(COLUMN == 'timeRow'){
       
       #INLA needs one column per random effect
       inputData$timeRow_rw2 <- inputData$timeRow
       inputData$timeRow_IID <- inputData$timeRow
       
-      formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$global) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local) )
+      formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$global, replicate=replicateIdx) +
+                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
     }
     
     if(COLUMN == 'ageRow'){
@@ -66,8 +95,8 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       inputData$ageRow_rw2 <- inputData$ageRow
       inputData$ageRow_IID <- inputData$ageRow
       
-      formula <- update(formula,  ~ . + f(ageRow_rw2, model='rw2', hyper=modelDefinition$hyper$age) +
-                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local) )
+      formula <- update(formula,  ~ . + f(ageRow_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
+                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
     }
     
     if(COLUMN %in% c('PUMA5CE')){
@@ -78,11 +107,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
         
         inputData$timeRow_PUMA5CE <- inputData$timeRow
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$global, constr = TRUE,
+        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_PUMA5CE, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global))
+        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
     
@@ -94,11 +123,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
         
         inputData$timeRow_CRA_NAME <- inputData$timeRow
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE,
+        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_CRA_NAME, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global))
+        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
     
@@ -110,13 +139,14 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
         
         inputData$timeRow_NEIGHBORHOOD_DISTRICT_NAME <- inputData$timeRow
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE,
+        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global))
+        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
+    
     # Do we want the option of neighbor smoothing at larger scales?
     if(COLUMN == 'GEOID'){
       if(exists('shp')){
@@ -127,10 +157,10 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
           
           inputData$timeRow_GEOID <- inputData$timeRow
           
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local,
+          formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
                                               group = timeRow_GEOID, control.group=list(model="rw2")))
         } else {
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local))
+          formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
         }
       } else {
         
@@ -140,24 +170,20 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
           
           inputData$timeRow_GEOID <- inputData$timeRow
           
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local,
+          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
                                               group = timeRow_GEOID, control.group=list(model="rw2")))
         } else {
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local))
+          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
         }
         
       }
     }
-    
-    # factors interactions?  I don't think we want factor interactions in smoothing, but this is placeholder to think about it...
-    # Independent smoothing by factor levels should be handled at the outer level as separate modelDefinitions on selected data.
-    if(COLUMN %in% c('pathogen','samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')){
-    }
-    
   }
   
+  df <- data.frame(outcome = outcome, inputData, replicateIdx)
+  
   modelDefinition <- list(type='smooth', family = family, formula = formula, 
-                          inputData = inputData, neighborGraph=neighborGraph, hyper=hyper,
+                          inputData = df, neighborGraph=neighborGraph, hyper=hyper,
                           queryList = db$queryList)
   
   return(modelDefinition)
@@ -174,7 +200,7 @@ appendSmoothData <- function(model,db, family = 'poisson'){
 
   modeledData <- db$observedData
   
-  if(family == 'binomial'){
+  if(family[1] == 'binomial'){
     modeledData$fraction <- modeledData$positive/modeledData$n
   }
   
