@@ -1,0 +1,31 @@
+# Using:
+# docker-compose -f docker-compose.rstudtio.yml up -d 
+# Open up http://hostname:8787
+# Username: rstudio
+# Password: seattleflu
+# All the local checkout should be mapped to /home/rstudio/seattle_flu
+version: '3'
+services:
+  rstudio:
+      build:
+        context: .
+        dockerfile: Dockerfile.RBuildEnv
+      image: seattleflu_rmodeldev
+      environment:
+        - "DISABLE_AUTH=true"
+        - "USERID=${UID:-1000}"
+        - "GROUPID=${UID:-1000}"
+        - "ROOT=TRUE"
+      # Maps ports from Host -> Container
+      # Here we hap host 8787 to container 8787.
+      # Within the container RStudio runs on Port 8787
+      ports:
+        - "8787:8787"
+      # Here we map host volumes to container volumes
+      #
+      # Notice in this compose we map in scripts and data even though
+      # we added them in our dockerfile
+      # This allows us to modify the script/data and run inside the container
+      # and test new data or make changes to the script itself
+      volumes:
+        - ./:/home/rstudio/seattle_flu
