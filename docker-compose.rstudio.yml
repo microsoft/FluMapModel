@@ -1,4 +1,5 @@
 # Using:
+# export UID=$UID if on linux
 # docker-compose -f docker-compose.rstudtio.yml up -d 
 # Open up http://hostname:8787
 # Username: rstudio
