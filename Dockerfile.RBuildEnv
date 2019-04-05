@@ -6,9 +6,6 @@ LABEL authors="ccollins@idmod.org"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
-RUN perl -pi -e  's/UID_MAX\s+60000/UID_MAX           60000000000/g' /etc/login.defs
-RUN perl -pi -e  's|GID_MAX\s+60000|GID_MAX           60000000000|g' /etc/login.defs
-RUN cat /etc/login.defs
 
 # install packages required and then cleanup
 RUN apt-get update && apt-get install -y aptitude && \
@@ -37,3 +34,11 @@ RUN Rscript -e "install.packages(c('sf'))"
 RUN Rscript -e "install.packages(c('devtools'))"
 RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
 
+# Our Orgnaizations(As others do) map Active Directory to LDAP for linux
+# These means when mapping in our userids
+# docker -e USERID=$UID....
+# which remaps the rstudio UID,
+# the user ids can be large. To suppor that we need to update login.defs
+
+RUN perl -pi -e  's/UID_MAX\s+60000/UID_MAX           9304017490/g' /etc/login.defs
+RUN perl -pi -e  's|GID_MAX\s+60000|GID_MAX           9304017490|g' /etc/login.defs
