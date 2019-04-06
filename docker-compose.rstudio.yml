@@ -1,0 +1,47 @@
+# Using:
+# If on Linx, run the following first
+# export UID=$UID
+#
+# docker-compose -f docker-compose.rstudtio.yml up -d 
+# Open up http://hostname:8787
+#
+# To change the port, or you want to run multiple instances, specify the
+# 2nd and on containers, run like so
+# docker-compose -f docker-compose.rstudtio.yml run -dp 8788:8787 rstudio
+#
+# The current directory will be mapped to /home/rstudio/seattle_flu
+#
+# Within the container, to install System packages
+# Use the terminal within RStudio session and run
+# sudo apt-get install -y <packge_name>
+#
+# To install R Packages, use the Package Manager
+# within the RStudio session
+# You may need system dependencies
+# Any changes you make to running container it is good practice
+# to add to the Dockerfile.RBuild.Env
+version: '3'
+services:
+  rstudio:
+      build:
+        context: .
+        dockerfile: Dockerfile.RBuildEnv
+      image: seattleflu_rmodeldev
+      environment:
+        - "DISABLE_AUTH=true"
+        - "USERID=${UID:-1000}"
+        - "GROUPID=${UID:-1000}"
+        - "ROOT=TRUE"
+      # Maps ports from Host -> Container
+      # Here we hap host 8787 to container 8787.
+      # Within the container RStudio runs on Port 8787
+      ports:
+        - "8787:8787"
+      # Here we map host volumes to container volumes
+      #
+      # Notice in this compose we map in scripts and data even though
+      # we added them in our dockerfile
+      # This allows us to modify the script/data and run inside the container
+      # and test new data or make changes to the script itself
+      volumes:
+        - ./:/home/rstudio/seattle_flu

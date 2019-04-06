@@ -1,4 +1,4 @@
-FROM r-base:3.5.2
+FROM rocker/rstudio:3.5.3
 LABEL description="Environment to Package the Seattle Flu Models for Autmoated Builds"
 LABEL authors="ccollins@idmod.org"
 
@@ -6,17 +6,39 @@ LABEL authors="ccollins@idmod.org"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
+
 # install packages required and then cleanup
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y aptitude && \
+    aptitude install -f -y \
     # required by devtools and ggmap
     libssl-dev libcurl4-openssl-dev \
     # required by sf
     libudunits2-dev libgdal-dev \
     # required by INLA or a dependencu of INLA
-    libxml2-dev libx11-dev texlive-binaries libglu1-mesa-dev libfreetype6-dev && \
+    libxml2-dev libx11-dev texlive-binaries libglu1-mesa-dev libfreetype6-dev \
+    # Git for development tools
+    git-core git libgit2-dev && \
     # cleanup apt cache to reduce final image size
     rm -rf /var/lib/apt/lists/*
 
-RUN Rscript -e "install.packages(c('knitr', 'tidyr', 'dplyr', 'magrittr', 'rmarkdown', 'ggplot2', 'ggmap', 'viridis', 'sf', 'sp', 'devtools'))"
+# Set default make to parallel build
+ENV MAKE="make -j8"
+RUN Rscript -e "install.packages(c('magrittr', 'knitr', 'sp'))"
+RUN Rscript -e "install.packages(c('tidyr'))"
+RUN Rscript -e "install.packages(c('dplyr'))"
+RUN Rscript -e "install.packages(c('rmarkdown'))"
+RUN Rscript -e "install.packages(c('ggplot2'))"
+RUN Rscript -e "install.packages(c('ggmap'))"
+RUN Rscript -e "install.packages(c('viridis'))"
+RUN Rscript -e "install.packages(c('sf'))"
+RUN Rscript -e "install.packages(c('devtools'))"
 RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
 
+# Our Orgnaizations(As others do) map Active Directory to LDAP for linux
+# These means when mapping in our userids
+# docker -e USERID=$UID....
+# which remaps the rstudio UID,
+# the user ids can be large. To suppor that we need to update login.defs
+
+RUN perl -pi -e  's/UID_MAX\s+60000/UID_MAX           9304017490/g' /etc/login.defs
+RUN perl -pi -e  's|GID_MAX\s+60000|GID_MAX           9304017490|g' /etc/login.defs
