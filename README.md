@@ -80,5 +80,5 @@ Currently, this service pulls data from seattleflu/simulated-data.  There are re
   - define lowest spatial scale based on based shapes, instead of GEOID (census tract) only
   - allow adjacency network models beyond default contiguous nearest-neighbor
   
-
+Adding this line to test R-studio git push.
 
