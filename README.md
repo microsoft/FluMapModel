@@ -27,8 +27,6 @@ Currently, this service pulls data from seattleflu/simulated-data.  There are re
 - hook api_service to modelServR **OR** jettison R connection and handle modelServR tasks solely in python layer. 
 - **incidenceMapR** needs a ton of work
   - build model definitions for modelTrainR with
-    - modelSmooth
-      - Decide how to handle factors in software. I want each factor level to be smoothed independently, and so the natural thing is one model per factor level. But that's not the natural way to pass the data to visualization. The best solution is probably merge factor models at a higher level after modelSmooth is run. 
     - modelLatentField
       - write function
         - figure out inla.make.lincomb to combine random effects components of latent fields

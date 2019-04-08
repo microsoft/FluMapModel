@@ -99,10 +99,128 @@ summary(result <- inla(formula = formula, family = family, data = data,
 
 
 
-# toward timeseries latent field
+###################################
+# timeseries latent field
+###################################
+
+geoLevels <- c('GEOID','PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')
+
+for(geo in geoLevels){
+
+  # find catchment maps for each samplingLocation and geoLevel
+  queryIn <- list(
+    SELECT   =list(COLUMN=c('samplingLocation',geo)),
+    GROUP_BY =list(COLUMN=c('samplingLocation',geo)),
+    SUMMARIZE=list(COLUMN='samplingLocation', IN= 'all')
+  )
+  db <- expandDB( selectFromDB(  queryIn ) )
+
+  catchmentModelDefinition <- smoothModel(db=db, shp=shp)
+  catchmentModel <- modelTrainR(catchmentModelDefinition)
+  summary(catchmentModel$inla)
+
+
+  # query pathogen and time
+  queryIn <- list(
+    SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
+    MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
+    GROUP_BY =list(COLUMN=c('timeBin','samplingLocation',geo)),
+    SUMMARIZE=list(COLUMN='pathogen', IN= 'h1n1pdm')
+  )
+  db <- expandDB( selectFromDB(  queryIn ) )
+
+  # append catchment as intercept covariate
+  db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.mean))
+  names(db$observedData)[names(db$observedData) %in% 'fitted.values.mean'] <- 'catchment'
+  db$observedData
+
+  # build latent field model
+  modelDefinition <- latentFieldModel(db=db, shp=shp)
+  model <- modelTrainR(modelDefinition)
 
 
 
+  # random effects vis
+  modeledData <- inputData %>% arrange(samplingLocation,GEOIDRow)
+  nCol <- ncol(modeledData)
+  tmp<-result$summary.random$i
+  modeledData[,nCol+1:ncol(result$summary.random$i)]<-tmp
+  names(modeledData)[nCol+1:ncol(result$summary.random$i)]<-paste('fitted.values',names(result$summary.random$i),sep='.')
+  rownames(modeledData)<-c()
+  modeledData$fitted.values.mode <- exp(modeledData$fitted.values.mode)
+
+
+
+  saveModel(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models')
+
+  if (geo =='GEOID'){
+    for(k in unique(model$modeledData$samplingLocation)){
+      tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k,])
+      ggplotSmoothMap(tmp,shp,k)
+    }
+  }
+}
+
+
+queryIn <- list(
+  SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation','GEOID')),
+  MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
+  GROUP_BY =list(COLUMN=c('timeBin','samplingLocation','GEOID')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= 'h1n1pdm')
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+head(db$observedData,20)
+
+# incidence <- db$observedData %>% group_by(GEOID,timeBin,timeRow) %>% summarize(n=sum(n),positive =sum(positive, na.rm=TRUE))
+# incidence$positive[incidence$n==0]<-NA
+# incidence
+
+inputData<-cbind(db$observedData,db2$observedData)
+
+
+# multiple likelihood
+uniqueCategories <- sort(unique(db$observedData$samplingLocation))
+numLikelihoods <- length(uniqueCategories) + 1
+
+family <- rep('poisson',numLikelihoods)  # must be list of valid families
+
+inputData<-db$observedData
+inputData$GEOIDRow <- match(inputData$GEOID,unique(inputData$GEOID))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# append data
+modeledData <- db$observedData
+nCol <- ncol(modeledData)
+modeledData[,nCol+1:ncol(result$summary.fitted.values)]<-result$summary.fitted.values
+names(modeledData)[nCol+1:ncol(result$summary.fitted.values)]<-paste('fitted.values',names(result$summary.fitted.values),sep='.')
+rownames(modeledData)<-c()
+
+
+
+
+
+
+# plot
+for(k in uniqueCategories){
+  model<-list(modeledData = modeledData[modeledData$samplingLocation==k,])
+  ggplotSmoothMap(model,shp,k)
+}
 
 ###################################
 ##### latent field models #########

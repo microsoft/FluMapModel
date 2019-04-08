@@ -24,8 +24,8 @@ modelTrainR <- function(modelDefinition){
   # format output
   if(modelDefinition$type =='smooth'){
     modeledData <- appendSmoothData(model,db, family = modelDefinition$family)
-  } else if (modelDefinition$type == 'latent'){
-    
+  } else if (modelDefinition$type == 'latentField'){
+    modeledData <- appendLatentFieldData(model,db, family = modelDefinition$family)
   } else if (modelDefinition$type == 'effects'){
     
   }

@@ -195,6 +195,8 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 #' @param model inla model object
 #' @param db object from dbViewer with observedData tibble and query
 #' @return db with added modeledData tibble
+#' 
+#' @import lubridate
 #'
 appendSmoothData <- function(model,db, family = 'poisson'){
 

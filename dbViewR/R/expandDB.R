@@ -43,7 +43,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # transformations
-  if(any(grepl('num_date',names(db$observedData)))) {
+  if(any(grepl('num_date',names(db$observedData)) | grepl('time',names(db$observedData)))) {
     timeBin <- floor((validColumnData$num_date)*52)/52
     validColumnData$timeBin <- seq(min(timeBin),max(timeBin)+4/52,by= 1/52) 
   }
