@@ -140,6 +140,18 @@ for(geo in geoLevels){
 
 
 
+
+
+
+
+  # smooth vis
+  for(k in unique(model$modeledData$samplingLocation)){
+    for (n in unique(model$modeledData$timeRow)){
+      tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$timeRow == n,])
+      ggplotSmoothMap(tmp,shp,paste(k,n))
+    }
+  }
+
   # random effects vis
   modeledData <- inputData %>% arrange(samplingLocation,GEOIDRow)
   nCol <- ncol(modeledData)
@@ -155,8 +167,10 @@ for(geo in geoLevels){
 
   if (geo =='GEOID'){
     for(k in unique(model$modeledData$samplingLocation)){
-      tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k,])
-      ggplotSmoothMap(tmp,shp,k)
+      for (n in unique(model$modeledData$timeRow)){
+        tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$timeRow == n,])
+        ggplotSmoothMap(tmp,shp,paste(k,n))
+      }
     }
   }
 }
