@@ -87,7 +87,7 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       inputData$timeRow_IID <- inputData$timeRow
       
       formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$global, replicate=replicateIdx) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
+                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
     }
     
     if(COLUMN == 'ageRow'){
@@ -96,7 +96,7 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       inputData$ageRow_IID <- inputData$ageRow
       
       formula <- update(formula,  ~ . + f(ageRow_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
-                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
+                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
     }
     
     if(COLUMN %in% c('PUMA5CE')){
@@ -182,7 +182,7 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
-  modelDefinition <- list(type='smooth', family = family, formula = formula, 
+  modelDefinition <- list(type='smooth', family = family, formula = formula, lincomb = c(),
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper,
                           queryList = db$queryList)
   

@@ -42,16 +42,18 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
   hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
   hyper$age <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+
+  # unlike smoothing model, we only replicate latent fields across pathogens, but treat all other factors as fixed effects
   
-  
-  # we smooth across factor levels with random effects replicates: http://www.r-inla.org/models/tools#TOC-Models-with-more-than-one-type-of-likelihood
-  validFactorNames <- c('pathogen','samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')
-  factorIdx <- validFactorNames %in% names(db$observedData) 
-  
-  # combine factors for independent intercepts
-  inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
-  levelSet       <- levels(inputData$levelIntercept)
-  numLevels      <- length(levelSet)
+  # find pathogen types
+  if('pathogen' %in% names(db$observedData)){
+    levelSet       <- levels(as.factor(inputData$pathogen))
+    numLevels      <- length(levelSet)
+    
+    validLatentFieldColumns <- c('pathogen')
+  } else {
+    return('error!  must provide "pathogen" column.')
+  }
   
   # set family across all levels
   family <- rep(family,numLevels)
@@ -61,7 +63,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   replicateIdx <- matrix(NA,nrow(inputData),1)
   
   for( k in levelSet){
-    idx <- inputData$levelIntercept %in% k
+    idx <- inputData$pathogen %in% k
     count <- which(levelSet %in% k)
     outcome[idx, count] <- inputData$positive[idx]
     replicateIdx[idx]<-count
@@ -70,12 +72,21 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   # initialize formula for each level
   if (numLevels>1){
     outcomeStr <- paste('cbind(',paste(paste('outcome',1:numLevels,sep='.'),sep='',collapse=', '),')',sep='',collapse = '')
-    formula <- as.formula(paste(outcomeStr,'~','levelIntercept - 1 + catchment',sep=' '))
+    formula <- as.formula(paste(outcomeStr,'~','pathogen - 1 + catchment',sep=' '))
   } else {
     formula <- outcome ~ 1 + catchment
   }
   
-  # build out smoothing formula  
+  
+  # factors as fixed effects, assuming no interaction terms
+  validFactorNames <- c('samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')
+  factorIdx <- names(db$observedData) %in% validFactorNames
+  for(COLUMN in names(db$observedData)[factorIdx]){
+    formula <- as.formula(paste(as.character(formula)[2],'~',paste(as.character(formula)[3],COLUMN,sep='+')))
+  }
+  
+  
+  # latent fields
   for(COLUMN in names(inputData)[!(names(inputData) %in% c('positive','n'))]){
     
     if(COLUMN == 'timeRow'){
@@ -85,7 +96,8 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       inputData$timeRow_IID <- inputData$timeRow
       
       formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$global, replicate=replicateIdx) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
+                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+      validLatentFieldColumns <- c(validLatentFieldColumns,'timeRow_rw2','timeRow_IID')
     }
     
     if(COLUMN == 'ageRow'){
@@ -94,7 +106,8 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       inputData$ageRow_IID <- inputData$ageRow
       
       formula <- update(formula,  ~ . + f(ageRow_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
-                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
+                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+      validLatentFieldColumns <- c(validLatentFieldColumns,'ageRow_rw2','ageRow_IID')
     }
     
     if(COLUMN %in% c('PUMA5CE')){
@@ -107,9 +120,11 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_PUMA5CE, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow','timeRow_PUMA5CE')
       } else {
         
         formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow')
       }
     }
     
@@ -123,9 +138,11 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_CRA_NAME, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow','timeRow_CRA_NAME')
       } else {
         
         formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow')
       }
     }
     
@@ -139,9 +156,11 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow','timeRow_NEIGHBORHOOD_DISTRICT_NAME')
       } else {
         
         formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow')
       }
     }
     
@@ -157,8 +176,10 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
           
           formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
                                               group = timeRow_GEOID, control.group=list(model="rw2")))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','timeRow_GEOID')
         } else {
           formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow')
         }
       } else {
         
@@ -170,17 +191,40 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
           
           formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
                                               group = timeRow_GEOID, control.group=list(model="rw2")))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','timeRow_GEOID')
         } else {
           formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow')
         }
         
       }
     }
   }
   
+  # linear combination of pathogen and latent fields
+
+    # inla.uncbind isn't in namespace for some reason (their fault I think)
+    # lc.latentField <- inla.make.lincombs( inla.uncbind(inputData[validLatentFieldColumns,]) )  
+    lc.data <- inputData[,names(inputData) %in% validLatentFieldColumns]
+    lc.data <- lc.data[!duplicated(lc.data),]
+    
+    # need to promote pathogen levels to independent columns! https://groups.google.com/forum/#!topic/r-inla-discussion-group/IaTSakB7qy4
+    pathogens<-unique(lc.data$pathogen)
+    pathogen.df <- as.data.frame(matrix(NA,nrow = nrow(lc.data), ncol = length(pathogens)))
+    names(pathogen.df) <- paste('pathogen',pathogens,sep='')
+    
+    for(k in 1:length(pathogens)){
+      idx <- lc.data$pathogen %in% pathogens[k]
+      pathogen.df[idx,k]<-1
+    }
+
+    lc.data <- cbind(lc.data[,!(names(lc.data) %in% c('pathogen'))],pathogen.df)
+    
+  lc.latentField <- do.call('inla.make.lincombs',as.list(lc.data) ) #https://www.r-bloggers.com/a-new-r-trick-for-me-at-least/
+  
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
-  modelDefinition <- list(type='latentField', family = family, formula = formula, 
+  modelDefinition <- list(type='latentField', family = family, formula = formula, lincomb = lc.latentField,
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper,
                           queryList = db$queryList)
   

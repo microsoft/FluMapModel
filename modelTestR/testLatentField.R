@@ -4,6 +4,7 @@
 library(dbViewR)
 library(incidenceMapR)
 library(modelTestR)
+library(modelServR)
 library(dplyr)
 library(magrittr)
 
@@ -105,6 +106,8 @@ summary(result <- inla(formula = formula, family = family, data = data,
 
 geoLevels <- c('GEOID','PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')
 
+  geo='PUMA5CE'
+
 for(geo in geoLevels){
 
   # find catchment maps for each samplingLocation and geoLevel
@@ -124,20 +127,46 @@ for(geo in geoLevels){
   queryIn <- list(
     SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
     MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
-    GROUP_BY =list(COLUMN=c('timeBin','samplingLocation',geo)),
-    SUMMARIZE=list(COLUMN='pathogen', IN= 'h1n1pdm')
+    GROUP_BY =list(COLUMN=c('pathogen','timeBin','samplingLocation',geo)),
+    SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
   )
   db <- expandDB( selectFromDB(  queryIn ) )
 
   # append catchment as intercept covariate
-  db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.mean))
-  names(db$observedData)[names(db$observedData) %in% 'fitted.values.mean'] <- 'catchment'
-  db$observedData
+  db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
+  names(db$observedData)[names(db$observedData) %in% 'fitted.values.0.5quant'] <- 'catchment'
+  db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
+
+
+  db$observedData <- db$observedData[db$observedData$timeRow<4,]
 
   # build latent field model
   modelDefinition <- latentFieldModel(db=db, shp=shp)
   model <- modelTrainR(modelDefinition)
 
+  summary(model$inla)
+
+
+  saveModel(model)
+
+  model<-returnModel(db$queryList,format='model',type='latentField')
+
+
+  head(model$modeledData)
+
+  # inputData$level <- model$modeledData %>% select(pathogen,samplingLocation) %>% interaction()
+  plotSettings + geom_line(data=model$modeledData[ model$modeledData$samplingLocation=='hospital' ,],aes(x=timeBin,y=fitted.values.mode, group = PUMA5CE, color=PUMA5CE)) + facet_wrap("pathogen")
+
+
+
+  # extract latent field
+  model$inla$size.random
+
+  lines(model$inla$summary.random$timeRow_rw2$ID %% 43,model$inla$summary.random$timeRow_IID$mode+model$inla$summary.random$timeRow_rw2$mode)
+
+  dim(model$inla$summary.random$PUMA5CERow)
+  dim(model$inla$summary.random$timeRow_rw2)
+  dim(model$inla$summary.fitted.values)
 
 
 

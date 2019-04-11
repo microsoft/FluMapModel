@@ -16,6 +16,7 @@ modelTrainR <- function(modelDefinition){
   model <- inla(formula = modelDefinition$formula,
                 family = modelDefinition$family, 
                 data = modelDefinition$inputData, 
+                lincomb = modelDefinition$lincomb,
                 Ntrials = modelDefinition$inputData$n,
                 control.predictor=list(compute=TRUE,link=1),
                 control.compute=list(config=TRUE,dic=TRUE),verbose = TRUE,
