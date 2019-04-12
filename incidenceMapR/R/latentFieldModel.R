@@ -51,6 +51,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
     numLevels      <- length(levelSet)
     
     validLatentFieldColumns <- c('pathogen')
+    
   } else {
     return('error!  must provide "pathogen" column.')
   }
@@ -203,31 +204,58 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   
   # linear combination of pathogen and latent fields
 
-    # inla.uncbind isn't in namespace for some reason (their fault I think)
-    # lc.latentField <- inla.make.lincombs( inla.uncbind(inputData[validLatentFieldColumns,]) )  
-    lc.data <- inputData[,names(inputData) %in% validLatentFieldColumns]
+    lc.data <- data.frame(inputData[,names(inputData) %in% validLatentFieldColumns], replicateIdx = replicateIdx)
     lc.data <- lc.data[!duplicated(lc.data),]
     
-    # need to promote pathogen levels to independent columns! https://groups.google.com/forum/#!topic/r-inla-discussion-group/IaTSakB7qy4
-    pathogens<-unique(lc.data$pathogen)
-    pathogen.df <- as.data.frame(matrix(NA,nrow = nrow(lc.data), ncol = length(pathogens)))
-    names(pathogen.df) <- paste('pathogen',pathogens,sep='')
     
-    for(k in 1:length(pathogens)){
-      idx <- lc.data$pathogen %in% pathogens[k]
-      pathogen.df[idx,k]<-1
+    # generate list of desired linear combinations # https://groups.google.com/forum/#!topic/r-inla-discussion-group/_e2C2L7Wc30
+    lcIdx=c()
+    spentColumn<-rep(FALSE,length(validLatentFieldColumns))
+    for(COLUMN in validLatentFieldColumns){
+      
+      if(COLUMN %in% c('pathogen') ){
+        
+        # need to promote pathogen levels to independent columns! https://groups.google.com/forum/#!topic/r-inla-discussion-group/IaTSakB7qy4
+        pathogenNames <- paste('pathogen',levelSet,sep='')
+        
+      } else if (!(COLUMN == 'timeRow_PUMA5CE' )) {
+        groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns) 
+        if(any(groupIdx & !spentColumn)){ # grouped?
+          lcIdx[[COLUMN]] <- inla.idx(lc.data[[COLUMN]], group = lc.data[[validLatentFieldColumns[groupIdx]]], replicate = lc.data$replicateIdx)          
+          spentColumn[groupIdx]<-TRUE
+          
+        } else if(!spentColumn[validLatentFieldColumns %in% COLUMN]) {
+          lcIdx[[COLUMN]] <- inla.idx(lc.data[[COLUMN]], replicate = lc.data$replicateIdx)          
+        }
+      }
+      spentColumn[validLatentFieldColumns %in% COLUMN]<-TRUE
+    }
+    
+  # generate list of desired linear combinations # https://groups.google.com/forum/#!topic/r-inla-discussion-group/_e2C2L7Wc30
+    lc.latentField <- c()
+    for(k in 1:nrow(lc.data)){
+      w<-list()
+      
+      for(n in 1:length(names(lcIdx))){
+        w[[n]]<-rep(0,nrow(lc.data))
+        w[[n]][lcIdx[[n]][k]]<-1
+      }
+      
+      A <- c(x=1, w)
+      names(A) <- c(pathogenNames[lc.data$replicateIdx[k]],names(lcIdx))
+
+      lc <- inla.make.lincomb(A)
+      names(lc)<- paste0('latentField',k)
+      lc.latentField<-c(lc.latentField,lc)
     }
 
-    lc.data <- cbind(lc.data[,!(names(lc.data) %in% c('pathogen'))],pathogen.df)
-    
-  lc.latentField <- do.call('inla.make.lincombs',as.list(lc.data) ) #https://www.r-bloggers.com/a-new-r-trick-for-me-at-least/
-  
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
   modelDefinition <- list(type='latentField', family = family, formula = formula, lincomb = lc.latentField,
-                          inputData = df, neighborGraph=neighborGraph, hyper=hyper,
+                          inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
+                          latentFieldData = inputData[rownames(inputData) %in% rownames(lc.data),],  # clean up formatting, but this will be useful for exporting latentField csv
                           queryList = db$queryList)
-  
+
   return(modelDefinition)
 }
 
