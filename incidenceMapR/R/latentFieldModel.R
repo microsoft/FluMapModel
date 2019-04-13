@@ -40,8 +40,10 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   # construct priors
   hyper=list()
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
-  hyper$local <- list(prec = list( prior = "pc.prec", param = 1/1000, alpha = 0.01))
+  hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
   hyper$age <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+  hyper$time <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+  
 
   # unlike smoothing model, we only replicate latent fields across pathogens, but treat all other factors as fixed effects
   
@@ -49,7 +51,6 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   if('pathogen' %in% names(db$observedData)){
     levelSet       <- levels(as.factor(inputData$pathogen))
     numLevels      <- length(levelSet)
-    
     
     validLatentFieldColumns <- c('pathogen')
     
@@ -96,8 +97,8 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       inputData$timeRow_rw2 <- inputData$timeRow
       inputData$timeRow_IID <- inputData$timeRow
       
-      formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$global, replicate=replicateIdx) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+      formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$time, replicate=replicateIdx) +
+                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$time, replicate=replicateIdx, constr = TRUE) )
       validLatentFieldColumns <- c(validLatentFieldColumns,'timeRow_rw2','timeRow_IID')
     }
     
@@ -204,8 +205,10 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   
   # linear combination of pathogen and latent fields
 
+    # find unique rows after discarding factors that are being averaged over
     lc.data <- data.frame(inputData[,names(inputData) %in% validLatentFieldColumns], replicateIdx = replicateIdx)
-    lc.data <- lc.data[!duplicated(lc.data),]
+    lc.rowIdx <- !duplicated(lc.data)
+    lc.data <- lc.data[lc.rowIdx,]
     
     # generate list of desired linear combinations # https://groups.google.com/forum/#!topic/r-inla-discussion-group/_e2C2L7Wc30
     lcIdx=c()
@@ -258,15 +261,18 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       }
     }
 
+    
+  # get original values for linear combination categories
+  lc.colIdx <- (names(inputData) %in% db$queryList$GROUP_BY$COLUMN) & !(names(inputData) %in% validFactorNames)
+  lc.data <- inputData[lc.rowIdx,lc.colIdx]
+    
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
-  # if(numLevels==1){
-  #   names(df)[names(df)=='outcome'] <- 'outcome.1'
-  # }
   
   modelDefinition <- list(type='latentField', family = family, formula = formula, lincomb = lc.latentField,
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
-                          latentFieldData = lc.data,  # clean up formatting, but this will be useful for exporting latentField csv
-                          observedData = db$observedData)
+                          latentFieldData = lc.data,  
+                          observedData = db$observedData,
+                          queryList = db$queryList)
 
   return(modelDefinition)
 }
@@ -278,25 +284,19 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
 #' @param db object from dbViewer with observedData tibble and query
 #' @return db with added modeledData tibble
 #' 
-#' @import lubridate
-#'
 appendLatentFieldData <- function(model,modelDefinition){
   
-  modeledData <- modelDefinition$observedData
-  
-  if(modelDefinition$family[1] == 'binomial'){
-    modeledData$fraction <- modeledData$positive/modeledData$n
-  }
-  
   # summary.fitted.values
-  nCol <- ncol(modeledData)
-  modeledData[,nCol+1:ncol(model$summary.fitted.values)]<-model$summary.fitted.values
-  names(modeledData)[nCol+1:ncol(model$summary.fitted.values)]<-paste('fitted.values',names(model$summary.fitted.values),sep='.')
+  modeledData <- appendSmoothData(model,modelDefinition)
   
-  rownames(modeledData)<-c()
+  # latent field
+  # summary.lincomb.derived
+  latentField <- modelDefinition$latentFieldData
+  nCol <- ncol(latentField)
+  latentField[,nCol+1:ncol(model$summary.lincomb.derived)]<-model$summary.lincomb.derived
+  names(latentField)[nCol+1:ncol(model$summary.lincomb.derived)]<-paste('latent.field',names(model$summary.lincomb.derived),sep='.')
   
-  # summary.random
-  # TO-DO
+  rownames(latentField)<-c()
   
-  return(modeledData)
+  return(list(modeledData = modeledData, latentField = latentField))
 }

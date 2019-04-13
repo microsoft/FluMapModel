@@ -24,15 +24,25 @@ modelTrainR <- function(modelDefinition){
   
   # format output
   if(modelDefinition$type =='smooth'){
+    
     modeledData <- appendSmoothData(model,modelDefinition)
+    
+    # return output data
+    return(list(modeledData = modeledData, inla = model, modelDefinition = modelDefinition))
+  
   } else if (modelDefinition$type == 'latentField'){
-    modeledData <- appendLatentFieldData(model,modelDefinition)
+    
+    modeledDataList <- appendLatentFieldData(model,modelDefinition)
+    
+    # return output data
+    return(list(modeledData = modeledDataList$modeledData, latentField = modeledDataList$latentField,
+                inla = model, modelDefinition = modelDefinition))
+    
   } else if (modelDefinition$type == 'effects'){
     
   }
   
-  # return output data
-  return(list(modeledData = modeledData, inla = model, modelDefinition = modelDefinition))
+ 
 }
 
 

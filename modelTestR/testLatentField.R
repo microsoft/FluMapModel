@@ -148,9 +148,9 @@ for(geo in geoLevels){
 
       idx <- model$modeledData$samplingLocation=='hospital'
       plot(log(model$modeledData$fitted.values.mode[idx]))
-      plot(model$inla$summary.lincomb.derived$ID,model$inla$summary.lincomb.derived$mode)
+      plot(model$latentField$latent.field.mode)
 
-      plot(model$inla$summary.lincomb.derived$mode,
+      plot(model$latentField$latent.field.mode,
            log(model$modeledData$fitted.values.mode[idx]))
 
 

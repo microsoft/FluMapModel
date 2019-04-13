@@ -197,8 +197,6 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 #' @param db object from dbViewer with observedData tibble and query
 #' @return db with added modeledData tibble
 #' 
-#' @import lubridate
-#'
 appendSmoothData <- function(model,modelDefinition){
 
   modeledData <- modelDefinition$observedData
