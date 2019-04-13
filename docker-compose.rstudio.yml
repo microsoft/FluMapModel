@@ -25,7 +25,7 @@
 # see what's up: docker-compose -f docker-compose.rstudio.yml ps
 # bring container down: docker-compose -f docker-compose.rstudio.yml down -v
 #
-version: '4'
+version: '3'
 services:
   rstudio:
       build:

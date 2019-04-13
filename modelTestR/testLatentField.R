@@ -138,7 +138,7 @@ for(geo in geoLevels){
   db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
 
 
-  db$observedData <- db$observedData[db$observedData$timeRow<4,]
+  # db$observedData <- db$observedData[db$observedData$timeRow<20,]
 
   # build latent field model
   modelDefinition <- latentFieldModel(db=db, shp=shp)

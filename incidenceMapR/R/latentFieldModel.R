@@ -119,7 +119,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         inputData$timeRow_PUMA5CE <- inputData$timeRow
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_PUMA5CE, control.group=list(model="rw2")))
         validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow','timeRow_PUMA5CE')
       } else {
@@ -137,7 +137,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         inputData$timeRow_CRA_NAME <- inputData$timeRow
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_CRA_NAME, control.group=list(model="rw2")))
         validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow','timeRow_CRA_NAME')
       } else {
@@ -155,7 +155,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         inputData$timeRow_NEIGHBORHOOD_DISTRICT_NAME <- inputData$timeRow
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
                                             group = timeRow_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
         validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow','timeRow_NEIGHBORHOOD_DISTRICT_NAME')
       } else {
@@ -207,7 +207,6 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
     lc.data <- data.frame(inputData[,names(inputData) %in% validLatentFieldColumns], replicateIdx = replicateIdx)
     lc.data <- lc.data[!duplicated(lc.data),]
     
-    
     # generate list of desired linear combinations # https://groups.google.com/forum/#!topic/r-inla-discussion-group/_e2C2L7Wc30
     lcIdx=c()
     spentColumn<-rep(FALSE,length(validLatentFieldColumns))
@@ -219,7 +218,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         pathogenNames <- paste('pathogen',levelSet,sep='')
         
       } else if (!(COLUMN == 'timeRow_PUMA5CE' )) {
-        groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns) 
+        groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns)  # this nasty thing will get refactored: https://github.com/seattleflu/incidence-mapper/issues/13
         if(any(groupIdx & !spentColumn)){ # grouped?
           lcIdx[[COLUMN]] <- inla.idx(lc.data[[COLUMN]], group = lc.data[[validLatentFieldColumns[groupIdx]]], replicate = lc.data$replicateIdx)          
           spentColumn[groupIdx]<-TRUE
@@ -235,25 +234,26 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
     lc.latentField <- c()
     for(k in 1:nrow(lc.data)){
       w<-list()
-      
+
       for(n in 1:length(names(lcIdx))){
         w[[n]]<-rep(0,nrow(lc.data))
         w[[n]][lcIdx[[n]][k]]<-1
       }
-      
+
       A <- c(x=1, w)
       names(A) <- c(pathogenNames[lc.data$replicateIdx[k]],names(lcIdx))
 
       lc <- inla.make.lincomb(A)
       names(lc)<- paste0('latentField',k)
       lc.latentField<-c(lc.latentField,lc)
+      lc.data$latentField[k]<-names(lc)
     }
 
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
   modelDefinition <- list(type='latentField', family = family, formula = formula, lincomb = lc.latentField,
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
-                          latentFieldData = inputData[rownames(inputData) %in% rownames(lc.data),],  # clean up formatting, but this will be useful for exporting latentField csv
+                          latentFieldData = lc.data,  # clean up formatting, but this will be useful for exporting latentField csv
                           queryList = db$queryList)
 
   return(modelDefinition)
