@@ -42,7 +42,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
   hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
   hyper$age <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
-  hyper$time <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+  hyper$time <- list(prec = list( prior = "pc.prec", param = 1/50, alpha = 0.01))
   
 
   # unlike smoothing model, we only replicate latent fields across pathogens, but treat all other factors as fixed effects
@@ -98,7 +98,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       inputData$timeRow_IID <- inputData$timeRow
       
       formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$time, replicate=replicateIdx) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$time, replicate=replicateIdx, constr = TRUE) )
+                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
       validLatentFieldColumns <- c(validLatentFieldColumns,'timeRow_rw2','timeRow_IID')
     }
     

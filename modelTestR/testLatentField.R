@@ -106,68 +106,63 @@ summary(result <- inla(formula = formula, family = family, data = data,
 
 geoLevels <- c('PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME','GEOID')
 
-  geoLevels<-c('PUMA5CE')
+  # geoLevels<-c('PUMA5CE')
+  # geoLevels<-c('CRA_NAME')
+  # geoLevels<-c('NEIGHBORHOOD_DISTRICT_NAME')
   # geoLevels <- c('GEOID')
-  k=1
-  geo=geoLevels[1]
+
+
+# get pathogen list
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen')),
+  GROUP_BY =list(COLUMN=c('pathogen')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
+)
+pathogens <- unique(selectFromDB(  queryIn )$observedData$pathogen)
 
 for(geo in geoLevels){
 
-  # if(geo == 'GEOID'){
-
-    # get pathogen list
-    queryIn <- list(
-      SELECT   =list(COLUMN=c('pathogen')),
-      GROUP_BY =list(COLUMN=c('pathogen')),
-      SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
-    )
-    pathogens <- unique(selectFromDB(  queryIn )$observedData$pathogen)
-  # } else {
-  #   pathogens <- 'all'
-  # }
-
   for( k in 1:length(pathogens)){
-      # query pathogen and time
-      queryIn <- list(
-        SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
-        WHERE    =list(COLUMN=c('pathogen'), IN=pathogens[k]),
-        MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
-        GROUP_BY =list(COLUMN=c('pathogen','timeBin','samplingLocation',geo)),
-        SUMMARIZE=list(COLUMN='pathogen', IN= pathogens[k])
-      )
-      db <- expandDB( selectFromDB(  queryIn ) )
+    # query pathogen, time, levels you want to play with
+    queryIn <- list(
+      SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation','fluShot',geo)),
+      WHERE    =list(COLUMN=c('pathogen'), IN=pathogens[k]),
+      MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
+      GROUP_BY =list(COLUMN=c('pathogen','timeBin','samplingLocation','fluShot',geo)),
+      SUMMARIZE=list(COLUMN='pathogen', IN= pathogens[k])
+    )
+    db <- expandDB( selectFromDB(  queryIn ) )
 
-      db <- appendCatchmentModel(db,shp=shp)
+    db <- appendCatchmentModel(db,shp=shp)
 
-      # build latent field model
-      modelDefinition <- latentFieldModel(db=db, shp=shp)
-      model <- modelTrainR(modelDefinition)
+    # build latent field model
+    modelDefinition <- latentFieldModel(db=db, shp=shp)
+    model <- modelTrainR(modelDefinition)
 
-      summary(model$inla)
-
-
-      idx <- model$modeledData$samplingLocation=='hospital'
-      plot(log(model$modeledData$fitted.values.mode[idx]))
-      plot(model$latentField$latent.field.mode)
-
-      plot(model$latentField$latent.field.mode,
-           log(model$modeledData$fitted.values.mode[idx]))
+    print(summary(model$inla))
 
 
-      saveModel(model, cloudDir = 'data')
+    idx <- model$modeledData$samplingLocation=='hospital' & model$modeledData$fluShot==1
+    plot(log(model$modeledData$fitted.values.mode[idx]))
+    plot(model$latentField$latent.field.mode)
 
-      # model<-returnModel(db$queryList,format='model',type='latentField')
+    plot(model$latentField$latent.field.mode,
+         log(model$modeledData$fitted.values.mode[idx]))
 
-      if (geo =='GEOID'){
-        for(k in unique(model$modeledData$samplingLocation)){
-          for (n in unique(model$modeledData$timeRow)){
-            tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$timeRow == n,])
-            ggplotSmoothMap(tmp,shp,paste(k,n))
-          }
+
+    saveModel(model, cloudDir = 'data')
+
+    # model<-returnModel(db$queryList,format='model',type='latentField')
+
+    if (geo =='GEOID'){
+      for(k in unique(model$modeledData$samplingLocation)){
+        for (n in unique(model$modeledData$timeRow)){
+          tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$timeRow == n,])
+          ggplotSmoothMap(tmp,shp,paste(k,n))
         }
       }
     }
-
+  }
 }
 
 ###################################
