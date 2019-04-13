@@ -104,9 +104,10 @@ summary(result <- inla(formula = formula, family = family, data = data,
 # timeseries latent field
 ###################################
 
-geoLevels <- c('GEOID','PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')
+geoLevels <- c('PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME','GEOID')
 
   geo='PUMA5CE'
+  geoLevels <- c('GEOID')
 
 for(geo in geoLevels){
 
@@ -122,56 +123,62 @@ for(geo in geoLevels){
   catchmentModel <- modelTrainR(catchmentModelDefinition)
   summary(catchmentModel$inla)
 
+  if(geo == 'GEOID'){
 
-  # query pathogen and time
-  queryIn <- list(
-    SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
-    MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
-    GROUP_BY =list(COLUMN=c('pathogen','timeBin','samplingLocation',geo)),
-    SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
-  )
-  db <- expandDB( selectFromDB(  queryIn ) )
+    # get pathogen list
+    queryIn <- list(
+      SELECT   =list(COLUMN=c('pathogen')),
+      GROUP_BY =list(COLUMN=c('pathogen')),
+      SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
+    )
+    pathogens <- unique(selectFromDB(  queryIn )$observedData$pathogen)
 
-  # append catchment as intercept covariate
-  db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
-  names(db$observedData)[names(db$observedData) %in% 'fitted.values.0.5quant'] <- 'catchment'
-  db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
+    for( k in 1:length(pathogens)){
+      # query pathogen and time
+      queryIn <- list(
+        SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
+        MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
+        GROUP_BY =list(COLUMN=c('pathogen','timeBin','samplingLocation',geo)),
+        SUMMARIZE=list(COLUMN='pathogen', IN= pathogens[k])
+      )
+      db <- expandDB( selectFromDB(  queryIn ) )
+
+      # append catchment as intercept covariate
+      db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
+      names(db$observedData)[names(db$observedData) %in% 'fitted.values.0.5quant'] <- 'catchment'
+      db$observedData$catchment <- log(db$observedData$catchment)
+      db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
 
 
-  # db$observedData <- db$observedData[db$observedData$timeRow<20,]
+      # db$observedData <- db$observedData[db$observedData$timeRow<20,]
 
-  # build latent field model
-  modelDefinition <- latentFieldModel(db=db, shp=shp)
-  model <- modelTrainR(modelDefinition)
+      # build latent field model
+      modelDefinition <- latentFieldModel(db=db, shp=shp)
+      model <- modelTrainR(modelDefinition)
 
-  summary(model$inla)
+      summary(model$inla)
 
-  # plot(model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='yam'])
-  # plot(model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='rsva'])
-  # plot(model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='h1n1pdm'])
+      idx <- model$modeledData$samplingLocation=='hospital'
+      # plot(log(model$modeledData$fitted.values.mode[idx]))
 
-  # idx <- model$modeledData$pathogen=='h1n1pdm' & model$modeledData$samplingLocation=='hospital'
-  # plot(log(model$modeledData$fitted.values.mode[idx]))
+      plot(model$inla$summary.lincomb.derived$mode,
+           log(model$modeledData$fitted.values.mode[idx]))
 
-  plot(model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='h1n1pdm'],
-       log(model$modeledData$fitted.values.mode[idx]))
+      # plot(exp(2.9117 + 0.1164*model$modeledData$catchment[idx] +
+      #            model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='h1n1pdm']),
+      #      model$modeledData$fitted.values.mode[idx])
 
-  # plot(exp(2.9117 + 0.1164*model$modeledData$catchment[idx] +
-  #            model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='h1n1pdm']),
-  #      model$modeledData$fitted.values.mode[idx])
+      saveModel(model, cloudDir = 'data')
 
-  saveModel(model, cloudDir = 'data')
+      # model<-returnModel(db$queryList,format='model',type='latentField')
 
-  # model<-returnModel(db$queryList,format='model',type='latentField')
-
-}
-
-{
-  if (geo =='GEOID'){
-    for(k in unique(model$modeledData$samplingLocation)){
-      for (n in unique(model$modeledData$timeRow)){
-        tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$timeRow == n,])
-        ggplotSmoothMap(tmp,shp,paste(k,n))
+      if (geo =='GEOID'){
+        for(k in unique(model$modeledData$samplingLocation)){
+          for (n in unique(model$modeledData$timeRow)){
+            tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$timeRow == n,])
+            ggplotSmoothMap(tmp,shp,paste(k,n))
+          }
+        }
       }
     }
   }
