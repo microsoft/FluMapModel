@@ -106,24 +106,12 @@ summary(result <- inla(formula = formula, family = family, data = data,
 
 geoLevels <- c('PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME','GEOID')
 
-  geo='PUMA5CE'
+  geoLevels<-c('PUMA5CE')
   geoLevels <- c('GEOID')
 
 for(geo in geoLevels){
 
-  # find catchment maps for each samplingLocation and geoLevel
-  queryIn <- list(
-    SELECT   =list(COLUMN=c('samplingLocation',geo)),
-    GROUP_BY =list(COLUMN=c('samplingLocation',geo)),
-    SUMMARIZE=list(COLUMN='samplingLocation', IN= 'all')
-  )
-  db <- expandDB( selectFromDB(  queryIn ) )
-
-  catchmentModelDefinition <- smoothModel(db=db, shp=shp)
-  catchmentModel <- modelTrainR(catchmentModelDefinition)
-  summary(catchmentModel$inla)
-
-  if(geo == 'GEOID'){
+  # if(geo == 'GEOID'){
 
     # get pathogen list
     queryIn <- list(
@@ -132,8 +120,11 @@ for(geo in geoLevels){
       SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
     )
     pathogens <- unique(selectFromDB(  queryIn )$observedData$pathogen)
+  # } else {
+  #   pathogens <- 'all'
+  # }
 
-    for( k in 1:length(pathogens)){
+  for( k in 1:length(pathogens)){
       # query pathogen and time
       queryIn <- list(
         SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
@@ -143,14 +134,7 @@ for(geo in geoLevels){
       )
       db <- expandDB( selectFromDB(  queryIn ) )
 
-      # append catchment as intercept covariate
-      db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
-      names(db$observedData)[names(db$observedData) %in% 'fitted.values.0.5quant'] <- 'catchment'
-      db$observedData$catchment <- log(db$observedData$catchment)
-      db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
-
-
-      # db$observedData <- db$observedData[db$observedData$timeRow<20,]
+      db <- appendCatchmentModel(db,shp=shp)
 
       # build latent field model
       modelDefinition <- latentFieldModel(db=db, shp=shp)
@@ -158,15 +142,14 @@ for(geo in geoLevels){
 
       summary(model$inla)
 
+
       idx <- model$modeledData$samplingLocation=='hospital'
-      # plot(log(model$modeledData$fitted.values.mode[idx]))
+      plot(log(model$modeledData$fitted.values.mode[idx]))
+      plot(model$inla$summary.lincomb.derived$ID,model$inla$summary.lincomb.derived$mode)
 
       plot(model$inla$summary.lincomb.derived$mode,
            log(model$modeledData$fitted.values.mode[idx]))
 
-      # plot(exp(2.9117 + 0.1164*model$modeledData$catchment[idx] +
-      #            model$inla$summary.lincomb.derived$mode[modelDefinition$latentFieldData$pathogen=='h1n1pdm']),
-      #      model$modeledData$fitted.values.mode[idx])
 
       saveModel(model, cloudDir = 'data')
 
@@ -181,7 +164,7 @@ for(geo in geoLevels){
         }
       }
     }
-  }
+
 }
 
 ###################################
