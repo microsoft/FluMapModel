@@ -4,7 +4,7 @@
 \alias{appendSmoothData}
 \title{appendSmoothData: internal function for adding model$summary.fitted.values to db$observedData from smoothModel fit}
 \usage{
-appendSmoothData(model, db, family = "poisson")
+appendSmoothData(model, modelDefinition)
 }
 \arguments{
 \item{model}{inla model object}

@@ -4,7 +4,7 @@
 \alias{appendLatentFieldData}
 \title{appendLatentFieldData: internal function for adding model$summary.random to db$observedData from latentFieldModel fit}
 \usage{
-appendLatentFieldData(model, db, family = "poisson")
+appendLatentFieldData(model, modelDefinition)
 }
 \arguments{
 \item{model}{inla model object}

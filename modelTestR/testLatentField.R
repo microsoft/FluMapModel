@@ -107,7 +107,9 @@ summary(result <- inla(formula = formula, family = family, data = data,
 geoLevels <- c('PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME','GEOID')
 
   geoLevels<-c('PUMA5CE')
-  geoLevels <- c('GEOID')
+  # geoLevels <- c('GEOID')
+  k=1
+  geo=geoLevels[1]
 
 for(geo in geoLevels){
 
@@ -128,6 +130,7 @@ for(geo in geoLevels){
       # query pathogen and time
       queryIn <- list(
         SELECT   =list(COLUMN=c('num_date','pathogen','samplingLocation',geo)),
+        WHERE    =list(COLUMN=c('pathogen'), IN=pathogens[k]),
         MUTATE   =list(COLUMN=c('num_date'), AS='timeBin'),
         GROUP_BY =list(COLUMN=c('pathogen','timeBin','samplingLocation',geo)),
         SUMMARIZE=list(COLUMN='pathogen', IN= pathogens[k])

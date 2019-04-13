@@ -184,7 +184,8 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   
   modelDefinition <- list(type='smooth', family = family, formula = formula, lincomb = c(),
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper,
-                          queryList = db$queryList)
+                          queryList = db$queryList, 
+                          observedData = db$observedData)
   
   return(modelDefinition)
 }
@@ -198,11 +199,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 #' 
 #' @import lubridate
 #'
-appendSmoothData <- function(model,db, family = 'poisson'){
+appendSmoothData <- function(model,modelDefinition){
 
-  modeledData <- db$observedData
+  modeledData <- modelDefinition$observedData
   
-  if(family[1] == 'binomial'){
+  if(modelDefinition$family[1] == 'binomial'){
     modeledData$fraction <- modeledData$positive/modeledData$n
   }
   

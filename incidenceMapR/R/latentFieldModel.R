@@ -40,7 +40,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   # construct priors
   hyper=list()
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
-  hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+  hyper$local <- list(prec = list( prior = "pc.prec", param = 1/1000, alpha = 0.01))
   hyper$age <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
 
   # unlike smoothing model, we only replicate latent fields across pathogens, but treat all other factors as fixed effects
@@ -49,6 +49,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   if('pathogen' %in% names(db$observedData)){
     levelSet       <- levels(as.factor(inputData$pathogen))
     numLevels      <- length(levelSet)
+    
     
     validLatentFieldColumns <- c('pathogen')
     
@@ -71,13 +72,12 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   }
   
   # initialize formula for each level
-  if (numLevels>1){
+  if(numLevels>1){
     outcomeStr <- paste('cbind(',paste(paste('outcome',1:numLevels,sep='.'),sep='',collapse=', '),')',sep='',collapse = '')
     formula <- as.formula(paste(outcomeStr,'~','pathogen - 1 + catchment',sep=' '))
-  } else {
-    formula <- outcome ~ 1 + catchment
+  } else { # why does R do inconsistent stuff with column names!?!!
+    formula <- as.formula('outcome ~ 1 + catchment')
   }
-  
   
   # factors as fixed effects, assuming no interaction terms
   validFactorNames <- c('samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')
@@ -214,8 +214,12 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       
       if(COLUMN %in% c('pathogen') ){
         
-        # need to promote pathogen levels to independent columns! https://groups.google.com/forum/#!topic/r-inla-discussion-group/IaTSakB7qy4
-        pathogenNames <- paste('pathogen',levelSet,sep='')
+        if(numLevels>1){
+          # need to promote pathogen levels to independent columns! https://groups.google.com/forum/#!topic/r-inla-discussion-group/IaTSakB7qy4
+          pathogenNames <- paste('pathogen',levelSet,sep='')
+        } else { # why does R do inconsistent thing with column names?????!
+          pathogenNames <- '(Intercept)'
+        }
         
       } else if (!(COLUMN == 'timeRow_PUMA5CE' )) {
         groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns)  # this nasty thing will get refactored: https://github.com/seattleflu/incidence-mapper/issues/13
@@ -255,11 +259,14 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
     }
 
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
+  # if(numLevels==1){
+  #   names(df)[names(df)=='outcome'] <- 'outcome.1'
+  # }
   
   modelDefinition <- list(type='latentField', family = family, formula = formula, lincomb = lc.latentField,
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
                           latentFieldData = lc.data,  # clean up formatting, but this will be useful for exporting latentField csv
-                          queryList = db$queryList)
+                          observedData = db$observedData)
 
   return(modelDefinition)
 }
@@ -273,11 +280,11 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
 #' 
 #' @import lubridate
 #'
-appendLatentFieldData <- function(model,db, family = 'poisson'){
+appendLatentFieldData <- function(model,modelDefinition){
   
-  modeledData <- db$observedData
+  modeledData <- modelDefinition$observedData
   
-  if(family[1] == 'binomial'){
+  if(modelDefinition$family[1] == 'binomial'){
     modeledData$fraction <- modeledData$positive/modeledData$n
   }
   

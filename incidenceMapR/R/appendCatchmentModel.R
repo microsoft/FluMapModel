@@ -33,7 +33,7 @@ appendCatchmentModel <- function(db,shp = NULL){
   saveModel(catchmentModel)
   
   # append catchment as intercept covariate
-  db$observedData <- db$observedData %>% right_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
+  db$observedData <- db$observedData %>% left_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
   names(db$observedData)[names(db$observedData) %in% 'fitted.values.0.5quant'] <- 'catchment'
   db$observedData$catchment <- log(db$observedData$catchment)
   db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
