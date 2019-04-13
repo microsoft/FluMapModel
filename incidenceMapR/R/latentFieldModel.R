@@ -231,22 +231,27 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
     }
     
   # generate list of desired linear combinations # https://groups.google.com/forum/#!topic/r-inla-discussion-group/_e2C2L7Wc30
-    lc.latentField <- c()
+    lc.latentField <- vector("list", nrow(lc.data))
+    
+    w<-vector("list", length(names(lcIdx))+1)
+    w[[length(names(lcIdx))+1]]<-1 #pathogen
+    
     for(k in 1:nrow(lc.data)){
-      w<-list()
 
       for(n in 1:length(names(lcIdx))){
         w[[n]]<-rep(0,nrow(lc.data))
         w[[n]][lcIdx[[n]][k]]<-1
       }
+      names(w) <- c(names(lcIdx),pathogenNames[lc.data$replicateIdx[k]])
 
-      A <- c(x=1, w)
-      names(A) <- c(pathogenNames[lc.data$replicateIdx[k]],names(lcIdx))
-
-      lc <- inla.make.lincomb(A)
+      lc <- inla.make.lincomb(w)
       names(lc)<- paste0('latentField',k)
-      lc.latentField<-c(lc.latentField,lc)
+      lc.latentField[k]<-lc
       lc.data$latentField[k]<-names(lc)
+      
+      if( (k %% 100) == 0){
+        print(k/nrow(lc.data))
+      }
     }
 
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
