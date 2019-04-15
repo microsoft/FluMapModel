@@ -10,6 +10,8 @@
 #' @import jsonlite
 #' @import dplyr
 #' @import lubridate
+#' @import DBI
+#' @import RPostgres
 #' @importFrom RCurl getURL
 #' @importFrom magrittr %>%
 #' @importFrom lazyeval interp
@@ -43,21 +45,21 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   }
 
   # connect to database
-  if(source = 'simulated_data'){
+  if(source == 'simulated_data'){
 
      rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
      db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
 
-  } else if(source = 'production'){
+  } else if(source == 'production'){
 
     # link to credentials file and input credential below
      rawData <- dbConnect(RPostgres::Postgres(), host="production.db.seattleflu.org", dbname = 'production', user='', password='')
 
-     db <- dbGetQuery(db, "select * from shipping.incidence_model_observation_v1;")
+     db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;")
      dbDisconnect(rawData)
 
     # clean up string formatting and harmonize factors vs character
-    
+
   } else {
      print('unknown source database!')
   }

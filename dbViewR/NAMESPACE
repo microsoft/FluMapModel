@@ -3,6 +3,8 @@
 export(expandDB)
 export(masterSpatialDB)
 export(selectFromDB)
+import(DBI)
+import(RPostgres)
 import(dplyr)
 import(jsonlite)
 import(lubridate)
