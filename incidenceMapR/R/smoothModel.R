@@ -32,7 +32,7 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   if(is.null(family)){
     if (all(inputData$n == inputData$positive)){
       family = 'poisson'
-    } else if (any(inputData$n > inputData$positive)){
+    } else if (all(db$observedData$n >= db$observedData$positive)){
       family = 'binomial'
     } else if (any(inputData$n < inputData$positive)){
       return('n < positive !!!  invald db$observedData.')
@@ -51,7 +51,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   factorIdx <- validFactorNames %in% names(db$observedData) 
   
   # combine factors for independent intercepts
-  inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
+  if(any(factorIdx)){
+    inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
+  } else {
+    inputData$levelIntercept <- as.factor('(Intercept)')
+  }
   levelSet       <- levels(inputData$levelIntercept)
   numLevels      <- length(levelSet)
   

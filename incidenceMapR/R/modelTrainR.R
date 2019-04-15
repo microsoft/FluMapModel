@@ -20,7 +20,7 @@ modelTrainR <- function(modelDefinition){
                 Ntrials = modelDefinition$inputData$n,
                 control.predictor=list(compute=TRUE,link=1),
                 control.compute=list(config=TRUE,dic=TRUE),verbose = TRUE,
-                control.inla=list(int.strategy="eb", strategy = "gaussian"))
+                control.inla=list(int.strategy="auto", strategy = "gaussian"))
   
   # format output
   if(modelDefinition$type =='smooth'){
@@ -99,8 +99,13 @@ saveModel <- function(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/Seattl
   filename <- digest::digest(paste(digest::digest(model$modeledData),ts,sep=''))
                              
   saveRDS(model,paste(cloudDir,'/',filename,'.RDS',sep=''))
-  write.csv(model$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
-
+  if(modelDefinition$type == 'smooth'){
+    write.csv(model$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
+  } else if(modelDefinition$type == 'latentField'){
+    write.csv(model$latentField,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
+    # TO-DO: it would be nice to also save and recall smoother from this, but that requires changes to returnModel as well.
+  }
+  
   # register in modelDB
   newRow <- list(filename=filename,
                  queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
