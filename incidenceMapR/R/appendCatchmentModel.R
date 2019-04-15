@@ -24,14 +24,14 @@ appendCatchmentModel <- function(db,shp = NULL){
   )
   pathogens <- unique(selectFromDB(  queryIn )$observedData$pathogen)
   
-  # find catchment maps for each samplingLocation and geoLevel
+  # find catchment maps for each sampling_location and geoLevel
   # catchment represented by all samples not from target virus. Idea being participation due to other pathogens is assumed
   # to be uncorrelated with pathogen of interest. Social dynamics could violate this assumption.
   queryIn <- list(
-    SELECT   =list(COLUMN=c('pathogen','samplingLocation',geo)),
+    SELECT   =list(COLUMN=c('pathogen','sampling_location',geo)),
     WHERE    =list(COLUMN=c('pathogen'), IN = setdiff(pathogens, unique(db$observedData$pathogen))),
-    GROUP_BY =list(COLUMN=c('samplingLocation',geo)),
-    SUMMARIZE=list(COLUMN='samplingLocation', IN= 'all')
+    GROUP_BY =list(COLUMN=c('sampling_location',geo)),
+    SUMMARIZE=list(COLUMN='sampling_location', IN= 'all')
   )
   catchmentDb <- expandDB( selectFromDB(  queryIn ) )
   
@@ -42,8 +42,8 @@ appendCatchmentModel <- function(db,shp = NULL){
   catchmentModel <- modelTrainR(catchmentModelDefinition)
   
   # append catchment as intercept covariate
-  db$observedData <- db$observedData %>% left_join(catchmentModel$modeledData %>% select(samplingLocation, geo, fitted.values.0.5quant))
-  names(db$observedData)[names(db$observedData) %in% 'fitted.values.0.5quant'] <- 'catchment'
+  db$observedData <- db$observedData %>% left_join(catchmentModel$modeledData %>% select(sampling_location, geo, fitted_values_0_5quant))
+  names(db$observedData)[names(db$observedData) %in% 'fitted_values_0_5quant'] <- 'catchment'
   db$observedData$catchment <- log(db$observedData$catchment)
   db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
   

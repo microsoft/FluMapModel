@@ -81,7 +81,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   }
   
   # factors as fixed effects, assuming no interaction terms
-  validFactorNames <- c('samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')
+  validFactorNames <- c('sampling_location','flu_shot','sex','has_fever','has_cough','has_myalgia')
   factorIdx <- names(db$observedData) %in% validFactorNames
   for(COLUMN in names(db$observedData)[factorIdx]){
     formula <- as.formula(paste(as.character(formula)[2],'~',paste(as.character(formula)[3],COLUMN,sep='+')))
@@ -91,38 +91,38 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   # latent fields
   for(COLUMN in names(inputData)[!(names(inputData) %in% c('positive','n'))]){
     
-    if(COLUMN == 'timeRow'){
+    if(COLUMN == 'time_row'){
       
       #INLA needs one column per random effect
-      inputData$timeRow_rw2 <- inputData$timeRow
-      inputData$timeRow_IID <- inputData$timeRow
+      inputData$time_row_rw2 <- inputData$time_row
+      inputData$time_row_IID <- inputData$time_row
       
-      formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$time, replicate=replicateIdx) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
-      validLatentFieldColumns <- c(validLatentFieldColumns,'timeRow_rw2','timeRow_IID')
+      formula <- update(formula,  ~ . + f(time_row_rw2, model='rw2', hyper=modelDefinition$hyper$time, replicate=replicateIdx) +
+                          f(time_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+      validLatentFieldColumns <- c(validLatentFieldColumns,'time_row_rw2','time_row_IID')
     }
     
-    if(COLUMN == 'ageRow'){
+    if(COLUMN == 'age_row'){
       
-      inputData$ageRow_rw2 <- inputData$ageRow
-      inputData$ageRow_IID <- inputData$ageRow
+      inputData$age_row_rw2 <- inputData$age_row
+      inputData$age_row_IID <- inputData$age_row
       
-      formula <- update(formula,  ~ . + f(ageRow_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
-                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
-      validLatentFieldColumns <- c(validLatentFieldColumns,'ageRow_rw2','ageRow_IID')
+      formula <- update(formula,  ~ . + f(age_row_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
+                          f(age_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+      validLatentFieldColumns <- c(validLatentFieldColumns,'age_row_rw2','age_row_IID')
     }
     
     if(COLUMN %in% c('PUMA5CE')){
       
       inputData$PUMA5CERow <- match(inputData$PUMA5CE,unique(inputData$PUMA5CE))
       
-      if('timeRow' %in% names(inputData)){
+      if('time_row' %in% names(inputData)){
         
-        inputData$timeRow_PUMA5CE <- inputData$timeRow
+        inputData$time_row_PUMA5CE <- inputData$time_row
         
         formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = timeRow_PUMA5CE, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow','timeRow_PUMA5CE')
+                                            group = time_row_PUMA5CE, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow','time_row_PUMA5CE')
       } else {
         
         formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
@@ -134,13 +134,13 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       
       inputData$CRA_NAMERow <- match(inputData$CRA_NAME,unique(inputData$CRA_NAME))
       
-      if('timeRow' %in% names(inputData)){
+      if('time_row' %in% names(inputData)){
         
-        inputData$timeRow_CRA_NAME <- inputData$timeRow
+        inputData$time_row_CRA_NAME <- inputData$time_row
         
         formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = timeRow_CRA_NAME, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow','timeRow_CRA_NAME')
+                                            group = time_row_CRA_NAME, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow','time_row_CRA_NAME')
       } else {
         
         formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
@@ -152,13 +152,13 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       
       inputData$NEIGHBORHOOD_DISTRICT_NAMERow <- match(inputData$NEIGHBORHOOD_DISTRICT_NAME,unique(inputData$NEIGHBORHOOD_DISTRICT_NAME))
       
-      if('timeRow' %in% names(inputData)){
+      if('time_row' %in% names(inputData)){
         
-        inputData$timeRow_NEIGHBORHOOD_DISTRICT_NAME <- inputData$timeRow
+        inputData$time_row_NEIGHBORHOOD_DISTRICT_NAME <- inputData$time_row
         
         formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = timeRow_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow','timeRow_NEIGHBORHOOD_DISTRICT_NAME')
+                                            group = time_row_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow','time_row_NEIGHBORHOOD_DISTRICT_NAME')
       } else {
         
         formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
@@ -172,13 +172,13 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         neighborGraph <- constructAdjacencyNetwork(shp) 
         inputData$GEOIDRow <- shp$rowID[match(inputData$GEOID,shp$GEOID)]
         
-        if('timeRow' %in% names(inputData)){
+        if('time_row' %in% names(inputData)){
           
-          inputData$timeRow_GEOID <- inputData$timeRow
+          inputData$time_row_GEOID <- inputData$time_row
           
           formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = timeRow_GEOID, control.group=list(model="rw2")))
-          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','timeRow_GEOID')
+                                              group = time_row_GEOID, control.group=list(model="rw2")))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','time_row_GEOID')
         } else {
           formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
           validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow')
@@ -187,13 +187,13 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
         
         inputData$GEOIDRow <- match(inputData$GEOID,unique(inputData$GEOID))
         
-        if('timeRow' %in% names(inputData)){
+        if('time_row' %in% names(inputData)){
           
-          inputData$timeRow_GEOID <- inputData$timeRow
+          inputData$time_row_GEOID <- inputData$time_row
           
           formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = timeRow_GEOID, control.group=list(model="rw2")))
-          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','timeRow_GEOID')
+                                              group = time_row_GEOID, control.group=list(model="rw2")))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','time_row_GEOID')
         } else {
           formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
           validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow')
@@ -224,7 +224,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
           pathogenNames <- '(Intercept)'
         }
         
-      } else if (!(COLUMN == 'timeRow_PUMA5CE' )) {
+      } else if (!(COLUMN == 'time_row_PUMA5CE' )) {
         groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns)  # this nasty thing will get refactored: https://github.com/seattleflu/incidence-mapper/issues/13
         if(any(groupIdx & !spentColumn)){ # grouped?
           lcIdx[[COLUMN]] <- inla.idx(lc.data[[COLUMN]], group = lc.data[[validLatentFieldColumns[groupIdx]]], replicate = lc.data$replicateIdx)          
@@ -252,7 +252,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       names(w) <- c(names(lcIdx),pathogenNames[lc.data$replicateIdx[k]])
 
       lc <- inla.make.lincomb(w)
-      names(lc)<- paste0('latentField',k)
+      names(lc)<- paste0('latent_field',k)
       lc.latentField[k]<-lc
       lc.data$latentField[k]<-names(lc)
       
@@ -268,7 +268,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
     
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
-  modelDefinition <- list(type='latentField', family = family, formula = formula, lincomb = lc.latentField,
+  modelDefinition <- list(type='latent_field', family = family, formula = formula, lincomb = lc.latentField,
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
                           latentFieldData = lc.data,  
                           observedData = db$observedData,
@@ -297,6 +297,9 @@ appendLatentFieldData <- function(model,modelDefinition){
   names(latentField)[nCol+1:ncol(model$summary.lincomb.derived)]<-paste('latent.field',names(model$summary.lincomb.derived),sep='.')
   
   rownames(latentField)<-c()
+  
+  # snake_case
+  names(latentField) <- gsub('\\.','_',names(latentField))
   
   return(list(modeledData = modeledData, latentField = latentField))
 }

@@ -30,7 +30,7 @@ modelTrainR <- function(modelDefinition){
     # return output data
     return(list(modeledData = modeledData, inla = model, modelDefinition = modelDefinition))
   
-  } else if (modelDefinition$type == 'latentField'){
+  } else if (modelDefinition$type == 'latent_field'){
     
     modeledDataList <- appendLatentFieldData(model,modelDefinition)
     
@@ -99,9 +99,10 @@ saveModel <- function(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/Seattl
   filename <- digest::digest(paste(digest::digest(model$modeledData),ts,sep=''))
                              
   saveRDS(model,paste(cloudDir,'/',filename,'.RDS',sep=''))
+  
   if(modelDefinition$type == 'smooth'){
     write.csv(model$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
-  } else if(modelDefinition$type == 'latentField'){
+  } else if(modelDefinition$type == 'latent_field'){
     write.csv(model$latentField,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
     # TO-DO: it would be nice to also save and recall smoother from this, but that requires changes to returnModel as well.
   }
