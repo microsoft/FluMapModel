@@ -27,12 +27,6 @@ Currently, this service pulls data from seattleflu/simulated-data.  There are re
 - hook api_service to modelServR **OR** jettison R connection and handle modelServR tasks solely in python layer. 
 - **incidenceMapR** needs a ton of work
   - build model definitions for modelTrainR with
-    - modelSmooth
-      - Decide how to handle factors in software. I want each factor level to be smoothed independently, and so the natural thing is one model per factor level. But that's not the natural way to pass the data to visualization. The best solution is probably merge factor models at a higher level after modelSmooth is run. 
-    - modelLatentField
-      - write function
-        - figure out inla.make.lincomb to combine random effects components of latent fields
-      - write appendLatentField to manage modeled data
     - modelEffects
       - write function etc
   - **saveModel** improvements
@@ -56,10 +50,6 @@ Currently, this service pulls data from seattleflu/simulated-data.  There are re
 - dbViewR::expandDB needs to know about permitted columns from real database and rules for table expansion.
     - get database schema from Hutch. 
 
-## incidenceMapR
-- define standard models to fit and output
-- dockerize model building and deploy on threadripper
-
 ## modelServR
 - Define API with James, Antonio, and Thomas.
   - We intend to ship models as JSON blobs.
@@ -79,6 +69,4 @@ Currently, this service pulls data from seattleflu/simulated-data.  There are re
 - adjacency networks
   - define lowest spatial scale based on based shapes, instead of GEOID (census tract) only
   - allow adjacency network models beyond default contiguous nearest-neighbor
-  
-
 

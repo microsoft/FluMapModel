@@ -17,16 +17,17 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   # bounded columns
   validColumnData <- list(
     num_date = unique(linelist$observedData$num_date),
-    samplingLocation = unique(linelist$observedData$samplingLocation),
+    encountered_date = unique(linelist$observedData$encountered_date),
+    sampling_location = unique(linelist$observedData$sampling_location),
     sex = unique(linelist$observedData$sex),
-    fluShot = unique(linelist$observedData$fluShot),
+    flu_shot = unique(linelist$observedData$flu_shot),
     age = unique(linelist$observedData$age),
-    hasFever = unique(linelist$observedData$hasFever),
-    hasCough = unique(linelist$observedData$hasCough),
-    hasMyalgia = unique(linelist$observedData$hasMyalgia),
+    has_fever = unique(linelist$observedData$has_fever),
+    has_cough = unique(linelist$observedData$has_cough),
+    has_myalgia = unique(linelist$observedData$has_myalgia),
     GEOID = shp$GEOID,
-    CRA_NAME = unique(shp$CRA_NAM),
-    NEIGHBORHOOD_DISTRICT_NAME = unique(shp$NEIGHBO),
+    CRA_NAME = unique(shp$CRA_NAME),
+    NEIGHBORHOOD_DISTRICT_NAME = unique(shp$NEIGHBORHOOD_DISTRICT_NAME),
     PUMA5CE = unique(shp$PUMA5CE),
     pathogen = unique(linelist$observedData$pathogen)
   ) 
@@ -43,20 +44,30 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # transformations
-  if(any(grepl('num_date',names(db$observedData)))) {
-    timeBin <- floor((validColumnData$num_date)*52)/52
-    validColumnData$timeBin <- seq(min(timeBin),max(timeBin)+4/52,by= 1/52) 
+  if('epi_week' %in% names(db$observedData)){
+    validColumnData$epi_week <- sort(unique(db$observedData$epi_week))
+    validColumnData$time_row <- 1:(length(validColumnData$epi_week)+4)
+    
+    # format predict epi week str
+    tmp<-sapply(strsplit(validColumnData$epi_week[length(validColumnData$epi_week)],'_W'),as.numeric)
+    for(k in 1:4){
+      ew <- (tmp[2] + k) %% 52
+      ey <- tmp[1] + floor((tmp[2] + k)/52)
+      validColumnData$epi_week[length(validColumnData$epi_week)+1]<-paste(ey,'_W',ew,sep='')
+    }
   }
+  
+  # age bin
   if(any(grepl('age',names(db$observedData)))) {
-    validColumnData$ageBin <- seq(0,90,by=1)
+    validColumnData$age_bin <- seq(0,90,by=1)
+    validColumnData$age_row <- 1+seq(0,90,by=1)
   }
   
   # expand.grid for non-nested variables
   colIdx <- ( names(validColumnData) %in% names(db$observedData) ) & 
     !( names(validColumnData) %in% names(nestedVariables)) &
-    !( names(validColumnData) %in% c('num_date','age'))
-  tmp<-expand.grid(validColumnData[colIdx])
-                                   
+    !( names(validColumnData) %in% c('encountered_date','age'))
+  tmp<-expand.grid(validColumnData[colIdx],stringsAsFactors = FALSE)
   
   # join
   db$observedData <- dplyr::left_join(tmp,db$observedData, by=names(validColumnData)[colIdx])
@@ -69,16 +80,6 @@ expandDB <- function( db = dbViewR::selectFromDB(),
     if(all(db$observedData$positive[idx]==db$observedData$n[idx])){
       db$observedData$positive[!idx]<-0
     }
-  
-  # age and num_date discretized for viz
-    if(any(names(db$observedData) == 'age' )){
-      db$observedData$ageBin <- floor(pmin(90,db$observedData$age))
-      db$observedData$age <- db$observedData$ageBin
-    }
-    
-    if(any(names(db$observedData) == 'num_date' )){
-      db$observedData$num_date <- db$observedData$timeBin
-    }
     
   # nested variables
   if(length(nestedVariables) > 0) {
@@ -90,14 +91,11 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # row indices for INLA
-  validColumnData$timeRow <- 1:length(validColumnData$timeBin)
-  validColumnData$ageRow <- 1:length(validColumnData$ageBin)
-  
-  if(any(grepl('timeBin',names(db$observedData)))){
-    db$observedData$timeRow <- validColumnData$timeRow[match(db$observedData$timeBin,validColumnData$timeBin)]
+  if(any(grepl('epi_week',names(db$observedData)))){
+    db$observedData$time_row <- validColumnData$time_row[match(db$observedData$epi_week,validColumnData$epi_week)]
   }
-  if(any(grepl('ageBin',names(db$observedData)))){
-    db$observedData$ageRow <- validColumnData$ageRow[match(db$observedData$ageBin,validColumnData$ageBin)]
+  if(any(grepl('age',names(db$observedData)))){
+    db$observedData$age_row <- validColumnData$age_row[match(db$observedData$age_bin,validColumnData$age_bin)]
   }
   
   return(db)

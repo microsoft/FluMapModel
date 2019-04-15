@@ -2,12 +2,12 @@
 # If on Linx, run the following first
 # export UID=$UID
 #
-# docker-compose -f docker-compose.rstudtio.yml up -d 
+# docker-compose -f docker-compose.rstudio.yml up -d 
 # Open up http://hostname:8787
 #
 # To change the port, or you want to run multiple instances, specify the
 # 2nd and on containers, run like so
-# docker-compose -f docker-compose.rstudtio.yml run -dp 8788:8787 rstudio
+# docker-compose -f docker-compose.rstudio.yml run -dp 8788:8787 rstudio
 #
 # The current directory will be mapped to /home/rstudio/seattle_flu
 #
@@ -20,6 +20,11 @@
 # You may need system dependencies
 # Any changes you make to running container it is good practice
 # to add to the Dockerfile.RBuild.Env
+#
+# other useful commands:
+# see what's up: docker-compose -f docker-compose.rstudio.yml ps
+# bring container down: docker-compose -f docker-compose.rstudio.yml down -v
+#
 version: '3'
 services:
   rstudio:
