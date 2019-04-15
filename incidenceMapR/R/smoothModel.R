@@ -32,7 +32,7 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   if(is.null(family)){
     if (all(inputData$n == inputData$positive)){
       family = 'poisson'
-    } else if (any(inputData$n > inputData$positive)){
+    } else if (all(db$observedData$n >= db$observedData$positive)){
       family = 'binomial'
     } else if (any(inputData$n < inputData$positive)){
       return('n < positive !!!  invald db$observedData.')
@@ -47,11 +47,15 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
  
   
   # we smooth across factor levels with random effects replicates: http://www.r-inla.org/models/tools#TOC-Models-with-more-than-one-type-of-likelihood
-  validFactorNames <- c('pathogen','samplingLocation','fluShot','sex','hasFever','hasCough','hasMyalgia')
+  validFactorNames <- c('pathogen','sampling_location','flu_shot','sex','has_fever','has_cough','has_myalgia')
   factorIdx <- validFactorNames %in% names(db$observedData) 
   
   # combine factors for independent intercepts
-  inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
+  if(any(factorIdx)){
+    inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
+  } else {
+    inputData$levelIntercept <- as.factor('(Intercept)')
+  }
   levelSet       <- levels(inputData$levelIntercept)
   numLevels      <- length(levelSet)
   
@@ -80,35 +84,35 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   # build out smoothing formula  
   for(COLUMN in names(inputData)[!(names(inputData) %in% c('positive','n'))]){
     
-    if(COLUMN == 'timeRow'){
+    if(COLUMN == 'time_row'){
       
       #INLA needs one column per random effect
-      inputData$timeRow_rw2 <- inputData$timeRow
-      inputData$timeRow_IID <- inputData$timeRow
+      inputData$time_row_rw2 <- inputData$time_row
+      inputData$time_row_IID <- inputData$time_row
       
-      formula <- update(formula,  ~ . + f(timeRow_rw2, model='rw2', hyper=modelDefinition$hyper$global, replicate=replicateIdx) +
-                          f(timeRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
+      formula <- update(formula,  ~ . + f(time_row_rw2, model='rw2', hyper=modelDefinition$hyper$global, replicate=replicateIdx) +
+                          f(time_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
     }
     
-    if(COLUMN == 'ageRow'){
+    if(COLUMN == 'age_row'){
       
-      inputData$ageRow_rw2 <- inputData$ageRow
-      inputData$ageRow_IID <- inputData$ageRow
+      inputData$age_row_rw2 <- inputData$age_row
+      inputData$age_row_IID <- inputData$age_row
       
-      formula <- update(formula,  ~ . + f(ageRow_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
-                          f(ageRow_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx) )
+      formula <- update(formula,  ~ . + f(age_row_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
+                          f(age_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
     }
     
     if(COLUMN %in% c('PUMA5CE')){
       
       inputData$PUMA5CERow <- match(inputData$PUMA5CE,unique(inputData$PUMA5CE))
       
-      if('timeRow' %in% names(inputData)){
+      if('time_row' %in% names(inputData)){
         
-        inputData$timeRow_PUMA5CE <- inputData$timeRow
+        inputData$time_row_PUMA5CE <- inputData$time_row
         
         formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = timeRow_PUMA5CE, control.group=list(model="rw2")))
+                                            group = time_row_PUMA5CE, control.group=list(model="rw2")))
       } else {
         
         formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
@@ -119,12 +123,12 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       
       inputData$CRA_NAMERow <- match(inputData$CRA_NAME,unique(inputData$CRA_NAME))
       
-      if('timeRow' %in% names(inputData)){
+      if('time_row' %in% names(inputData)){
         
-        inputData$timeRow_CRA_NAME <- inputData$timeRow
+        inputData$time_row_CRA_NAME <- inputData$time_row
         
         formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = timeRow_CRA_NAME, control.group=list(model="rw2")))
+                                            group = time_row_CRA_NAME, control.group=list(model="rw2")))
       } else {
         
         formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
@@ -135,12 +139,12 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
       
       inputData$NEIGHBORHOOD_DISTRICT_NAMERow <- match(inputData$NEIGHBORHOOD_DISTRICT_NAME,unique(inputData$NEIGHBORHOOD_DISTRICT_NAME))
       
-      if('timeRow' %in% names(inputData)){
+      if('time_row' %in% names(inputData)){
         
-        inputData$timeRow_NEIGHBORHOOD_DISTRICT_NAME <- inputData$timeRow
+        inputData$time_row_NEIGHBORHOOD_DISTRICT_NAME <- inputData$time_row
         
         formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = timeRow_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
+                                            group = time_row_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
       } else {
         
         formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
@@ -153,12 +157,12 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
         neighborGraph <- constructAdjacencyNetwork(shp) 
         inputData$GEOIDRow <- shp$rowID[match(inputData$GEOID,shp$GEOID)]
         
-        if('timeRow' %in% names(inputData)){
+        if('time_row' %in% names(inputData)){
           
-          inputData$timeRow_GEOID <- inputData$timeRow
+          inputData$time_row_GEOID <- inputData$time_row
           
           formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = timeRow_GEOID, control.group=list(model="rw2")))
+                                              group = time_row_GEOID, control.group=list(model="rw2")))
         } else {
           formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
         }
@@ -166,12 +170,12 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
         
         inputData$GEOIDRow <- match(inputData$GEOID,unique(inputData$GEOID))
         
-        if('timeRow' %in% names(inputData)){
+        if('time_row' %in% names(inputData)){
           
-          inputData$timeRow_GEOID <- inputData$timeRow
+          inputData$time_row_GEOID <- inputData$time_row
           
           formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = timeRow_GEOID, control.group=list(model="rw2")))
+                                              group = time_row_GEOID, control.group=list(model="rw2")))
         } else {
           formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
         }
@@ -182,9 +186,10 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
-  modelDefinition <- list(type='smooth', family = family, formula = formula, 
+  modelDefinition <- list(type='smooth', family = family, formula = formula, lincomb = c(),
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper,
-                          queryList = db$queryList)
+                          queryList = db$queryList, 
+                          observedData = db$observedData)
   
   return(modelDefinition)
 }
@@ -194,13 +199,17 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 #'
 #' @param model inla model object
 #' @param db object from dbViewer with observedData tibble and query
+#' 
+#' @import dplyr
+#' @import magrittr
+#' 
 #' @return db with added modeledData tibble
-#'
-appendSmoothData <- function(model,db, family = 'poisson'){
+#' 
+appendSmoothData <- function(model,modelDefinition){
 
-  modeledData <- db$observedData
+  modeledData <- modelDefinition$observedData
   
-  if(family[1] == 'binomial'){
+  if(modelDefinition$family[1] == 'binomial'){
     modeledData$fraction <- modeledData$positive/modeledData$n
   }
   
@@ -210,5 +219,13 @@ appendSmoothData <- function(model,db, family = 'poisson'){
   names(modeledData)[nCol+1:ncol(model$summary.fitted.values)]<-paste('fitted.values',names(model$summary.fitted.values),sep='.')
   
   rownames(modeledData)<-c()
+  
+  # snake_case
+  names(modeledData) <- gsub('\\.','_',names(modeledData))
+  
+  # pretty order 
+  columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(modeledData)]
+  modeledData <- modeledData %>% arrange_(.dots=columns)
+  
   return(modeledData)
 }

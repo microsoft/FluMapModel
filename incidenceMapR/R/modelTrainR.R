@@ -16,22 +16,33 @@ modelTrainR <- function(modelDefinition){
   model <- inla(formula = modelDefinition$formula,
                 family = modelDefinition$family, 
                 data = modelDefinition$inputData, 
+                lincomb = modelDefinition$lincomb,
                 Ntrials = modelDefinition$inputData$n,
                 control.predictor=list(compute=TRUE,link=1),
                 control.compute=list(config=TRUE,dic=TRUE),verbose = TRUE,
-                control.inla=list(int.strategy="eb", strategy = "gaussian"))
+                control.inla=list(int.strategy="auto", strategy = "gaussian"))
   
   # format output
   if(modelDefinition$type =='smooth'){
-    modeledData <- appendSmoothData(model,db, family = modelDefinition$family)
-  } else if (modelDefinition$type == 'latent'){
+    
+    modeledData <- appendSmoothData(model,modelDefinition)
+    
+    # return output data
+    return(list(modeledData = modeledData, inla = model, modelDefinition = modelDefinition))
+  
+  } else if (modelDefinition$type == 'latent_field'){
+    
+    modeledDataList <- appendLatentFieldData(model,modelDefinition)
+    
+    # return output data
+    return(list(modeledData = modeledDataList$modeledData, latentField = modeledDataList$latentField,
+                inla = model, modelDefinition = modelDefinition))
     
   } else if (modelDefinition$type == 'effects'){
     
   }
   
-  # return output data
-  return(list(modeledData = modeledData, inla = model, modelDefinition = modelDefinition))
+ 
 }
 
 
@@ -88,8 +99,14 @@ saveModel <- function(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/Seattl
   filename <- digest::digest(paste(digest::digest(model$modeledData),ts,sep=''))
                              
   saveRDS(model,paste(cloudDir,'/',filename,'.RDS',sep=''))
-  write.csv(model$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
-
+  
+  if(modelDefinition$type == 'smooth'){
+    write.csv(model$modeledData,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
+  } else if(modelDefinition$type == 'latent_field'){
+    write.csv(model$latentField,paste(cloudDir,'/',filename,'.csv',sep=''),row.names = FALSE,quote = FALSE)
+    # TO-DO: it would be nice to also save and recall smoother from this, but that requires changes to returnModel as well.
+  }
+  
   # register in modelDB
   newRow <- list(filename=filename,
                  queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),

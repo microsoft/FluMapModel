@@ -31,14 +31,14 @@ p<-mapSettings + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 #   theme(axis.text=element_blank(),axis.ticks=element_blank(),panel.grid.major=element_line(colour="transparent"), panel.border = element_blank())
 # p<-mapSettingsTight + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 
-colorLimits<-c(min(c(plotDat$positive,plotDat$fitted.values.mode),na.rm=TRUE),max(c(plotDat$positive,plotDat$fitted.values.mode),na.rm=TRUE))
+colorLimits<-c(min(c(plotDat$positive,plotDat$fitted_values_mode),na.rm=TRUE),max(c(plotDat$positive,plotDat$fitted_values_mode),na.rm=TRUE))
 colorBreaks<-round(seq(min(colorLimits),sqrt(max(colorLimits)), length.out = 6)^2)
 
 p1 <- p + geom_sf(data=plotDat,size=0, aes(fill=positive))  +
   guides(fill=guide_legend(title="observed")) +
   scale_fill_viridis(na.value="transparent",trans = "sqrt",breaks=colorBreaks,limits=colorLimits)
 
-p2 <- p + geom_sf(data=plotDat,size=0, aes(fill=fitted.values.mode))  +
+p2 <- p + geom_sf(data=plotDat,size=0, aes(fill=fitted_values_mode))  +
   guides(fill=guide_legend(title="expected")) +
   scale_fill_viridis(na.value="transparent",trans = "sqrt",breaks=colorBreaks,limits=colorLimits)
 

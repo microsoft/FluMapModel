@@ -8,6 +8,7 @@
 #'
 #' @import jsonlite
 #' @import dplyr
+#' @import lubridate
 #' @importFrom RCurl getURL
 #' @importFrom magrittr %>%
 #' @importFrom lazyeval interp
@@ -17,9 +18,9 @@
 #' return h1n1pdm summary by time and location
 #' queryJSON <- jsonlite::toJSON(
 #'   list(
-#'       SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
-#'       MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
-#'       GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
+#'       SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
+#'       MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
+#'       GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
 #'       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 #'       )
 #'    )
@@ -27,9 +28,9 @@
 #'
 selectFromDB <- function( queryIn = jsonlite::toJSON(
                             list(
-                              SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
-                              MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
-                              GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
+                              SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
+                              MUTATE   =list(COLUMN=c('encountered_date'), AS='epi_week'),
+                              GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
                           ) ){
@@ -41,7 +42,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   }
 
   # connect to database
-    rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulatedSubjectDatabase.csv")
+    rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
     db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
 
   # run query
@@ -66,18 +67,19 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
         }
       }
     }
-
-    if('MUTATE' %in% names(queryList)){
-      for( newCol in queryList$MUTATE$COLUMN){
-        if(newCol == 'num_date'){
-          db <- db %>% dplyr::mutate( timeBin = floor((num_date)*52)/52)
-        }
-        if(newCol == 'age'){
-          db <- db %>% dplyr::mutate( ageBin = floor(pmin(age,90)))
-        }
-      }
+    
+    # time bin mutations
+    if('encountered_date' %in% names(db)){
+      db$encountered_date <- as.Date(db$encountered_date)
+      db$epi_week <- paste(lubridate::epiyear(db$encountered_date),'_W',sprintf('%02d',lubridate::epiweek(db$encountered_date)),sep='')
     }
     
+    # age bin mutations
+    if('age' %in% names(db)){
+      db$age_bin <- floor(pmin(db$age,90))
+    }
+    
+
     if('GROUP_BY' %in% names(queryList)){
       db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
     }
@@ -93,12 +95,10 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       db <- db %>% dplyr::summarise_(n = lazyeval::interp(~n()), positive = summary_criteria) 
     }
 
+    
   # type harmonization
-    if ("GEOID" %in% names(db)){
-      db$GEOID <- as.character(db$GEOID)
-    }
-    if ("PUMA5CE" %in% names(db)){
-      db$PUMA5CE <- as.character(db$PUMA5CE)
+    for( COLUMN in names(db)[names(db) %in% c('GEOID','CRA_NAME','PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME')]){
+      db[[COLUMN]] <- as.character(db[[COLUMN]])
     }
     
   summarizedData <- list(observedData = db,queryList = c(queryList))
@@ -136,11 +136,12 @@ masterSpatialDB <- function(){
   unlink('2016_CensusTracts_KingCountyWa', recursive = TRUE)
   unlink('2016_CensusTracts_KingCountyWa.zip')
 
-  shp$GEOID<-as.character(shp$GEOID)
-  shp$CRA_NAM<-as.character(shp$CRA_NAM)
-  shp$NEIGHBO<-as.character(shp$NEIGHBO)
-  shp$PUMA5CE<-as.character(shp$PUMA5CE)
-  
+  names(shp)[names(shp) %in% c('CRA_NAM','NEIGHBO')]<-c('CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')
+
+  for( COLUMN in names(shp)[names(shp) %in% c('GEOID','CRA_NAME','PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME')]){
+    shp[[COLUMN]] <- as.character(shp[[COLUMN]])
+  }
+
   return(shp)
 
 

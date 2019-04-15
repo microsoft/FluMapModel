@@ -12,10 +12,10 @@ shp<-masterSpatialDB()
 # test: simulated data kiosk catchment map pushed to IDM P drive
 #  (where still working on model storage access outside IDM--very likely dropbox with permissions)
 queryIn <- list(
-  SELECT   =list(COLUMN=c('samplingLocation','GEOID')),
-  WHERE   =list(COLUMN='samplingLocation', IN = c('kiosk')),
-  GROUP_BY =list(COLUMN=c('samplingLocation','GEOID')),
-  SUMMARIZE=list(COLUMN='samplingLocation', IN= c('kiosk'))
+  SELECT   =list(COLUMN=c('sampling_location','GEOID')),
+  WHERE   =list(COLUMN='sampling_location', IN = c('kiosk')),
+  GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
+  SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
 
@@ -26,33 +26,33 @@ ggplotSmoothMap(model,shp,'kiosk')
 
 # cache model object
 # this needs to handle multiple model types and point to accessible data store
-saveModel(model, cloudDir = 'P:/Seattle-Flu-Incidence-Mapper/models/')
+saveModel(model, cloudDir = '~/data')
 
 
 ##################################################
 #########   catchment maps #######################
 ##################################################
 
-# find catchment maps for each samplingLocation and geoLevel
+# find catchment maps for each sampling_location and geoLevel
   geoLevels <- c('GEOID','PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')  
 
   for(geo in geoLevels){
     queryIn <- list(
-      SELECT   =list(COLUMN=c('samplingLocation',geo)),
-      GROUP_BY =list(COLUMN=c('samplingLocation',geo)),
-      SUMMARIZE=list(COLUMN='samplingLocation', IN= 'all')
+      SELECT   =list(COLUMN=c('sampling_location',geo)),
+      GROUP_BY =list(COLUMN=c('sampling_location',geo)),
+      SUMMARIZE=list(COLUMN='sampling_location', IN= 'all')
     )
     db <- expandDB( selectFromDB(  queryIn ) )
-    
+
     modelDefinition <- smoothModel(db=db, shp=shp)
     model <- modelTrainR(modelDefinition)
     summary(model$inla)
         
-    saveModel(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models')
+    saveModel(model, cloudDir = '~/data')
     
     if (geo =='GEOID'){
-      for(k in unique(model$modeledData$samplingLocation)){
-        tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k,])
+      for(k in unique(model$modeledData$sampling_location)){
+        tmp<-list(modeledData = model$modeledData[model$modeledData$sampling_location==k,])
         ggplotSmoothMap(tmp,shp,k)
       }
     }
@@ -63,24 +63,21 @@ saveModel(model, cloudDir = 'P:/Seattle-Flu-Incidence-Mapper/models/')
 ##### trying out interaction of two factors ########
 #############################################
 
-  # get samplingLocations and hasFever
+  # get sampling_locations and has_fever
   queryIn <- list(
-    SELECT   =list(COLUMN=c('hasFever','samplingLocation','GEOID')),
-    GROUP_BY =list(COLUMN=c('hasFever','samplingLocation','GEOID')),
-    SUMMARIZE=list(COLUMN='samplingLocation', IN= "all")
+    SELECT   =list(COLUMN=c('has_fever','sampling_location','GEOID')),
+    GROUP_BY =list(COLUMN=c('has_fever','sampling_location','GEOID')),
+    SUMMARIZE=list(COLUMN='sampling_location', IN= "all")
   )
   db <- expandDB(selectFromDB(queryIn))
   
   modelDefinition <- smoothModel(db=db, shp=shp)
   model <- modelTrainR(modelDefinition)
-  
-  saveModel(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models')
-  
-  
+
   # plot
-  for(k in unique(model$modeledData$samplingLocation)){
-    for(n in unique(model$modeledData$hasFever)){
-      tmp<-list(modeledData = model$modeledData[model$modeledData$samplingLocation==k & model$modeledData$hasFever==n,])
+  for(k in unique(model$modeledData$sampling_location)){
+    for(n in unique(model$modeledData$has_fever)){
+      tmp<-list(modeledData = model$modeledData[model$modeledData$sampling_location==k & model$modeledData$has_fever==n,])
       modelTestR::ggplotSmoothMap(tmp,shp,paste(k,n,sep = ' '))
     }
   }
@@ -94,15 +91,16 @@ saveModel(model, cloudDir = 'P:/Seattle-Flu-Incidence-Mapper/models/')
   # find age distributions for each pathogen
   queryIn <- list(
     SELECT   =list(COLUMN=c('pathogen','age')),
-    GROUP_BY =list(COLUMN=c('pathogen','age')),
+    MUTATE   =list(COLUMN='age', AS='age_bin'),
+    GROUP_BY =list(COLUMN=c('pathogen','age_bin')),
     SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
   )
   db<- selectFromDB(  queryIn ) 
   
   # get all ages denominator
   # I'm not sure how to implement this as single query..
-    tmp<-db$observedData %>% group_by(age) %>% summarize(n=sum(n))
-    db$observedData <- db$observedData %>% select(-n) %>% left_join(tmp,by='age')
+    tmp<-db$observedData %>% group_by(age_bin) %>% summarize(n=sum(n))
+    db$observedData <- db$observedData %>% select(-n) %>% left_join(tmp,by='age_bin')
 
   db <- expandDB(db)
 
@@ -110,7 +108,7 @@ saveModel(model, cloudDir = 'P:/Seattle-Flu-Incidence-Mapper/models/')
   model <- modelTrainR(modelDefinition)
   summary(model$inla)
   
-  saveModel(model, cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models')
+  saveModel(model, cloudDir = '~/data')
     
-  ggplot(model$modeledData) + geom_line(aes(x=ageBin,y=fitted.values.mean, group=pathogen)) + geom_point(aes(x=ageBin,y=positive/n, group=pathogen)) + facet_wrap("pathogen")
+  ggplot(model$modeledData) + geom_line(aes(x=age_bin,y=fitted_values_mode, group=pathogen)) + geom_point(aes(x=age_bin,y=fraction, group=pathogen)) + facet_wrap("pathogen")
     
