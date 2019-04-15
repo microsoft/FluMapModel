@@ -199,6 +199,10 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 #'
 #' @param model inla model object
 #' @param db object from dbViewer with observedData tibble and query
+#' 
+#' @import dplyr
+#' @import magrittr
+#' 
 #' @return db with added modeledData tibble
 #' 
 appendSmoothData <- function(model,modelDefinition){
@@ -218,6 +222,10 @@ appendSmoothData <- function(model,modelDefinition){
   
   # snake_case
   names(modeledData) <- gsub('\\.','_',names(modeledData))
+  
+  # pretty order 
+  columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(modeledData)]
+  modeledData <- modeledData %>% arrange_(.dots=columns)
   
   return(modeledData)
 }

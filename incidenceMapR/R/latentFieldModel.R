@@ -301,5 +301,9 @@ appendLatentFieldData <- function(model,modelDefinition){
   # snake_case
   names(latentField) <- gsub('\\.','_',names(latentField))
   
-  return(list(modeledData = modeledData, latentField = latentField))
+  # pretty order 
+  columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(latentField)]
+  latentField <- latentField %>% arrange_(.dots=columns)
+  
+    return(list(modeledData = modeledData, latentField = latentField))
 }
