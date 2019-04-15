@@ -4,6 +4,7 @@
 #' STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODUCTION.
 #'
 #' @param queryIn  list or json specifying query  (See example)
+#' @params source source database, one of: 'simulated_data' (default) or 'production'
 #' @return observedData table that has been prepared for defineModels.R
 #'
 #' @import jsonlite
@@ -33,7 +34,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                               GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ) ){
+                          ), source = 'simulated_data' ){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
@@ -42,10 +43,27 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   }
 
   # connect to database
-    rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
-    db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
+  if(source = 'simulated_data'){
+
+     rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
+     db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
+
+  } else if(source = 'production'){
+
+    # link to credentials file and input credential below
+     rawData <- dbConnect(RPostgres::Postgres(), host="production.db.seattleflu.org", dbname = 'production', user='', password='')
+
+     db <- dbGetQuery(db, "select * from shipping.incidence_model_observation_v1;")
+     dbDisconnect(rawData)
+
+    # clean up string formatting and harmonize factors vs character
+    
+  } else {
+     print('unknown source database!')
+  }
 
   # run query
+  # this logic will probably move to sql queries in the database instead of dplyr after....
     if(queryList$SELECT !="*"){
 
       db <- db %>% dplyr::select(dplyr::one_of(queryList$SELECT$COLUMN))
