@@ -50,3 +50,4 @@ services:
       # and test new data or make changes to the script itself
       volumes:
         - ./:/home/rstudio/seattle_flu
+        - ./data:SFSdata:/home/rstudio/data
