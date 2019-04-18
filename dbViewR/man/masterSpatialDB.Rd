@@ -5,7 +5,7 @@
 \title{masterSpatialDB: function for fetching spatial data from master source}
 \usage{
 masterSpatialDB(shape_level = "census_tract",
-  source = "seattle_geojson", rm_files = TRUE)
+  source = "simulated_data", rm_files = TRUE)
 }
 \arguments{
 \item{shape_level}{one of "census_tract" (default),"cra_name","neighborhood","city"}
@@ -21,6 +21,6 @@ sf object with shapefile data
 masterSpatialDB: function for fetching spatial data from master source
 }
 \examples{
-   shp <- masterSpatialDB(shape_level = 'census_tract', source = 'seattle_geojson', rm_files = TRUE)
+   shp <- masterSpatialDB(shape_level = 'census_tract', source = 'simulated_data', rm_files = TRUE)
 
 }

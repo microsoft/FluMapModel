@@ -48,8 +48,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   # connect to database
   if(source == 'simulated_data'){
 
-     rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
-     db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
+    rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
+    db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
 
   } else if(source == 'production'){
 
@@ -78,7 +78,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     
     
     
-    db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
+    db <- dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
     dbDisconnect(rawData)
 
   } else {
@@ -112,7 +112,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # time bin mutations
     if('encountered_date' %in% names(db)){
       db$encountered_date <- as.Date(db$encountered_date)
-      db$epi_week <- paste(lubridate::epiyear(db$encountered_date),'_W',sprintf('%02d',lubridate::epiweek(db$encountered_date)),sep='')
+      db$epi_week <- paste(lubridate::epiyear(db$encountered_date),'-W',sprintf('%02d',lubridate::epiweek(db$encountered_date)),sep='')
+      db$iso_week <- format(db$encountered_date, "%G-W%V")
     }
     
     # age bin mutations
@@ -161,9 +162,9 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 #'
 #' @export
 #' @examples
-#'    shp <- masterSpatialDB(shape_level = 'census_tract', source = 'seattle_geojson', rm_files = TRUE)
+#'    shp <- masterSpatialDB(shape_level = 'census_tract', source = 'simulated_data', rm_files = TRUE)
 #'
-masterSpatialDB <- function(shape_level = 'census_tract', source = 'seattle_geojson', rm_files = TRUE){
+masterSpatialDB <- function(shape_level = 'census_tract', source = 'simulated_data', rm_files = TRUE){
 
   if (source == 'seattle_geojson'){
     # connect to database and get the data at correct shape level

@@ -15,9 +15,9 @@ library(dplyr)
 ## return subset
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT  =list(COLUMN=c('id','pathogen','num_date','samplingLocation','sex','fluShot','age','hasFever','hasCough','hasMyalgia')),
+      SELECT  =list(COLUMN=c('id','pathogen','encountered_date','samplingLocation','sex','fluShot','age','hasFever','hasCough','hasMyalgia')),
       WHERE   =list(COLUMN='pathogen', IN = c('h1n1pdm', 'h3n2')),
-      WHERE   =list(COLUMN='num_date', BETWEEN = c(2019,2019.2)),
+      WHERE   =list(COLUMN='encountered_date', BETWEEN = c(2019,2019.2)),
       WHERE   =list(COLUMN='samplingLocation', IN='hospital')
     )
   )
@@ -30,9 +30,9 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
   queryIn <- list(
-      SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
-      MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
-      GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
+      SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
+      MUTATE   =list(COLUMN=c('encountered_date'), AS=c('iso_date')),
+      GROUP_BY =list(COLUMN=c('iso_date','PUMA5CE','GEOID')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
     )
   db <- selectFromDB( queryIn )
@@ -57,9 +57,9 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
-  MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
-  GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
+  SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
+  MUTATE   =list(COLUMN=c('encountered_date'), AS=c('iso_week')),
+  GROUP_BY =list(COLUMN=c('iso_week','PUMA5CE','GEOID')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- expandDB(selectFromDB( queryIn ))
