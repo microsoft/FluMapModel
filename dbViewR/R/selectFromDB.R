@@ -4,8 +4,9 @@
 #' STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODUCTION.
 #'
 #' @param queryIn  list or json specifying query  (See example)
-#' @params source source database, one of: 'simulated_data' (default) or 'production'
-#' @return observedData table that has been prepared for defineModels.R
+#' @param source source database, one of: 'simulated_data' (default) or 'production'
+#' @param credentials_path path to your pg_service and pgpass file for production database
+#' @return dbViewR list with query and observedData table that has been prepared for defineModels.R
 #'
 #' @import jsonlite
 #' @import dplyr
@@ -36,7 +37,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                               GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ), source = 'simulated_data' ){
+                          ), source = 'simulated_data', credentials_path = '.' ){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
@@ -52,13 +53,33 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
   } else if(source == 'production'){
 
+    #service you want to access
+    service_string = "seattleflu-production"
+    
+    #get host and dbname from pg_service file, then get user and password from the pgpass file 
+    pg_service_file<-read.table(file.path(credentials_path, "pg_service.conf"), header=FALSE) #read in file
+    service_index <-which(str_detect(pg_service_file$V1, service_string)) #get index for specified service
+    host_string <- strsplit(as.character(pg_service_file$V1[service_index+1]), "=")[[1]][2] #host string is next item after index for service
+    dbname_string <- strsplit(as.character(pg_service_file$V1[service_index+2]), "=")[[1]][2] #dbname string is next item after index for service
+
+    #read in pgpass file
+    pgpass_file <- read.table(file.path(credentials_path, "pgpass.conf"), header=FALSE)
+    pgpass_file <- strsplit(levels(pgpass_file$V1), ":") #convert from factor to list
+    
+    #get index for which row has the correct host
+    host_index<-which(grepl(host_string, pgpass_file))
+    
     # link to credentials file and input credential below
-     rawData <- dbConnect(RPostgres::Postgres(), host="production.db.seattleflu.org", dbname = 'production', user='', password='')
-
-     db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;")
-     dbDisconnect(rawData)
-
-    # clean up string formatting and harmonize factors vs character
+    rawData <- dbConnect(RPostgres::Postgres(), 
+                    host=host_string, 
+                    dbname = dbname_string, 
+                    user=pgpass_file[[host_index]][4], 
+                    password=pgpass_file[[host_index]][5])
+    
+    
+    
+    db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
+    dbDisconnect(rawData)
 
   } else {
      print('unknown source database!')

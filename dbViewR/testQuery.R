@@ -80,7 +80,7 @@ db <- expandDB(selectFromDB( queryJSON ))
 ####         test masterShapeDB and joins      ###################
 ########################################################
 
-## return h1n1pdm summary by location
+## return h1n1pdm summary by GEOID
 queryIn <- list(
   SELECT   =list(COLUMN=c('pathogen','PUMA5CE','CRA_NAME','GEOID')),
   GROUP_BY =list(COLUMN=c('PUMA5CE','CRA_NAME','GEOID')),
@@ -88,13 +88,19 @@ queryIn <- list(
 )
 db <- selectFromDB( queryIn )
 
-# GEOID
 shp<-masterSpatialDB(shape_level = 'census_tract', source = "seattle_geojson")
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('GEOID','geometry')))
 plot(plotDat)
 
+## return h1n1pdm summary by CRA_NAME
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen','PUMA5CE','CRA_NAME')),
+  GROUP_BY =list(COLUMN=c('PUMA5CE','CRA_NAME')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
+)
+db <- selectFromDB( queryIn )
 # CRA_NAME
 shp<-masterSpatialDB(shape_level = 'cra_name', source = "seattle_geojson")
-names(shp)['CRA_NAM']<-'CRA_NAME'
+names(shp)[names(shp) == 'CRA_NAM']<-'CRA_NAME'
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('CRA_NAME','geometry')))
 plot(plotDat)
