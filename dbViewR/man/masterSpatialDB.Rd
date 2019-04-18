@@ -2,19 +2,25 @@
 % Please edit documentation in R/selectFromDB.R
 \name{masterSpatialDB}
 \alias{masterSpatialDB}
-\title{masterSpatialDB: function for fetching spatial data from master source
-(Currently pulls from https://github.com/seattleflu/simulated-data/tree/master/kingCountySpatialData)}
+\title{masterSpatialDB: function for fetching spatial data from master source}
 \usage{
-masterSpatialDB()
+masterSpatialDB(shape_level = "census_tract",
+  source = "seattle_geojson", rm_files = TRUE)
+}
+\arguments{
+\item{shape_level}{one of "census_tract" (default),"cra_name","neighborhood","city"}
+
+\item{source}{source database, one of "seattle_geojson" (default), "simulated_data"}
+
+\item{rm_files}{indicator to remove local files (TRUE == default)}
 }
 \value{
-sf object with king county shapefile data
+sf object with shapefile data
 }
 \description{
 masterSpatialDB: function for fetching spatial data from master source
-(Currently pulls from https://github.com/seattleflu/simulated-data/tree/master/kingCountySpatialData)
 }
 \examples{
-   shp <- masterSpatialDB()
+   shp <- masterSpatialDB(shape_level = 'census_tract', source = 'seattle_geojson', rm_files = TRUE)
 
 }

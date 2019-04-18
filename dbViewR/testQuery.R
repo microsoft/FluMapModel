@@ -2,6 +2,7 @@
 # script to test queries
 
 library(dbViewR)
+library(dplyr)
 
 ########################################################
 ####         test selectFromDB       ###################
@@ -14,10 +15,10 @@ library(dbViewR)
 ## return subset
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT  =list(COLUMN=c('id','pathogen','encountered_date','sampling_location','sex','flu_shot','age','has_fever','has_cough','has_myalgia')),
+      SELECT  =list(COLUMN=c('id','pathogen','num_date','samplingLocation','sex','fluShot','age','hasFever','hasCough','hasMyalgia')),
       WHERE   =list(COLUMN='pathogen', IN = c('h1n1pdm', 'h3n2')),
-      WHERE   =list(COLUMN='encountered_date', BETWEEN = as.Date(c('2019-01-10','2019-02-28'))),
-      WHERE   =list(COLUMN='sampling_location', IN='hospital')
+      WHERE   =list(COLUMN='num_date', BETWEEN = c(2019,2019.2)),
+      WHERE   =list(COLUMN='samplingLocation', IN='hospital')
     )
   )
   db <- selectFromDB( queryJSON )
@@ -29,20 +30,20 @@ library(dbViewR)
 
 ## return h1n1pdm summary by time and location
   queryIn <- list(
-      SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
-      MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-      GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
+      SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
+      MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
+      GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
     )
   db <- selectFromDB( queryIn )
 
 
-## return has_fever summary by age and location
+## return hasFever summary by age and location
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT   =list(COLUMN=c('has_fever','age','PUMA5CE','GEOID')),
+      SELECT   =list(COLUMN=c('hasFever','age','PUMA5CE','GEOID')),
       GROUP_BY =list(COLUMN=c('age','PUMA5CE','GEOID')),
-      SUMMARIZE=list(COLUMN='has_fever', IN= c(TRUE))
+      SUMMARIZE=list(COLUMN='hasFever', IN= c(TRUE))
     )
   )
   db <- selectFromDB( queryJSON )
@@ -56,23 +57,44 @@ library(dbViewR)
 
 ## return h1n1pdm summary by time and location
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
-  MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-  GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
+  SELECT   =list(COLUMN=c('pathogen','num_date','PUMA5CE','GEOID')),
+  MUTATE   =list(COLUMN=c('num_date'), AS=c('timeBin')),
+  GROUP_BY =list(COLUMN=c('timeBin','PUMA5CE','GEOID')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- expandDB(selectFromDB( queryIn ))
 
 
-## return has_fever summary by age and location
+## return hasFever summary by age and location
 queryJSON <- jsonlite::toJSON(
   list(
-    SELECT   =list(COLUMN=c('has_fever','age','PUMA5CE','GEOID')),
-    MUTATE   =list(COLUMN='age', AS='age_bin'),
-    GROUP_BY =list(COLUMN=c('age_bin','PUMA5CE','GEOID')),
-    SUMMARIZE=list(COLUMN='has_fever', IN= c(TRUE))
+    SELECT   =list(COLUMN=c('hasFever','age','PUMA5CE','GEOID')),
+    GROUP_BY =list(COLUMN=c('age','PUMA5CE','GEOID')),
+    SUMMARIZE=list(COLUMN='hasFever', IN= c(TRUE))
   )
 )
 db <- expandDB(selectFromDB( queryJSON ))
 
 
+########################################################
+####         test masterShapeDB and joins      ###################
+########################################################
+
+## return h1n1pdm summary by location
+queryIn <- list(
+  SELECT   =list(COLUMN=c('pathogen','PUMA5CE','CRA_NAME','GEOID')),
+  GROUP_BY =list(COLUMN=c('PUMA5CE','CRA_NAME','GEOID')),
+  SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
+)
+db <- selectFromDB( queryIn )
+
+# GEOID
+shp<-masterSpatialDB(shape_level = 'census_tract', source = "seattle_geojson")
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('GEOID','geometry')))
+plot(plotDat)
+
+# CRA_NAME
+shp<-masterSpatialDB(shape_level = 'cra_name', source = "seattle_geojson")
+names(shp)['CRA_NAM']<-'CRA_NAME'
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('CRA_NAME','geometry')))
+plot(plotDat)

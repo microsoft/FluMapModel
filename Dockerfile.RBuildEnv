@@ -35,6 +35,7 @@ RUN Rscript -e "install.packages(c('jsonlite'))"
 RUN Rscript -e "install.packages(c('devtools'))"
 RUN Rscript -e "install.packages(c('roxygen2','RCurl'))"
 RUN Rscript -e "install.packages(c('DBI','RPostgres'))"
+RUN Rscript -e "install.packages(c('geojsonio','rgdal'))"
 RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
 
 # Our Organizations(as others do) map Active Directory to LDAP for linux

@@ -128,42 +128,67 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
 
 #' masterSpatialDB: function for fetching spatial data from master source
-#' (Currently pulls from https://github.com/seattleflu/simulated-data/tree/master/kingCountySpatialData)
 #'
-#' @return sf object with king county shapefile data
+#' @param shape_level one of "census_tract" (default),"cra_name","neighborhood","city"
+#' @param source source database, one of "seattle_geojson" (default), "simulated_data"
+#' @param rm_files indicator to remove local files (TRUE == default)
+#' @return sf object with shapefile data
 #'
-#' @importFrom sf st_read
+#' @import geojsonio
+#' @import rgdal
+#' @import sf
 #'
 #' @export
 #' @examples
-#'    shp <- masterSpatialDB()
+#'    shp <- masterSpatialDB(shape_level = 'census_tract', source = 'seattle_geojson', rm_files = TRUE)
 #'
-masterSpatialDB <- function(){
-  # should take option of shape level!
+masterSpatialDB <- function(shape_level = 'census_tract', source = 'seattle_geojson', rm_files = TRUE){
 
-  # connect to database
-  download.file(url = "https://github.com/seattleflu/simulated-data/raw/master/kingCountySpatialData/2016_CensusTracts_KingCountyWa.zip",
-                destfile = "2016_CensusTracts_KingCountyWa.zip")
-  unzip(zipfile = "2016_CensusTracts_KingCountyWa.zip")
-  shp <- sf::st_read("2016_CensusTracts_KingCountyWa")
+  if (source == 'seattle_geojson'){
+    # connect to database and get the data at correct shape level
+    
+    sourceURL <- paste('https://raw.githubusercontent.com/seattleflu/seattle-geojson/master/seattle_geojsons/')
+    # pumas are missing from repo
+    
+    validShapeLevels <- c("census_tract","cra_name","neighborhood","city")
+    validShapeFilenames<- c("2016_seattle_censusTracts.geojson","2016_seattle_cra.geojson","2016_seattle_neighborhoods.geojson","2016_seattle_city.geojson")
+    
+    filename<-validShapeFilenames[validShapeLevels %in% shape_level]
+    
+    sourceURL <- paste('https://raw.githubusercontent.com/seattleflu/seattle-geojson/master/seattle_geojsons/',filename,sep='')
+    download.file(url = sourceURL,  destfile = filename)
 
+    shp <- sf::st_as_sf(geojsonio::geojson_read(filename, what = "sp"))
+
+  } else if(source == 'simulated_data' & shape_level == "census_tract"){
+    
+    filename <- "2016_CensusTracts_KingCountyWa"
+    download.file(url = "https://github.com/seattleflu/simulated-data/raw/master/kingCountySpatialData/2016_CensusTracts_KingCountyWa.zip",
+                  destfile = paste0(filename,'.zip'))
+    unzip(zipfile = paste0(filename,'.zip'))
+    shp <- sf::st_read(filename)
+    
+  } else {
+    return('unknown source and shape_level combination!')
+  }
+  
+  if (rm_files){
+    #unlink from the database
+    unlink(filename, recursive = TRUE)
+    unlink(paste0(filename,'.zip'), recursive = TRUE)
+  }
+  
   levels(shp$NEIGHBO)<-c(levels(shp$NEIGHBO),'NA')
   shp$NEIGHBO[is.na(shp$NEIGHBO)]<-'NA'
-
+  
   levels(shp$CRA_NAM)<-c(levels(shp$CRA_NAM),'NA')
   shp$CRA_NAM[is.na(shp$CRA_NAM)]<-'NA'
-
-  unlink('2016_CensusTracts_KingCountyWa', recursive = TRUE)
-  unlink('2016_CensusTracts_KingCountyWa.zip')
-
-  names(shp)[names(shp) %in% c('CRA_NAM','NEIGHBO')]<-c('CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')
-
-  for( COLUMN in names(shp)[names(shp) %in% c('GEOID','CRA_NAME','PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME')]){
-    shp[[COLUMN]] <- as.character(shp[[COLUMN]])
-  }
-
+  
+  shp$GEOID<-as.character(shp$GEOID)
+  shp$CRA_NAM<-as.character(shp$CRA_NAM)
+  shp$NEIGHBO<-as.character(shp$NEIGHBO)
+  shp$PUMA5CE<-as.character(shp$PUMA5CE)
+  
   return(shp)
-
-
-  # this will eventually pull from curated data like: https://github.com/seattleflu/seattle-geojson
+  
 }
