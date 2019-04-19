@@ -37,7 +37,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                               GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ), source = 'simulated_data', credentials_path = '.' ){
+                          ), source = 'simulated_data', credentials_path = '/home/rstudio/seattle_flu' ){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
