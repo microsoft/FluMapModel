@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y aptitude && \
     # required by INLA or a dependency of INLA
     libxml2-dev libx11-dev texlive-binaries libglu1-mesa-dev libfreetype6-dev \
     # required by geojsonio or a dependency of geojsonio
-    libgdal1-dev libgeos-c1 libproj-dev libprotobuf-dev protobuf-compiler \
+    libgdal1-dev libgeos-c1 libproj-dev libv8-dev libjq-dev libprotobuf-dev protobuf-compiler \
     # Git for development tools
     git-core git libgit2-dev && \
     # cleanup apt cache to reduce final image size
@@ -38,9 +38,9 @@ RUN Rscript -e "install.packages(c('jsonlite'))"
 RUN Rscript -e "install.packages(c('devtools'))"
 RUN Rscript -e "install.packages(c('roxygen2','RCurl'))"
 RUN Rscript -e "install.packages(c('DBI','RPostgres'))"
-RUN Rscript -e "install.packages("rgdal", type = "source")"
-RUN Rscript -e "install.packages("rgeos", type = "source")"
-RUN Rscript -e "install.packages(c("geojsonio"))"
+RUN Rscript -e "install.packages(c('rgdal', type='source'))"
+RUN Rscript -e "install.packages(c('rgeos', type='source')))"
+RUN Rscript -e "install.packages(c('geojsonio'))"
 RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
 
 # Our Organizations(as others do) map Active Directory to LDAP for linux

@@ -10,7 +10,7 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   list(COLUMN = c("encountered_date"), AS = "epi_week"), GROUP_BY =
   list(COLUMN = c("epi_week", "PUMA5CE", "GEOID")), SUMMARIZE = list(COLUMN
   = "pathogen", IN = c("h1n1pdm")))), source = "simulated_data",
-  credentials_path = ".")
+  credentials_path = "/home/rstudio/seattle_flu")
 }
 \arguments{
 \item{queryIn}{list or json specifying query  (See example)}
