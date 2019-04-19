@@ -52,7 +52,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
   modelDBfile<-paste(cloudDir,'modelDB.tsv',sep='/')
 
   modelDB <- read.table(modelDBfile,header=TRUE,sep='\t',stringsAsFactors = FALSE)
-  modelDB$created <- as.Date(modelDB$created)
+  modelDB$created <- as.POSIXct(modelDB$created,tz='UTC')
 
 
   queryIdx <- gsub('\\\\','',modelDB$queryJSON) %in% gsub('\"','',as.character(queryIn))
