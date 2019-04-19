@@ -55,31 +55,33 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     #service you want to access
     service_string = "seattleflu-production"
-    
+
+      
     #get host and dbname from pg_service file, then get user and password from the pgpass file 
-    pg_service_file<-read.table(file.path(credentials_path, "pg_service.conf"), header=FALSE) #read in file
-    service_index <-which(str_detect(pg_service_file$V1, service_string)) #get index for specified service
+    pg_service_file<-read.table(file.path(credentials_path, ".pg_service.conf"), header=FALSE) #read in file
+    service_index <-grep(service_string, pg_service_file$V1) #get index for specified service
     host_string <- strsplit(as.character(pg_service_file$V1[service_index+1]), "=")[[1]][2] #host string is next item after index for service
     dbname_string <- strsplit(as.character(pg_service_file$V1[service_index+2]), "=")[[1]][2] #dbname string is next item after index for service
 
     #read in pgpass file
-    pgpass_file <- read.table(file.path(credentials_path, "pgpass.conf"), header=FALSE)
+    pgpass_file <- read.table(file.path(credentials_path, ".pgpass"), header=FALSE)
     pgpass_file <- strsplit(levels(pgpass_file$V1), ":") #convert from factor to list
     
     #get index for which row has the correct host
     host_index<-which(grepl(host_string, pgpass_file))
     
     # link to credentials file and input credential below
-    rawData <- dbConnect(RPostgres::Postgres(), 
+    rawData <- DBI::dbConnect(RPostgres::Postgres(), 
                     host=host_string, 
                     dbname = dbname_string, 
+                    port=pgpass_file[[host_index]][2],  
                     user=pgpass_file[[host_index]][4], 
                     password=pgpass_file[[host_index]][5])
     
     
     
-    db <- dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
-    dbDisconnect(rawData)
+    db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
+    DBI::dbDisconnect(rawData)
 
   } else {
      print('unknown source database!')
