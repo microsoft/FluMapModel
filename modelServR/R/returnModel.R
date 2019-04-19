@@ -5,12 +5,12 @@
 #'   (2) modeled incidence after statistical smoothing
 #'
 #' @param queryIn JSON query to dbViewR that defines model
-#' @param type = "smooth" (default), "latent", "effects"
-#' @param format = "csv" (default: pre-defined data-only output) or "model" (incidenceMapR model object)
-#' @param version = "mostRecent" (default) or date and time created
+#' @param type = "smooth" (default), "latent_field", "effects", "inla"
+#' @param format = "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)
+#' @param version = "latest" (default) or ISO date and time created (UTC, like "2019-04-19 22:49:19Z")
 #' @param cloudDir = directory where models are stored
 #'
-#' @return dataJSON json with data
+#' @return model in requested format
 #'
 #' @import dbViewR
 #' @import jsonlite
@@ -29,9 +29,9 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                                 SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
                                   )),
                             type = 'smooth',
-                            format = 'csv',
-                            version = 'most_recent',
-                            cloudDir = 'C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models'){
+                            format = 'json',
+                            version = 'latest',
+                            cloudDir = '/home/rstudio/seattle_flu'){
 
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
 
@@ -60,7 +60,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
 
   matchIdx <- which(queryIdx & typeIdx)
 
-  if(version == 'most_recent'){
+  if(version == 'latest'){
     createdIdx <- which.max(modelDB$created[matchIdx])
   } else {
     version = as.Date(version)
@@ -75,20 +75,27 @@ returnModel <- function(queryIn = jsonlite::toJSON(
     filename<-paste(cloudDir,modelDB$filename[matchIdx],sep='/')
   }
 
-  if (format == 'csv'){
-    db <- read.csv(paste(filename,'csv',sep='.'))
+  if (format %in% c('csv','json')){
+    db <- read.csv(paste(filename,type,'csv',sep='.'))
 
     dataOut<-list(query = queryList, type = type)
 
-    # flat data format
-    dataOut$data <- db
+    if(format == 'csv'){
+      
+      return(dataOut)
+      
+    } else {
+      
+      # flat data format
+      dataOut$data <- db
+      
+      # reformat for hierarchical JSON
+      # dataOut$data <-db %>% dplyr::group_by_at(queryList$GROUP_BY$COLUMN) %>% tidyr::nest(names(db))
+  
+      return(jsonlite::toJSON(dataOut,pretty = TRUE))
+    }
 
-    # reformat for hierarchical JSON
-    # dataOut$data <-db %>% dplyr::group_by_at(queryList$GROUP_BY$COLUMN) %>% tidyr::nest(names(db))
-
-    return(jsonlite::toJSON(dataOut,pretty = TRUE))
-
-  } else if(format == 'model'){
+  } else if(format == 'inla'){
 
     model <- readRDS(paste(filename,'RDS',sep='.'))
 
