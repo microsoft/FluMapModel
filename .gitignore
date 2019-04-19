@@ -6,7 +6,5 @@
 *.pyc
 *.egg-info
 *__pycache__*
-seattle_flu/predictModelTestPkg/vignettes/modelDescription_cache/html/__packages
-seattle_flu/predictModelTestPkg/vignettes/modelDescription_cache/
-seattle_flu/predictModelTestPkg/vignettes/modelDescription_files/
 api_service/docs_src/seattle_flu*rst
+data/*
