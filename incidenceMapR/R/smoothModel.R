@@ -30,11 +30,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   
   # identify intended family
   if(is.null(family)){
-    if (all(inputData$n == inputData$positive)){
+    if (all(inputData$n == inputData$positive | is.na(db$observedData$positive))){
       family = 'poisson'
-    } else if (all(db$observedData$n >= db$observedData$positive)){
+    } else if (all(db$observedData$n >= db$observedData$positive | is.na(db$observedData$positive))){
       family = 'binomial'
-    } else if (any(inputData$n < inputData$positive)){
+    } else if (any(inputData$n < inputData$positive | is.na(db$observedData$positive))){
       return('n < positive !!!  invald db$observedData.')
     }
   }

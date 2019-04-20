@@ -3,6 +3,7 @@
 
 library(dbViewR)
 library(incidenceMapR)
+library(modelServR)
 library(dplyr)
 library(modelTestR)
 library(ggplot2)
@@ -26,7 +27,7 @@ ggplotSmoothMap(model,shp,'kiosk')
 
 # cache model object
 # this needs to handle multiple model types and point to accessible data store
-saveModel(model, cloudDir = '~/data')
+saveModel(model, cloudDir = './data')
 
 
 ##################################################
@@ -91,8 +92,7 @@ saveModel(model, cloudDir = '~/data')
   # find age distributions for each pathogen
   queryIn <- list(
     SELECT   =list(COLUMN=c('pathogen','age')),
-    MUTATE   =list(COLUMN='age', AS='age_bin'),
-    GROUP_BY =list(COLUMN=c('pathogen','age_bin')),
+    GROUP_BY =list(COLUMN=c('pathogen','age')),
     SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
   )
   db<- selectFromDB(  queryIn ) 
@@ -108,7 +108,7 @@ saveModel(model, cloudDir = '~/data')
   model <- modelTrainR(modelDefinition)
   summary(model$inla)
   
-  saveModel(model, cloudDir = '~/data')
+  saveModel(model, cloudDir = './data')
     
   ggplot(model$modeledData) + geom_line(aes(x=age_bin,y=fitted_values_mode, group=pathogen)) + geom_point(aes(x=age_bin,y=fraction, group=pathogen)) + facet_wrap("pathogen")
     
