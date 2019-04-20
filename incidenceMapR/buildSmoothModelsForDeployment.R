@@ -49,7 +49,7 @@ saveModel(model, cloudDir = './data')
     model <- modelTrainR(modelDefinition)
     summary(model$inla)
         
-    saveModel(model, cloudDir = '~/data')
+    saveModel(model, cloudDir = './data')
     
     if (geo =='GEOID'){
       for(k in unique(model$modeledData$sampling_location)){

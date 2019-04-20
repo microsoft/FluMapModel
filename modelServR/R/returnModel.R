@@ -97,7 +97,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
 
   } else if(format == 'inla'){
 
-    model <- readRDS(paste(filename,'RDS',sep='.'))
+    model <- readRDS(paste(filename,'inla.RDS',sep='.'))
 
     return(model)
   }

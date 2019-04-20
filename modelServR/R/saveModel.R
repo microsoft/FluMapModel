@@ -16,19 +16,35 @@ saveModel <- function(model, cloudDir = '/home/rstudio/seattle_flu'){
   
   filename <- digest::digest(paste(digest::digest(model$modeledData),ts,sep=''))
   
+  # all models output inla
+  newRow <- data.frame(filename=filename,
+                       queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
+                       type = 'inla',
+                       created = ts)
   saveRDS(model,paste(cloudDir,'/',filename,'.RDS',sep=''))
   
-  if(modelDefinition$type == 'latent_field'){
-    write.csv(model$latentField,paste(cloudDir,'/',filename,'.latent_field.csv',sep=''),row.names = FALSE,quote = FALSE)
-  }
+  # all models output smooth
+  newRow <- rbind(newRow, 
+                    data.frame(filename=filename,
+                    queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
+                    type = 'smooth',
+                    created = ts)
+                  )
   write.csv(model$modeledData,paste(cloudDir,'/',filename,'.smooth.csv',sep=''),row.names = FALSE,quote = FALSE)
   
+  if(modelDefinition$type == 'latent_field'){
+    newRow <- rbind(newRow, 
+                     data.frame(filename=filename,
+                     queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
+                     type = model$modelDefinition$type,
+                     created = ts)
+                     )
+    
+    write.csv(model$latentField,paste(cloudDir,'/',filename,'.latent_field.csv',sep=''),row.names = FALSE,quote = FALSE)
+  }
   
+
   # register in modelDB
-  newRow <- list(filename=filename,
-                 queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
-                 type = model$modelDefinition$type,
-                 created = ts)
   modelDBfilename<-paste(cloudDir,'/','modelDB.tsv',sep='')
   if(!file.exists(modelDBfilename)){
     write.table(newRow,file=modelDBfilename,sep='\t',row.names = FALSE, col.names = TRUE,quote = FALSE)
