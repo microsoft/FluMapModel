@@ -52,7 +52,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
     validColumnData$time_row <- 1:(length(validColumnData$encountered_week)+4)
     
     # format predict iso week str (# there is surely a better way to do this!)
-    tmp<-sapply(strsplit(validColumnData$encountered_week[length(validColumnData$encountered_week)],'_W'),as.numeric)
+    tmp<-sapply(strsplit(validColumnData$encountered_week[length(validColumnData$encountered_week)],'-W'),as.numeric)
     for(k in 1:4){
       ew <- (tmp[2] + k) %% 52
       ey <- tmp[1] + floor((tmp[2] + k)/52)
