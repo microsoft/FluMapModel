@@ -8,16 +8,15 @@ ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
 
 # install packages required and then cleanup
-RUN apt-get update && apt-get install -y aptitude && \
-    aptitude install -f -y \
+RUN apt-get update && apt-get install -y \
     # required by devtools and ggmap
-    libssl-dev libcurl4-openssl-dev \
+    libssl-dev libcurl4-gnutls-dev \
     # required by sf
     libudunits2-dev libgdal-dev \
     # required by INLA or a dependency of INLA
     libxml2-dev libx11-dev texlive-binaries libglu1-mesa-dev libfreetype6-dev \
     # required by geojsonio or a dependency of geojsonio
-    libgdal1-dev libgeos-c1 libproj-dev libv8-dev libjq-dev libprotobuf-dev protobuf-compiler \
+    libgdal-dev libgeos-c1v5 libproj-dev libv8-dev libjq-dev libprotobuf-dev protobuf-compiler \
     # Git for development tools
     git-core git libgit2-dev && \
     # cleanup apt cache to reduce final image size
