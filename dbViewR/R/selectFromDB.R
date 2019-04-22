@@ -53,33 +53,19 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
   } else if(source == 'production'){
 
-    #service you want to access
-    service_string = "seattleflu-production"
+    # Define standard Pg environment variables for our connection files.
+    #
+    # These are set here instead of passed in via the Dockerfile or
+    # docker-compose.rstudio.yaml file, because this typically runs as an
+    # rstudio-managed user with its own shell environment separate from the
+    # base Docker user.
+    Sys.setenv(PGSERVICEFILE = file.path(credentials_path, ".pg_service.conf"),
+               PGPASSFILE    = file.path(credentials_path, ".pgpass"))
 
-      
-    #get host and dbname from pg_service file, then get user and password from the pgpass file 
-    pg_service_file<-read.table(file.path(credentials_path, ".pg_service.conf"), header=FALSE) #read in file
-    service_index <-grep(service_string, pg_service_file$V1) #get index for specified service
-    host_string <- strsplit(as.character(pg_service_file$V1[service_index+1]), "=")[[1]][2] #host string is next item after index for service
-    dbname_string <- strsplit(as.character(pg_service_file$V1[service_index+2]), "=")[[1]][2] #dbname string is next item after index for service
+    # Connect to database using service definition and credentials in files
+    # defined by the environment variables above.
+    rawData <- DBI::dbConnect(RPostgres::Postgres(), service = "seattleflu-production")
 
-    #read in pgpass file
-    pgpass_file <- read.table(file.path(credentials_path, ".pgpass"), header=FALSE)
-    pgpass_file <- strsplit(levels(pgpass_file$V1), ":") #convert from factor to list
-    
-    #get index for which row has the correct host
-    host_index<-which(grepl(host_string, pgpass_file))
-    
-    # link to credentials file and input credential below
-    rawData <- DBI::dbConnect(RPostgres::Postgres(), 
-                    host=host_string, 
-                    dbname = dbname_string, 
-                    port=pgpass_file[[host_index]][2],  
-                    user=pgpass_file[[host_index]][4], 
-                    password=pgpass_file[[host_index]][5])
-    
-    
-    
     db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
     DBI::dbDisconnect(rawData)
 
