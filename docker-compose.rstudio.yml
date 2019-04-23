@@ -31,6 +31,12 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.RBuildEnv
+        # The below can be used to circumvent firewall issues or
+        # to use a caching proxy to reduce build times.
+        #args:
+        #  - "HTTP_PROXY=${HTTP_PROXY:-}"
+        #  - "HTTPS_PROXY=${HTTPS_PROXY:-}"
+        #  - "FTP_PROXY=${FTP_PROXY:-}"
       image: seattleflu_rmodeldev
       environment:
         - "DISABLE_AUTH=true"
@@ -49,4 +55,13 @@ services:
       # This allows us to modify the script/data and run inside the container
       # and test new data or make changes to the script itself
       volumes:
+      # This first volume allows you to pass your git config to the container
+      # Most likely, you want to set the src path to /home/<username>/.gitconfig
+      # On Windows, this file is located at C:\Users\<username>\.gitconfig
+      # Be sure the .gitconfig file exists before mapping it in.
+      #  - "${HOME}/.gitconfig:/home/rstudio/.gitconfig"
+      # The following maps the pgpass and and pg_service.conf into the container
+      #  - "${HOME}/.pgpass:/home/rstudio/.pg_pass"
+      #  - "${HOME}/.pg_service.conf:/home/rstudio/.pg_service.conf"
+      # The below maps in the local directory to the seattle_flu directory within the container
         - ./:/home/rstudio/seattle_flu
