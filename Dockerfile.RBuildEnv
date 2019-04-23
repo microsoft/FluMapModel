@@ -42,9 +42,6 @@ RUN Rscript -e "install.packages(c('rgeos'), type='source')"
 RUN Rscript -e "install.packages(c('geojsonio'))"
 RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
 
-# install local packages
-RUN Rscript install_local_packages.R
-
 # Our Organizations(as others do) map Active Directory to LDAP for linux
 # These means when mapping in our userids
 # docker -e USERID=$UID....
@@ -53,3 +50,7 @@ RUN Rscript install_local_packages.R
 
 RUN perl -pi -e  's/UID_MAX\s+60000/UID_MAX           9304017490/g' /etc/login.defs
 RUN perl -pi -e  's|GID_MAX\s+60000|GID_MAX           9304017490|g' /etc/login.defs
+
+
+# install local packages
+RUN Rscript install_local_packages.R
