@@ -4,11 +4,15 @@
 #' STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODUCTION.
 #'
 #' @param queryIn  list or json specifying query  (See example)
-#' @return observedData table that has been prepared for defineModels.R
+#' @param source source database, one of: 'simulated_data' (default) or 'production'
+#' @param credentials_path path to your pg_service and pgpass file for production database
+#' @return dbViewR list with query and observedData table that has been prepared for defineModels.R
 #'
 #' @import jsonlite
 #' @import dplyr
 #' @import lubridate
+#' @import DBI
+#' @import RPostgres
 #' @importFrom RCurl getURL
 #' @importFrom magrittr %>%
 #' @importFrom lazyeval interp
@@ -33,7 +37,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                               GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ) ){
+                          ), source = 'simulated_data', credentials_path = '/home/rstudio/seattle_flu' ){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
@@ -42,10 +46,35 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   }
 
   # connect to database
+  if(source == 'simulated_data'){
+
     rawData <- RCurl::getURL("https://raw.githubusercontent.com/seattleflu/simulated-data/master/simulated_subject_database.csv")
     db <- read.table(text = rawData, header=TRUE, sep=",", stringsAsFactors = FALSE)
 
+  } else if(source == 'production'){
+
+    # Define standard Pg environment variables for our connection files.
+    #
+    # These are set here instead of passed in via the Dockerfile or
+    # docker-compose.rstudio.yaml file, because this typically runs as an
+    # rstudio-managed user with its own shell environment separate from the
+    # base Docker user.
+    Sys.setenv(PGSERVICEFILE = file.path(credentials_path, ".pg_service.conf"),
+               PGPASSFILE    = file.path(credentials_path, ".pgpass"))
+
+    # Connect to database using service definition and credentials in files
+    # defined by the environment variables above.
+    rawData <- DBI::dbConnect(RPostgres::Postgres(), service = "seattleflu-production")
+
+    db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
+    DBI::dbDisconnect(rawData)
+
+  } else {
+     print('unknown source database!')
+  }
+
   # run query
+  # this logic will probably move to sql queries in the database instead of dplyr after....
     if(queryList$SELECT !="*"){
 
       db <- db %>% dplyr::select(dplyr::one_of(queryList$SELECT$COLUMN))
@@ -68,15 +97,11 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       }
     }
     
-    # time bin mutations
-    if('encountered_date' %in% names(db)){
-      db$encountered_date <- as.Date(db$encountered_date)
-      db$epi_week <- paste(lubridate::epiyear(db$encountered_date),'_W',sprintf('%02d',lubridate::epiweek(db$encountered_date)),sep='')
-    }
-    
     # age bin mutations
-    if('age' %in% names(db)){
+    # this is nasty!  I need to transform to age bins for modeling, but I don't want to carry the MUTATE query around!
+    if(any(grepl('age',names(db)))){ 
       db$age_bin <- floor(pmin(db$age,90))
+      queryList$GROUP_BY$COLUMN[queryList$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
     }
     
 
@@ -107,43 +132,4 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 }
 
 
-#' masterSpatialDB: function for fetching spatial data from master source
-#' (Currently pulls from https://github.com/seattleflu/simulated-data/tree/master/kingCountySpatialData)
-#'
-#' @return sf object with king county shapefile data
-#'
-#' @importFrom sf st_read
-#'
-#' @export
-#' @examples
-#'    shp <- masterSpatialDB()
-#'
-masterSpatialDB <- function(){
-  # should take option of shape level!
 
-  # connect to database
-  download.file(url = "https://github.com/seattleflu/simulated-data/raw/master/kingCountySpatialData/2016_CensusTracts_KingCountyWa.zip",
-                destfile = "2016_CensusTracts_KingCountyWa.zip")
-  unzip(zipfile = "2016_CensusTracts_KingCountyWa.zip")
-  shp <- sf::st_read("2016_CensusTracts_KingCountyWa")
-
-  levels(shp$NEIGHBO)<-c(levels(shp$NEIGHBO),'NA')
-  shp$NEIGHBO[is.na(shp$NEIGHBO)]<-'NA'
-
-  levels(shp$CRA_NAM)<-c(levels(shp$CRA_NAM),'NA')
-  shp$CRA_NAM[is.na(shp$CRA_NAM)]<-'NA'
-
-  unlink('2016_CensusTracts_KingCountyWa', recursive = TRUE)
-  unlink('2016_CensusTracts_KingCountyWa.zip')
-
-  names(shp)[names(shp) %in% c('CRA_NAM','NEIGHBO')]<-c('CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')
-
-  for( COLUMN in names(shp)[names(shp) %in% c('GEOID','CRA_NAME','PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME')]){
-    shp[[COLUMN]] <- as.character(shp[[COLUMN]])
-  }
-
-  return(shp)
-
-
-  # this will eventually pull from curated data like: https://github.com/seattleflu/seattle-geojson
-}

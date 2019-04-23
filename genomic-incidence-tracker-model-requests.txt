@@ -1,0 +1,74 @@
+# some examples that map onto models I've fit
+# working towards a schema...
+
+# some catchment maps using smooth model
+
+    # find catchment maps for each sampling_location at CRA_NAME geo_resolution
+    {
+        "geo_resolution": "CRA_NAME",
+        "group_by": "sampling_location",
+        "outcome": "expected_cases",
+        "model_type": "smooth",
+        "model_version": "latest",
+    }
+
+    # find catchment maps for each sampling_location and race at GEOID geo_resolution from nearest model iteration to 29 March 2019
+    {
+        "geo_resolution": "GEOID",
+        "group_by": ["sampling_location", "race"],
+        "outcome": "expected_cases",
+        "model_type": "smooth",
+        "model_version": "2019-03-29 12:00:00Z",
+    }
+
+
+# some latent field maps of relative incidence
+
+    # call h1n1pdm latent field model at NEIGHBO level and encountered_week
+    {
+        "geo_resolution": "NEIGHBO",
+        "pathogen": "h1n1pdm",
+        "sequential_variable": "encountered_week",
+        "outcome": "relative_incidence",
+        "model_type": "latent_field",
+        "model_version": "latest",
+    }
+
+    # call h1n1pdm latent field model at NEIGHBO level and encountered_week in [2018-W48, 2019-W10]
+
+    {
+        "geo_resolution": "NEIGHBO",
+        "pathogen": "h1n1pdm",
+        "sequential_variable": "encountered_week",
+        "sequential_variable_between": ["2018-W48", "2019-W10"],
+        "outcome": "relative_incidence",
+        "model_type": "latent_field",
+        "model_version": "latest",
+    }
+
+
+# call the smoothed observation data for h1n1pdm at the CRA_NAME level and encountered_week and stratified on sampling_location and flu_shot
+    {
+        "geo_resolution": "CRA_NAME",
+        "pathogen": "h1n1pdm",
+        "sequential_variable": "encountered_week",
+        "outcome": "expected_cases",
+        "group_by": ["sampling_location","flu_shot"],
+        "model_type": "smooth",
+        "model_version": "latest",
+    }
+
+
+#  call the smoothed age distributions for all pathogens at CITY level stratified by flu_shot and sex
+    {
+        "geo_resolution": "CITY",
+        "pathogen": "all",
+        # "all" is a special key that returns every type available
+        "sequential_variable": "age",
+        "outcome": "proportion",
+        "group_by": ["flu_shot","sex"],
+        "model_type": "smooth",
+        "model_version": "latest",
+    }
+
+

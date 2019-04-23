@@ -1,4 +1,4 @@
  # modelServR
-modelServR interacts with the api_service to find requested model data and return it to the visualization service.  (This may migrate over to the Hutch or into the python layer in the future.)
+modelServR is the interface between the R and python layers.  It saves trained models and interacts with the api_service to find requested model data and return it to the visualization service.  
 
-THIS NEEDS A LOT OF WORK!  Is more of a placeholder than an actual thing. 
+THIS NEEDS A LOT OF WORK! 

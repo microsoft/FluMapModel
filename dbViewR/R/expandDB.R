@@ -11,10 +11,11 @@
 #' @examples
 #'
 expandDB <- function( db = dbViewR::selectFromDB(), 
-                      linelist = dbViewR::selectFromDB(db$queryList[names(db$queryList) %in% c("SELECT","WHERE","MUTATE")]),
+                      linelist = dbViewR::selectFromDB(db$queryList[names(db$queryList) %in% c("SELECT","WHERE")]),
                       shp = dbViewR::masterSpatialDB() ){
   
   # bounded columns
+  # this needs to be done differently, to account for different data types and database sources
   validColumnData <- list(
     num_date = unique(linelist$observedData$num_date),
     encountered_date = unique(linelist$observedData$encountered_date),
@@ -44,21 +45,23 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # transformations
-  if('epi_week' %in% names(db$observedData)){
-    validColumnData$epi_week <- sort(unique(db$observedData$epi_week))
-    validColumnData$time_row <- 1:(length(validColumnData$epi_week)+4)
+
+  # encountered_week
+  if('encountered_week' %in% names(db$observedData)){
+    validColumnData$encountered_week <- sort(unique(db$observedData$encountered_week))
+    validColumnData$time_row <- 1:(length(validColumnData$encountered_week)+4)
     
-    # format predict epi week str
-    tmp<-sapply(strsplit(validColumnData$epi_week[length(validColumnData$epi_week)],'_W'),as.numeric)
+    # format predict iso week str (# there is surely a better way to do this!)
+    tmp<-sapply(strsplit(validColumnData$encountered_week[length(validColumnData$encountered_week)],'-W'),as.numeric)
     for(k in 1:4){
       ew <- (tmp[2] + k) %% 52
       ey <- tmp[1] + floor((tmp[2] + k)/52)
-      validColumnData$epi_week[length(validColumnData$epi_week)+1]<-paste(ey,'_W',ew,sep='')
+      validColumnData$encountered_week[length(validColumnData$encountered_week)+1]<-paste(ey,'-W',ew,sep='')
     }
   }
   
   # age bin
-  if(any(grepl('age',names(db$observedData)))) {
+  if(any(grepl('age_bin',names(db$observedData)))) {
     validColumnData$age_bin <- seq(0,90,by=1)
     validColumnData$age_row <- 1+seq(0,90,by=1)
   }
@@ -91,10 +94,11 @@ expandDB <- function( db = dbViewR::selectFromDB(),
   }
   
   # row indices for INLA
-  if(any(grepl('epi_week',names(db$observedData)))){
-    db$observedData$time_row <- validColumnData$time_row[match(db$observedData$epi_week,validColumnData$epi_week)]
+  if(any(grepl('encountered_week',names(db$observedData)))){
+    db$observedData$time_row <- validColumnData$time_row[match(db$observedData$encountered_week,validColumnData$encountered_week)]
   }
-  if(any(grepl('age',names(db$observedData)))){
+
+  if(any(grepl('age_bin',names(db$observedData)))){
     db$observedData$age_row <- validColumnData$age_row[match(db$observedData$age_bin,validColumnData$age_bin)]
   }
   
