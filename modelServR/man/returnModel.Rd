@@ -5,26 +5,26 @@
 \title{returnModel function for getting modeled data}
 \usage{
 returnModel(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
-  c("samplingLocation", "GEOID")), WHERE = list(COLUMN =
-  "samplingLocation", IN = c("kiosk")), GROUP_BY = list(COLUMN =
-  c("samplingLocation", "GEOID")), SUMMARIZE = list(COLUMN =
-  "samplingLocation", IN = c("kiosk")))), type = "smooth",
-  format = "csv", version = "mostRecent",
-  cloudDir = "C:/Users/mfamulare/Dropbox (IDM)/SeattleFlu-incidenceMapR/models")
+  c("sampling_location", "GEOID")), WHERE = list(COLUMN =
+  "sampling_location", IN = c("kiosk")), GROUP_BY = list(COLUMN =
+  c("sampling_location", "GEOID")), SUMMARIZE = list(COLUMN =
+  "sampling_location", IN = c("kiosk")))), type = "smooth",
+  format = "json", version = "latest",
+  cloudDir = "/home/rstudio/seattle_flu")
 }
 \arguments{
 \item{queryIn}{JSON query to dbViewR that defines model}
 
-\item{type}{= "smooth" (default), "latent", "effects"}
+\item{type}{= "smooth" (default), "latent_field", "effects", "inla"}
 
-\item{format}{= "csv" (default: pre-defined data-only output) or "model" (incidenceMapR model object)}
+\item{format}{= "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)}
 
-\item{version}{= "mostRecent" (default) or date and time created}
+\item{version}{= "latest" (default) or ISO date and time created (UTC, like "2019-04-19 22:49:19Z")}
 
 \item{cloudDir}{= directory where models are stored}
 }
 \value{
-dataJSON json with data
+model in requested format
 }
 \description{
 This function loads a cached model object containing two datasets

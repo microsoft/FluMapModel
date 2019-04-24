@@ -9,13 +9,18 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   c("pathogen", "encountered_date", "PUMA5CE", "GEOID")), MUTATE =
   list(COLUMN = c("encountered_date"), AS = "epi_week"), GROUP_BY =
   list(COLUMN = c("epi_week", "PUMA5CE", "GEOID")), SUMMARIZE = list(COLUMN
-  = "pathogen", IN = c("h1n1pdm")))))
+  = "pathogen", IN = c("h1n1pdm")))), source = "simulated_data",
+  credentials_path = "/home/rstudio/seattle_flu")
 }
 \arguments{
 \item{queryIn}{list or json specifying query  (See example)}
+
+\item{source}{source database, one of: 'simulated_data' (default) or 'production'}
+
+\item{credentials_path}{path to your pg_service and pgpass file for production database}
 }
 \value{
-observedData table that has been prepared for defineModels.R
+dbViewR list with query and observedData table that has been prepared for defineModels.R
 }
 \description{
 STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODUCTION.

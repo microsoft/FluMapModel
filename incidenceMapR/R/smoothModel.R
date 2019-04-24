@@ -30,11 +30,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   
   # identify intended family
   if(is.null(family)){
-    if (all(inputData$n == inputData$positive)){
+    if (all(inputData$n == inputData$positive | is.na(db$observedData$positive))){
       family = 'poisson'
-    } else if (all(db$observedData$n >= db$observedData$positive)){
+    } else if (all(db$observedData$n >= db$observedData$positive | is.na(db$observedData$positive))){
       family = 'binomial'
-    } else if (any(inputData$n < inputData$positive)){
+    } else if (any(inputData$n < inputData$positive | is.na(db$observedData$positive))){
       return('n < positive !!!  invald db$observedData.')
     }
   }
@@ -195,37 +195,3 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
 }
 
 
-#' appendSmoothData: internal function for adding model$summary.fitted.values to db$observedData from smoothModel fit
-#'
-#' @param model inla model object
-#' @param db object from dbViewer with observedData tibble and query
-#' 
-#' @import dplyr
-#' @import magrittr
-#' 
-#' @return db with added modeledData tibble
-#' 
-appendSmoothData <- function(model,modelDefinition){
-
-  modeledData <- modelDefinition$observedData
-  
-  if(modelDefinition$family[1] == 'binomial'){
-    modeledData$fraction <- modeledData$positive/modeledData$n
-  }
-  
-  # summary.fitted.values is only relevant output for smoothModel
-  nCol <- ncol(modeledData)
-  modeledData[,nCol+1:ncol(model$summary.fitted.values)]<-model$summary.fitted.values
-  names(modeledData)[nCol+1:ncol(model$summary.fitted.values)]<-paste('fitted.values',names(model$summary.fitted.values),sep='.')
-  
-  rownames(modeledData)<-c()
-  
-  # snake_case
-  names(modeledData) <- gsub('\\.','_',names(modeledData))
-  
-  # pretty order 
-  columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(modeledData)]
-  modeledData <- modeledData %>% arrange_(.dots=columns)
-  
-  return(modeledData)
-}

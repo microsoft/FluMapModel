@@ -278,32 +278,3 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
 }
 
 
-#' appendLatentFieldData: internal function for adding model$summary.random to db$observedData from latentFieldModel fit
-#'
-#' @param model inla model object
-#' @param db object from dbViewer with observedData tibble and query
-#' @return db with added modeledData tibble
-#' 
-appendLatentFieldData <- function(model,modelDefinition){
-  
-  # summary.fitted.values
-  modeledData <- appendSmoothData(model,modelDefinition)
-  
-  # latent field
-  # summary.lincomb.derived
-  latentField <- modelDefinition$latentFieldData
-  nCol <- ncol(latentField)
-  latentField[,nCol+1:ncol(model$summary.lincomb.derived)]<-model$summary.lincomb.derived
-  names(latentField)[nCol+1:ncol(model$summary.lincomb.derived)]<-paste('latent.field',names(model$summary.lincomb.derived),sep='.')
-  
-  rownames(latentField)<-c()
-  
-  # snake_case
-  names(latentField) <- gsub('\\.','_',names(latentField))
-  
-  # pretty order 
-  columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(latentField)]
-  latentField <- latentField %>% arrange_(.dots=columns)
-  
-    return(list(modeledData = modeledData, latentField = latentField))
-}

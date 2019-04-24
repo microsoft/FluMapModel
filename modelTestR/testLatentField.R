@@ -8,8 +8,6 @@ library(modelServR)
 library(dplyr)
 library(magrittr)
 
-library(INLA)
-
 shp <- masterSpatialDB()  # census-tract shapefiles
 neighborGraph <- constructAdjacencyNetwork(shp)
 
@@ -43,13 +41,12 @@ for(geo in geoLevels){
   for( k in 1:length(pathogens)){
     # query pathogen, time, levels you want to play with
     queryIn <- list(
-      SELECT   =list(COLUMN=c('encountered_date','pathogen','sampling_location','flu_shot',geo)),
+      SELECT   =list(COLUMN=c('encountered_week','pathogen','sampling_location','flu_shot',geo)),
       WHERE    =list(COLUMN=c('pathogen'), IN=pathogens[k]),
-      MUTATE   =list(COLUMN=c('encountered_date'), AS='epi_week'),
-      GROUP_BY =list(COLUMN=c('pathogen','epi_week','sampling_location','flu_shot',geo)),
+      GROUP_BY =list(COLUMN=c('pathogen','encountered_week','sampling_location','flu_shot',geo)),
       SUMMARIZE=list(COLUMN='pathogen', IN= pathogens[k])
     )
-    db <- expandDB( selectFromDB(  queryIn ))
+    db <- expandDB( db<-selectFromDB(  queryIn ))
 
     db <- appendCatchmentModel(db,shp=shp)
 
@@ -69,7 +66,7 @@ for(geo in geoLevels){
          log(model$modeledData$fitted_values_mode[idx]))
 
 
-    saveModel(model, cloudDir = '~/data')
+    saveModel(model, cloudDir = './data')
 
 
     if (geo =='GEOID'){
