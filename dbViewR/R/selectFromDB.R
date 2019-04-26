@@ -6,6 +6,7 @@
 #' @param queryIn  list or json specifying query  (See example)
 #' @param source source database, one of: 'simulated_data' (default) or 'production'
 #' @param credentials_path path to your pg_service and pgpass file for production database
+#' @param na.rm = TRUE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway
 #' @return dbViewR list with query and observedData table that has been prepared for defineModels.R
 #'
 #' @import jsonlite
@@ -37,7 +38,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                               GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ), source = 'simulated_data', credentials_path = '/home/rstudio/seattle_flu' ){
+                          ), source = 'simulated_data', credentials_path = '/home/rstudio/seattle_flu',
+                          na.rm = TRUE){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
@@ -125,7 +127,12 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     for( COLUMN in names(db)[names(db) %in% c('GEOID','CRA_NAME','PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME')]){
       db[[COLUMN]] <- as.character(db[[COLUMN]])
     }
-    
+
+  # drop rows with NA since incidenceMapR (INLA) will ignore them anyway
+  if(na.rm){
+    db <- db %>% drop_na()
+  }    
+  
   summarizedData <- list(observedData = db,queryList = c(queryList))
 
   return(summarizedData)
