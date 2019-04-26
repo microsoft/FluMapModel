@@ -8,6 +8,10 @@ library(dplyr)
 ####         test selectFromDB       ###################
 ########################################################
 
+########################################################
+####     simulated-data          #######################
+########################################################
+
 ## return all
   queryJSON <- jsonlite::toJSON(list(SELECT  =c("*")))
   db <- selectFromDB( queryJSON )
@@ -107,3 +111,70 @@ shp<-masterSpatialDB(shape_level = 'cra_name', source = "seattle_geojson")
 names(shp)[names(shp) == 'CRA_NAM']<-'CRA_NAME'
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('CRA_NAME','geometry')))
 plot(plotDat)
+
+
+
+########################################################
+####     production              #######################
+########################################################
+
+## return all
+queryJSON <- jsonlite::toJSON(list(SELECT  =c("*")))
+db <- selectFromDB( queryJSON, source = 'production')
+head(db$observedData)
+
+names(db$observedData)
+
+
+## return subset
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('individual','encountered_date','site_type','sex','flu_shot','age')),
+    WHERE   =list(COLUMN='encountered_date', BETWEEN = c('2019-01-01','2019-02-28')),
+    WHERE   =list(COLUMN='site_type', IN='childrensHospital')
+  )
+)
+db <- selectFromDB( queryJSON, source = 'production' )
+head(db$observedData)
+
+
+## return subset
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('encountered_week','site_type','sex','flu_shot','age')),
+    WHERE   =list(COLUMN='encountered_week', BETWEEN = c('2018-W51','2019-W10'))
+  )
+)
+db <- selectFromDB( queryJSON, source = 'production' )
+head(db$observedData)
+
+
+## space-time summary of encounters
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('encountered_week','residence_census_tract','site_type','flu_shot')),
+    GROUP_BY=list(COLUMN=c('encountered_week','residence_census_tract','site_type','flu_shot')),
+    SUMMARIZE=list(COLUMN='site_type', IN= 'all')
+  )
+)
+db <- selectFromDB( queryJSON, source = 'production' )
+head(db$observedData)
+
+
+
+########################################################
+####         test expandDb       ###################
+########################################################
+
+
+## return encounters summary for catchment modeling
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('encountered_week','residence_census_tract','site_type','flu_shot')),
+    GROUP_BY=list(COLUMN=c('encountered_week','residence_census_tract','site_type','flu_shot')),
+    SUMMARIZE=list(COLUMN='site_type', IN= 'all')
+  )
+)
+db <- expandDB( selectFromDB( queryJSON, source = 'production' ))
+head(db$observedData)
+
