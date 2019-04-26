@@ -1,6 +1,5 @@
 library(logging)
 basicConfig()
-setLevel(10)
 
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
 #'

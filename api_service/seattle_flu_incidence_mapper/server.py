@@ -1,12 +1,12 @@
-from flask import render_template
-import connexion
+# local modules
+import config
 
-
-# Create the application instance
-app = connexion.App(__name__, specification_dir="./")
+# Get the application instance
+connex_app = config.connex_app
 
 # Read the swagger.yml file to configure the endpoints
-app.add_api("swagger.yml")
+connex_app.add_api("swagger.yml")
+
 
 if __name__ == "__main__":
-    app.cli()
+    connex_app.run(debug=True)
