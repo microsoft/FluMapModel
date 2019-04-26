@@ -2,10 +2,6 @@ library(logging)
 basicConfig()
 setLevel(10)
 
-# Fields that we use to identify a specific model
-# Usually these are the fields that were used to train the model
-includedQueryFields <- c("geo_resolution", "pathogen", "sequential_variable", "outcome")
-
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
 #'
 #' @param model INLA model object contaomomg the modelDefinition$queryList properties
