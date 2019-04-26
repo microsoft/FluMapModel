@@ -1,3 +1,7 @@
+library(logging)
+basicConfig()
+setLevel(10)
+
 #' returnModel function for getting modeled data
 #'
 #' This function loads a cached model object containing two datasets
@@ -29,9 +33,8 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                                 SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
                                   )),
                             type = 'smooth',
-                            format = 'json',
                             version = 'latest',
-                            cloudDir = '/home/rstudio/seattle_flu'){
+                            cloudDir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')){
 
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
 
@@ -48,6 +51,9 @@ returnModel <- function(queryIn = jsonlite::toJSON(
   } else if(class(queryIn)=='json'){
     queryList <- jsonlite::fromJSON(queryIn)
   }
+
+  modelID <- getModelIdFromQuery(queryList)
+  logdebug("ModelID: ", modelID)
 
   modelDBfile<-paste(cloudDir,'modelDB.tsv',sep='/')
 
