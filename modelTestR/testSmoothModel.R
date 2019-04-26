@@ -19,10 +19,10 @@ plotSettings <- ggplot() + theme_bw() +  theme(panel.border = element_blank()) +
 
 # simulated data kiosk catchment map
 queryIn <- list(
-  SELECT   =list(COLUMN=c('sampling_location','GEOID')),
-  WHERE    =list(COLUMN='sampling_location', IN = c('kiosk')),
-  GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
-  SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
+  SELECT   =list(COLUMN=c('site_type','GEOID')),
+  WHERE    =list(COLUMN='site_type', IN = c('kiosk')),
+  GROUP_BY =list(COLUMN=c('site_type','GEOID')),
+  SUMMARIZE=list(COLUMN='site_type', IN= c('kiosk'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
 
@@ -34,10 +34,10 @@ ggplotSmoothMap(model,shp)
 
 # simulated data at_home catchment map
 queryIn <- list(
-  SELECT   =list(COLUMN=c('sampling_location','GEOID')),
-  WHERE    =list(COLUMN='sampling_location', IN = c('at_home')),
-  GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
-  SUMMARIZE=list(COLUMN='sampling_location', IN= c('at_home'))
+  SELECT   =list(COLUMN=c('site_type','GEOID')),
+  WHERE    =list(COLUMN='site_type', IN = c('at_home')),
+  GROUP_BY =list(COLUMN=c('site_type','GEOID')),
+  SUMMARIZE=list(COLUMN='site_type', IN= c('at_home'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
 

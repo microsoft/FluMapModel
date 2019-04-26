@@ -21,7 +21,7 @@ library(dplyr)
 ## return subset
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT  =list(COLUMN=c('id','pathogen','encountered_date','sampling_location','sex','flu_shot','age','has_fever','has_cough','has_myalgia')),
+      SELECT  =list(COLUMN=c('individual','pathogen','encountered_date','sampling_location','sex','flu_shot','age','has_fever','has_cough','has_myalgia')),
       WHERE   =list(COLUMN='pathogen', IN = c('h1n1pdm', 'h3n2')),
       WHERE   =list(COLUMN='encountered_date', BETWEEN = c(2019,2019.2)),
       WHERE   =list(COLUMN='sampling_location', IN='hospital')
