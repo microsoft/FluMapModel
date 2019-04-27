@@ -5,10 +5,10 @@
 \title{returnModel function for getting modeled data}
 \usage{
 returnModel(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
-  c("site_type", "residence_census_tract")), WHERE = list(COLUMN =
-  "site_type", IN = c("kiosk")), GROUP_BY = list(COLUMN =
-  c("site_type", "residence_census_tract")), SUMMARIZE = list(COLUMN =
-  "site_type", IN = c("kiosk")))), type = "smooth",
+  c("sampling_location", "residence_census_tract")), WHERE = list(COLUMN =
+  "sampling_location", IN = c("kiosk")), GROUP_BY = list(COLUMN =
+  c("sampling_location", "residence_census_tract")), SUMMARIZE =
+  list(COLUMN = "sampling_location", IN = c("kiosk")))), type = "smooth",
   format = "json", version = "latest",
   cloudDir = "/home/rstudio/seattle_flu")
 }

@@ -108,7 +108,6 @@ queryIn <- list(
 db <- selectFromDB( queryIn )
 # residence_cra_name
 shp<-masterSpatialDB(shape_level = 'cra_name', source = "seattle_geojson")
-names(shp)[names(shp) == 'CRA_NAM']<-'residence_cra_name'
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_cra_name','geometry')))
 plot(plotDat)
 

@@ -17,6 +17,7 @@
 #' @importFrom RCurl getURL
 #' @importFrom magrittr %>%
 #' @importFrom lazyeval interp
+#' @importFrom tidyr drop_na
 #'
 #' @export
 #' @examples
@@ -130,7 +131,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
   # drop rows with NA since incidenceMapR (INLA) will ignore them anyway
   if(na.rm){
-    db <- db %>% drop_na()
+    db <- db %>% tidyr::drop_na()
   }    
   
   summarizedData <- list(observedData = db,queryList = c(queryList))

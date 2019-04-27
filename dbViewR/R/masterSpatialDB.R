@@ -62,19 +62,19 @@ masterSpatialDB <- function(shape_level = 'census_tract', source = 'simulated_da
       shp$residence_census_tract <- as.character(shp[[FIELDNAME]])
       shp$work_census_tract <- as.character(shp[[FIELDNAME]])
     } else if (grepl('CRA_NAM',NAME,ignore.case = TRUE)){
-      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      FIELDNAME <- names(shp)[grepl('CRA_NAM',names(shp),ignore.case = TRUE)]
       shp$residence_cra_name <- as.character(shp[[FIELDNAME]])
       shp$work_cra_name <- as.character(shp[[FIELDNAME]])
     } else if (grepl('NEIGHBO',NAME,ignore.case = TRUE)){
-      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      FIELDNAME <- names(shp)[grepl('NEIGHBO',names(shp),ignore.case = TRUE)]
       shp$residence_neighborhood_district_name <- as.character(shp[[FIELDNAME]])
       shp$work_neighborhood_district_name <- as.character(shp[[FIELDNAME]])
     } else if (grepl('PUMA',NAME,ignore.case = TRUE)){
-      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      FIELDNAME <- names(shp)[grepl('PUMA',names(shp),ignore.case = TRUE)]
       shp$residence_puma5ce <- as.character(shp[[FIELDNAME]])
       shp$work_puma5ce <- as.character(shp[[FIELDNAME]])
     } else if (grepl('CITY',NAME,ignore.case = TRUE)){
-      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      FIELDNAME <- names(shp)[grepl('CITY',names(shp),ignore.case = TRUE)]
       shp$residence_city <- as.character(shp[[FIELDNAME]])
       shp$work_city <- as.character(shp[[FIELDNAME]])
     }
