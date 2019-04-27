@@ -1,7 +1,7 @@
 #' masterSpatialDB: function for fetching spatial data from master source
 #'
 #' @param shape_level one of "census_tract" (default),"cra_name","neighborhood","city"
-#' @param source source database, one of "seattle_geojson" (default), "simulated_data"
+#' @param source source database, one of "wa_geojson" (default), "seattle_geojson", or "simulated_data"
 #' @param rm_files indicator to remove local files (TRUE == default)
 #' @return sf object with shapefile data
 #'
@@ -13,13 +13,10 @@
 #' @examples
 #'    shp <- masterSpatialDB(shape_level = 'census_tract', source = 'simulated_data', rm_files = TRUE)
 #'
-masterSpatialDB <- function(shape_level = 'census_tract', source = 'simulated_data', rm_files = TRUE){
+masterSpatialDB <- function(shape_level = 'census_tract', source = 'wa_geojson', rm_files = TRUE){
   
   if (source == 'seattle_geojson'){
     # connect to database and get the data at correct shape level
-    
-    sourceURL <- paste('https://raw.githubusercontent.com/seattleflu/seattle-geojson/master/seattle_geojsons/')
-    # pumas are missing from repo
     
     validShapeLevels <- c("census_tract","cra_name","neighborhood","puma","city")
     validShapeFilenames<- c("2016_seattle_censusTracts.geojson","2016_seattle_cra.geojson","2016_seattle_neighborhoods.geojson","2016_seattle_pumas.geojson","2016_seattle_city.geojson")
@@ -27,6 +24,19 @@ masterSpatialDB <- function(shape_level = 'census_tract', source = 'simulated_da
     filename<-validShapeFilenames[validShapeLevels %in% shape_level]
     
     sourceURL <- paste('https://raw.githubusercontent.com/seattleflu/seattle-geojson/master/seattle_geojsons/',filename,sep='')
+    download.file(url = sourceURL,  destfile = filename)
+    
+    shp <- sf::st_as_sf(geojsonio::geojson_read(filename, what = "sp"))
+    
+  } else if (source == 'wa_geojson'){
+    # connect to database and get the data at correct shape level
+    
+    validShapeLevels <- c("census_tract","puma")
+    validShapeFilenames<- c("2016_wa_censusTracts.geojson","2016_wa_pumas.geojson")
+    
+    filename<-validShapeFilenames[validShapeLevels %in% shape_level]
+    
+    sourceURL <- paste('https://raw.githubusercontent.com/seattleflu/seattle-geojson/master/wa_geojsons/',filename,sep='')
     download.file(url = sourceURL,  destfile = filename)
     
     shp <- sf::st_as_sf(geojsonio::geojson_read(filename, what = "sp"))

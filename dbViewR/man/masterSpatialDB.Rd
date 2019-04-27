@@ -4,13 +4,13 @@
 \alias{masterSpatialDB}
 \title{masterSpatialDB: function for fetching spatial data from master source}
 \usage{
-masterSpatialDB(shape_level = "census_tract",
-  source = "simulated_data", rm_files = TRUE)
+masterSpatialDB(shape_level = "census_tract", source = "wa_geojson",
+  rm_files = TRUE)
 }
 \arguments{
 \item{shape_level}{one of "census_tract" (default),"cra_name","neighborhood","city"}
 
-\item{source}{source database, one of "seattle_geojson" (default), "simulated_data"}
+\item{source}{source database, one of "seattle_geojson" (default), "wa_geojson", or "simulated_data"}
 
 \item{rm_files}{indicator to remove local files (TRUE == default)}
 }
