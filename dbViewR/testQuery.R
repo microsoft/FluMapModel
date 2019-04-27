@@ -147,6 +147,21 @@ queryJSON <- jsonlite::toJSON(
 db <- selectFromDB( queryJSON, source = 'production' )
 head(db$observedData)
 
+# basic map
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('site_type','residence_census_tract')),
+    WHERE   =list(COLUMN='site_type', IN='childrensHospital'),
+    GROUP_BY=list(COLUMN=c('site_type','residence_census_tract')),
+    SUMMARIZE=list(COLUMN='site_type', IN='all')
+  )
+)
+db <- selectFromDB( queryJSON, source = 'production' )
+
+shp<-masterSpatialDB(shape_level = 'census_tract', source = "simulated_data")
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
+plot(plotDat)
+
 
 ## space-time summary of encounters
 queryJSON <- jsonlite::toJSON(
@@ -165,15 +180,19 @@ head(db$observedData)
 ####         test expandDb       ###################
 ########################################################
 
-
-## return encounters summary for catchment modeling
+# basic map
 queryJSON <- jsonlite::toJSON(
   list(
-    SELECT  =list(COLUMN=c('encountered_week','residence_census_tract','site_type','flu_shot')),
-    GROUP_BY=list(COLUMN=c('encountered_week','residence_census_tract','site_type','flu_shot')),
-    SUMMARIZE=list(COLUMN='site_type', IN= 'all')
+    SELECT  =list(COLUMN=c('site_type','residence_census_tract')),
+    WHERE   =list(COLUMN='site_type', IN='childrensHospital'),
+    GROUP_BY=list(COLUMN=c('site_type','residence_census_tract')),
+    SUMMARIZE=list(COLUMN='site_type', IN='all')
   )
 )
-db <- expandDB( selectFromDB( queryJSON, source = 'production' ))
+db <- expandDB(selectFromDB( queryJSON, source = 'production' ))
 head(db$observedData)
+
+shp<-masterSpatialDB(shape_level = 'census_tract', source = "simulated_data")
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
+plot(plotDat)
 
