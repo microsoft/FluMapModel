@@ -9,7 +9,7 @@ ggplotSmoothMap(model, shp, title = "")
 \arguments{
 \item{model}{model object from incidenceMapR::modelTrainR}
 
-\item{shp}{sf object with GEOID shapes (GEOID only for now)}
+\item{shp}{sf object with residence_census_tract shapes (residence_census_tract only for now)}
 }
 \value{
 ggplot object
@@ -18,7 +18,7 @@ ggplot object
 ggplotSmoothMap: function for plotting data and smoothed model next to each other on map
 }
 \examples{
-plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
+plotDat <- right_join(model$modeledData,shp, by=c('residence_census_tract'))
 plotDat$positive[plotDat$positive==0]<-NaN
 ggplotSmoothMap(plotDat,shp)
 

@@ -39,10 +39,10 @@ levels(shp$CRA_NAM)<-c(levels(shp$CRA_NAM),'NA')
 shp$CRA_NAM[is.na(shp$CRA_NAM)]<-'NA'
 
 #change data type (same as from original Mike F)
-shp$GEOID<-as.character(shp$GEOID)
+shp$residence_census_tract<-as.character(shp$residence_census_tract)
 shp$CRA_NAM<-as.character(shp$CRA_NAM)
 shp$NEIGHBO<-as.character(shp$NEIGHBO)
-shp$PUMA5CE<-as.character(shp$PUMA5CE)
+shp$residence_puma5ce<-as.character(shp$residence_puma5ce)
 
 return(shp)
 

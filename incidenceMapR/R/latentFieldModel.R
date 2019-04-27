@@ -2,7 +2,7 @@
 #'
 #' @param db dbViewR object with valid column names for INLA model.
 #'   Smoothing only makes sense by age, location, and time.  Factor variables cannot be smoothed!
-#' @param shp sf object with GEOID shapes (all higher levels assume iid and not local smoothing)
+#' @param shp sf object with residence_census_tract shapes (all higher levels assume iid and not local smoothing)
 #' @param family non-standard family override (default = NULL). 
 #' @param neighborGraph non-standard neighbor graph (default = NULL)
 #' 
@@ -112,91 +112,91 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       validLatentFieldColumns <- c(validLatentFieldColumns,'age_row_rw2','age_row_IID')
     }
     
-    if(COLUMN %in% c('PUMA5CE')){
+    if(COLUMN %in% c('residence_puma5ce')){
       
-      inputData$PUMA5CERow <- match(inputData$PUMA5CE,unique(inputData$PUMA5CE))
+      inputData$residence_puma5ceRow <- match(inputData$residence_puma5ce,unique(inputData$residence_puma5ce))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_PUMA5CE <- inputData$time_row
+        inputData$time_row_residence_puma5ce <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_PUMA5CE, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow','time_row_PUMA5CE')
+        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_puma5ce, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_puma5ceRow','time_row_residence_puma5ce')
       } else {
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'PUMA5CERow')
+        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_puma5ceRow')
       }
     }
     
-    if(COLUMN %in% c('CRA_NAME')){
+    if(COLUMN %in% c('residence_cra_name')){
       
-      inputData$CRA_NAMERow <- match(inputData$CRA_NAME,unique(inputData$CRA_NAME))
+      inputData$residence_cra_nameRow <- match(inputData$residence_cra_name,unique(inputData$residence_cra_name))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_CRA_NAME <- inputData$time_row
+        inputData$time_row_residence_cra_name <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_CRA_NAME, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow','time_row_CRA_NAME')
+        formula <- update(formula,  ~ . + f(residence_cra_nameRow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_cra_name, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_cra_nameRow','time_row_residence_cra_name')
       } else {
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'CRA_NAMERow')
+        formula <- update(formula,  ~ . + f(residence_cra_nameRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_cra_nameRow')
       }
     }
     
-    if(COLUMN %in% c('NEIGHBORHOOD_DISTRICT_NAME')){
+    if(COLUMN %in% c('residence_neighborhood_district_name')){
       
-      inputData$NEIGHBORHOOD_DISTRICT_NAMERow <- match(inputData$NEIGHBORHOOD_DISTRICT_NAME,unique(inputData$NEIGHBORHOOD_DISTRICT_NAME))
+      inputData$residence_neighborhood_district_nameRow <- match(inputData$residence_neighborhood_district_name,unique(inputData$residence_neighborhood_district_name))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_NEIGHBORHOOD_DISTRICT_NAME <- inputData$time_row
+        inputData$time_row_residence_neighborhood_district_name <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow','time_row_NEIGHBORHOOD_DISTRICT_NAME')
+        formula <- update(formula,  ~ . + f(residence_neighborhood_district_nameRow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_neighborhood_district_name, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_neighborhood_district_nameRow','time_row_residence_neighborhood_district_name')
       } else {
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'NEIGHBORHOOD_DISTRICT_NAMERow')
+        formula <- update(formula,  ~ . + f(residence_neighborhood_district_nameRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_neighborhood_district_nameRow')
       }
     }
     
     # Do we want the option of neighbor smoothing at larger scales?
-    if(COLUMN == 'GEOID'){
+    if(COLUMN == 'residence_census_tract'){
       if(exists('shp')){
         neighborGraph <- constructAdjacencyNetwork(shp) 
-        inputData$GEOIDRow <- shp$rowID[match(inputData$GEOID,shp$GEOID)]
+        inputData$residence_census_tractRow <- shp$rowID[match(inputData$residence_census_tract,shp$residence_census_tract)]
         
         if('time_row' %in% names(inputData)){
           
-          inputData$time_row_GEOID <- inputData$time_row
+          inputData$time_row_residence_census_tract <- inputData$time_row
           
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = time_row_GEOID, control.group=list(model="rw2")))
-          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','time_row_GEOID')
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
+                                              group = time_row_residence_census_tract, control.group=list(model="rw2")))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'residence_census_tractRow','time_row_residence_census_tract')
         } else {
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
-          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow')
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'residence_census_tractRow')
         }
       } else {
         
-        inputData$GEOIDRow <- match(inputData$GEOID,unique(inputData$GEOID))
+        inputData$residence_census_tractRow <- match(inputData$residence_census_tract,unique(inputData$residence_census_tract))
         
         if('time_row' %in% names(inputData)){
           
-          inputData$time_row_GEOID <- inputData$time_row
+          inputData$time_row_residence_census_tract <- inputData$time_row
           
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = time_row_GEOID, control.group=list(model="rw2")))
-          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow','time_row_GEOID')
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
+                                              group = time_row_residence_census_tract, control.group=list(model="rw2")))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'residence_census_tractRow','time_row_residence_census_tract')
         } else {
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
-          validLatentFieldColumns <- c(validLatentFieldColumns,'GEOIDRow')
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
+          validLatentFieldColumns <- c(validLatentFieldColumns,'residence_census_tractRow')
         }
         
       }
@@ -224,7 +224,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
           pathogenNames <- '(Intercept)'
         }
         
-      } else if (!(COLUMN == 'time_row_PUMA5CE' )) {
+      } else if (!(COLUMN == 'time_row_residence_puma5ce' )) {
         groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns)  # this nasty thing will get refactored: https://github.com/seattleflu/incidence-mapper/issues/13
         if(any(groupIdx & !spentColumn)){ # grouped?
           lcIdx[[COLUMN]] <- inla.idx(lc.data[[COLUMN]], group = lc.data[[validLatentFieldColumns[groupIdx]]], replicate = lc.data$replicateIdx)          

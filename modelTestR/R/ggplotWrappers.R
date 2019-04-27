@@ -1,7 +1,7 @@
 #' ggplotSmoothMap: function for plotting data and smoothed model next to each other on map
 #'
 #' @param model model object from incidenceMapR::modelTrainR
-#' @param shp sf object with GEOID shapes (GEOID only for now)
+#' @param shp sf object with residence_census_tract shapes (residence_census_tract only for now)
 #' @return ggplot object
 #'
 #' @import ggplot2
@@ -12,14 +12,14 @@
 #'
 #' @export
 #' @examples
-#' plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
+#' plotDat <- right_join(model$modeledData,shp, by=c('residence_census_tract'))
 #' plotDat$positive[plotDat$positive==0]<-NaN
 #' ggplotSmoothMap(plotDat,shp)
 #'
 ggplotSmoothMap <- function(model, shp, title=''){
 
 
-plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
+plotDat <- right_join(model$modeledData,shp, by=c('residence_census_tract'))
 plotDat$positive[plotDat$n==0]<-NaN
 
 
@@ -58,7 +58,7 @@ grid.arrange(p1,p2,nrow=1, top=textGrob(title))
 #'
 #' @export
 #' @examples
-#' plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
+#' plotDat <- right_join(model$modeledData,shp, by=c('residence_census_tract'))
 #' plotDat$positive[plotDat$positive==0]<-NaN
 #' ggplotSmoothSequential(plotDat)
 #'

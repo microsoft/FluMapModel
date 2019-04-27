@@ -13,9 +13,9 @@ shp<-masterSpatialDB()
 # test: simulated data kiosk catchment map pushed to IDM P drive
 #  (where still working on model storage access outside IDM--very likely dropbox with permissions)
 queryIn <- list(
-  SELECT   =list(COLUMN=c('sampling_location','GEOID')),
+  SELECT   =list(COLUMN=c('sampling_location','residence_census_tract')),
   WHERE   =list(COLUMN='sampling_location', IN = c('kiosk')),
-  GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
+  GROUP_BY =list(COLUMN=c('sampling_location','residence_census_tract')),
   SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
@@ -35,7 +35,7 @@ saveModel(model, cloudDir = './data')
 ##################################################
 
 # find catchment maps for each sampling_location and geoLevel
-  geoLevels <- c('GEOID','PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME')  
+  geoLevels <- c('residence_census_tract','residence_puma5ce','residence_cra_name','residence_neighborhood_district_name')
 
   for(geo in geoLevels){
     queryIn <- list(
@@ -51,7 +51,7 @@ saveModel(model, cloudDir = './data')
         
     saveModel(model, cloudDir = './data')
     
-    if (geo =='GEOID'){
+    if (geo =='residence_census_tract'){
       for(k in unique(model$modeledData$sampling_location)){
         tmp<-list(modeledData = model$modeledData[model$modeledData$sampling_location==k,])
         ggplotSmoothMap(tmp,shp,k)
@@ -66,8 +66,8 @@ saveModel(model, cloudDir = './data')
 
   # get sampling_locations and has_fever
   queryIn <- list(
-    SELECT   =list(COLUMN=c('has_fever','sampling_location','GEOID')),
-    GROUP_BY =list(COLUMN=c('has_fever','sampling_location','GEOID')),
+    SELECT   =list(COLUMN=c('has_fever','sampling_location','residence_census_tract')),
+    GROUP_BY =list(COLUMN=c('has_fever','sampling_location','residence_census_tract')),
     SUMMARIZE=list(COLUMN='sampling_location', IN= "all")
   )
   db <- expandDB(selectFromDB(queryIn))

@@ -23,9 +23,9 @@
 #'
 returnModel <- function(queryIn = jsonlite::toJSON(
                               list(
-                                SELECT   =list(COLUMN=c('sampling_location','GEOID')),
+                                SELECT   =list(COLUMN=c('sampling_location','residence_census_tract')),
                                 WHERE   =list(COLUMN='sampling_location', IN = c('kiosk')),
-                                GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
+                                GROUP_BY =list(COLUMN=c('sampling_location','residence_census_tract')),
                                 SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
                                   )),
                             type = 'smooth',

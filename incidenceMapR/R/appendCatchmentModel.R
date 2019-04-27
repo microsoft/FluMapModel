@@ -13,7 +13,7 @@
 #'
 appendCatchmentModel <- function(db,shp = NULL){
   
-  validGeoLevels <- c('PUMA5CE','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME','GEOID')
+  validGeoLevels <- c('residence_puma5ce','residence_cra_name','residence_neighborhood_district_name','residence_census_tract')
   geo <- validGeoLevels[validGeoLevels %in% names(db$observedData)]
   
   # get pathogen list

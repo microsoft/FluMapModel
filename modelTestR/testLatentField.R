@@ -20,12 +20,12 @@ plotSettings <- ggplot() + theme_bw() +  theme(panel.border = element_blank()) +
 #### timeseries latent field ######
 ###################################
 
-geoLevels <- c('PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME','CRA_NAME','NEIGHBORHOOD_DISTRICT_NAME','GEOID')
+geoLevels <- c('residence_puma5ce','residence_neighborhood_district_name','residence_cra_name','residence_neighborhood_district_name','residence_census_tract')
 
-  # geoLevels<-c('PUMA5CE')
-  # geoLevels<-c('NEIGHBORHOOD_DISTRICT_NAME')
-  # geoLevels<-c('CRA_NAME')
-  # geoLevels <- c('GEOID')
+  # geoLevels<-c('residence_puma5ce')
+  # geoLevels<-c('residence_neighborhood_district_name')
+  # geoLevels<-c('residence_cra_name')
+  # geoLevels <- c('residence_census_tract')
 
 
 # get pathogen list
@@ -69,7 +69,7 @@ for(geo in geoLevels){
     saveModel(model, cloudDir = './data')
 
 
-    if (geo =='GEOID'){
+    if (geo =='residence_census_tract'){
       for(m in unique(model$modeledData$sampling_location)){
         for (n in unique(model$modeledData$time_row)){
           tmp<-list(modeledData = model$modeledData[model$modeledData$sampling_location==m & model$modeledData$time_row == n & model$modeledData$flu_shot==0,])

@@ -55,10 +55,30 @@ masterSpatialDB <- function(shape_level = 'census_tract', source = 'simulated_da
   levels(shp$CRA_NAM)<-c(levels(shp$CRA_NAM),'NA')
   shp$CRA_NAM[is.na(shp$CRA_NAM)]<-'NA'
   
-  shp$GEOID<-as.character(shp$GEOID)
-  shp$CRA_NAM<-as.character(shp$CRA_NAM)
-  shp$NEIGHBO<-as.character(shp$NEIGHBO)
-  shp$PUMA5CE<-as.character(shp$PUMA5CE)
+  # harmonize shp names with database names for joins down the line
+  for( NAME in names(shp)){
+    if (grepl('GEOID',NAME,ignore.case = TRUE)){
+      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      shp$residence_census_tract <- as.character(shp[[FIELDNAME]])
+      shp$work_census_tract <- as.character(shp[[FIELDNAME]])
+    } else if (grepl('CRA_NAM',NAME,ignore.case = TRUE)){
+      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      shp$residence_cra_name <- as.character(shp[[FIELDNAME]])
+      shp$work_cra_name <- as.character(shp[[FIELDNAME]])
+    } else if (grepl('NEIGHBO',NAME,ignore.case = TRUE)){
+      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      shp$residence_neighborhood_district_name <- as.character(shp[[FIELDNAME]])
+      shp$work_neighborhood_district_name <- as.character(shp[[FIELDNAME]])
+    } else if (grepl('PUMA',NAME,ignore.case = TRUE)){
+      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      shp$residence_puma5ce <- as.character(shp[[FIELDNAME]])
+      shp$work_puma5ce <- as.character(shp[[FIELDNAME]])
+    } else if (grepl('CITY',NAME,ignore.case = TRUE)){
+      FIELDNAME <- names(shp)[grepl('GEOID',names(shp),ignore.case = TRUE)]
+      shp$residence_city <- as.character(shp[[FIELDNAME]])
+      shp$work_city <- as.character(shp[[FIELDNAME]])
+    }
+  }
   
   return(shp)
   

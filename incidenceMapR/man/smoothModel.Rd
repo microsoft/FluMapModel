@@ -12,7 +12,7 @@ smoothModel(db = dbViewR::selectFromDB(),
 \item{db}{dbViewR object with valid column names for INLA model.
 Smoothing only makes sense by age, location, and time.  Factor variables cannot be smoothed!}
 
-\item{shp}{sf object with GEOID shapes (all higher levels assume iid and not local smoothing)}
+\item{shp}{sf object with residence_census_tract shapes (all higher levels assume iid and not local smoothing)}
 
 \item{family}{non-standard family override (default = NULL).}
 

@@ -2,7 +2,7 @@
 #'
 #' @param db dbViewR object with valid column names for INLA model.
 #'   Smoothing only makes sense by age, location, and time.  Factor variables cannot be smoothed!
-#' @param shp sf object with GEOID shapes (all higher levels assume iid and not local smoothing)
+#' @param shp sf object with residence_census_tract shapes (all higher levels assume iid and not local smoothing)
 #' @param family non-standard family override (default = NULL). 
 #' @param neighborGraph non-standard neighbor graph (default = NULL)
 #' 
@@ -103,81 +103,81 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
                           f(age_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
     }
     
-    if(COLUMN %in% c('PUMA5CE')){
+    if(COLUMN %in% c('residence_puma5ce')){
       
-      inputData$PUMA5CERow <- match(inputData$PUMA5CE,unique(inputData$PUMA5CE))
+      inputData$residence_puma5ceRow <- match(inputData$residence_puma5ce,unique(inputData$residence_puma5ce))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_PUMA5CE <- inputData$time_row
+        inputData$time_row_residence_puma5ce <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_PUMA5CE, control.group=list(model="rw2")))
+        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_puma5ce, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(PUMA5CERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
     
-    if(COLUMN %in% c('CRA_NAME')){
+    if(COLUMN %in% c('residence_cra_name')){
       
-      inputData$CRA_NAMERow <- match(inputData$CRA_NAME,unique(inputData$CRA_NAME))
+      inputData$residence_cra_nameRow <- match(inputData$residence_cra_name,unique(inputData$residence_cra_name))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_CRA_NAME <- inputData$time_row
+        inputData$time_row_residence_cra_name <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_CRA_NAME, control.group=list(model="rw2")))
+        formula <- update(formula,  ~ . + f(residence_cra_nameRow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_cra_name, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(CRA_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        formula <- update(formula,  ~ . + f(residence_cra_nameRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
     
-    if(COLUMN %in% c('NEIGHBORHOOD_DISTRICT_NAME')){
+    if(COLUMN %in% c('residence_neighborhood_district_name')){
       
-      inputData$NEIGHBORHOOD_DISTRICT_NAMERow <- match(inputData$NEIGHBORHOOD_DISTRICT_NAME,unique(inputData$NEIGHBORHOOD_DISTRICT_NAME))
+      inputData$residence_neighborhood_district_nameRow <- match(inputData$residence_neighborhood_district_name,unique(inputData$residence_neighborhood_district_name))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_NEIGHBORHOOD_DISTRICT_NAME <- inputData$time_row
+        inputData$time_row_residence_neighborhood_district_name <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_NEIGHBORHOOD_DISTRICT_NAME, control.group=list(model="rw2")))
+        formula <- update(formula,  ~ . + f(residence_neighborhood_district_nameRow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_neighborhood_district_name, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(NEIGHBORHOOD_DISTRICT_NAMERow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        formula <- update(formula,  ~ . + f(residence_neighborhood_district_nameRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
     
     # Do we want the option of neighbor smoothing at larger scales?
-    if(COLUMN == 'GEOID'){
+    if(COLUMN == 'residence_census_tract'){
       if(exists('shp')){
         neighborGraph <- constructAdjacencyNetwork(shp) 
-        inputData$GEOIDRow <- shp$rowID[match(inputData$GEOID,shp$GEOID)]
+        inputData$residence_census_tractRow <- shp$rowID[match(inputData$residence_census_tract,shp$residence_census_tract)]
         
         if('time_row' %in% names(inputData)){
           
-          inputData$time_row_GEOID <- inputData$time_row
+          inputData$time_row_residence_census_tract <- inputData$time_row
           
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = time_row_GEOID, control.group=list(model="rw2")))
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='besag', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
+                                              group = time_row_residence_census_tract, control.group=list(model="rw2")))
         } else {
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='bym2', graph=modelDefinition$neighborGraph, constr = TRUE, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
         }
       } else {
         
-        inputData$GEOIDRow <- match(inputData$GEOID,unique(inputData$GEOID))
+        inputData$residence_census_tractRow <- match(inputData$residence_census_tract,unique(inputData$residence_census_tract))
         
         if('time_row' %in% names(inputData)){
           
-          inputData$time_row_GEOID <- inputData$time_row
+          inputData$time_row_residence_census_tract <- inputData$time_row
           
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
-                                              group = time_row_GEOID, control.group=list(model="rw2")))
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx,
+                                              group = time_row_residence_census_tract, control.group=list(model="rw2")))
         } else {
-          formula <- update(formula,  ~ . + f(GEOIDRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
+          formula <- update(formula,  ~ . + f(residence_census_tractRow, model='iid', graph=modelDefinition$neighborGraph, hyper=modelDefinition$hyper$local, replicate=replicateIdx))
         }
         
       }

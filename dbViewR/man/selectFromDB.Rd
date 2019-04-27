@@ -6,9 +6,9 @@
 (Currently pulls from simulated data at https://github.com/seattleflu/simulated-data)}
 \usage{
 selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
-  c("pathogen", "encountered_date", "PUMA5CE", "GEOID")), MUTATE =
+  c("pathogen", "encountered_date", "residence_puma5ce", "residence_census_tract")), MUTATE =
   list(COLUMN = c("encountered_date"), AS = "epi_week"), GROUP_BY =
-  list(COLUMN = c("epi_week", "PUMA5CE", "GEOID")), SUMMARIZE = list(COLUMN
+  list(COLUMN = c("epi_week", "residence_puma5ce", "residence_census_tract")), SUMMARIZE = list(COLUMN
   = "pathogen", IN = c("h1n1pdm")))), source = "simulated_data",
   credentials_path = "/home/rstudio/seattle_flu")
 }
@@ -29,9 +29,9 @@ STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODU
 return h1n1pdm summary by time and location
 queryJSON <- jsonlite::toJSON(
   list(
-      SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
+      SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
       MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-      GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
+      GROUP_BY =list(COLUMN=c('epi_week','residence_puma5ce','residence_census_tract')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
       )
    )

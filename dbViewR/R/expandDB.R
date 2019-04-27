@@ -26,20 +26,20 @@ expandDB <- function( db = dbViewR::selectFromDB(),
     has_fever = unique(linelist$observedData$has_fever),
     has_cough = unique(linelist$observedData$has_cough),
     has_myalgia = unique(linelist$observedData$has_myalgia),
-    GEOID = shp$GEOID,
-    CRA_NAME = unique(shp$CRA_NAME),
-    NEIGHBORHOOD_DISTRICT_NAME = unique(shp$NEIGHBORHOOD_DISTRICT_NAME),
-    PUMA5CE = unique(shp$PUMA5CE),
+    residence_census_tract = shp$residence_census_tract,
+    residence_cra_name = unique(shp$residence_cra_name),
+    residence_neighborhood_district_name = unique(shp$residence_neighborhood_district_name),
+    residence_puma5ce = unique(shp$residence_puma5ce),
     pathogen = unique(linelist$observedData$pathogen)
   ) 
   
   # don't expand on nested shape variables
-  if ('GEOID' %in% names(db$observedData) ){
-    nestedVariables <- list(CRA_NAME = "GEOID", NEIGHBORHOOD_DISTRICT_NAME = "GEOID", PUMA5CE = "GEOID")
-  } else if ('CRA_NAME' %in% names(db$observedData) & !('GEOID' %in% names(db$observedData)) ){
-    nestedVariables <- list(NEIGHBORHOOD_DISTRICT_NAME = "CRA_NAME", PUMA5CE = "GEOID")
-  } else if ('NEIGHBORHOOD_DISTRICT_NAME' %in% names(db$observedData) & !any(c('CRA_NAME','GEOID') %in% names(db$observedData)) ){
-    nestedVariables <- list(PUMA5CE = "GEOID")
+  if ('residence_census_tract' %in% names(db$observedData) ){
+    nestedVariables <- list(residence_cra_name = "residence_census_tract", residence_neighborhood_district_name = "residence_census_tract", residence_puma5ce = "residence_census_tract")
+  } else if ('residence_cra_name' %in% names(db$observedData) & !('residence_census_tract' %in% names(db$observedData)) ){
+    nestedVariables <- list(residence_neighborhood_district_name = "residence_cra_name", residence_puma5ce = "residence_census_tract")
+  } else if ('residence_neighborhood_district_name' %in% names(db$observedData) & !any(c('residence_cra_name','residence_census_tract') %in% names(db$observedData)) ){
+    nestedVariables <- list(residence_puma5ce = "residence_census_tract")
   } else {
     nestedVariables <- list()
   }

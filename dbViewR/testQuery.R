@@ -37,8 +37,8 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
   queryIn <- list(
-      SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
-      GROUP_BY =list(COLUMN=c('encountered_date','PUMA5CE','GEOID')),
+      SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
+      GROUP_BY =list(COLUMN=c('encountered_date','residence_puma5ce','residence_census_tract')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
     )
   db <- selectFromDB( queryIn )
@@ -49,8 +49,8 @@ library(dplyr)
 ## return has_fever summary by age and location
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT   =list(COLUMN=c('has_fever','age','PUMA5CE','GEOID')),
-      GROUP_BY =list(COLUMN=c('age','PUMA5CE','GEOID')),
+      SELECT   =list(COLUMN=c('has_fever','age','residence_puma5ce','residence_census_tract')),
+      GROUP_BY =list(COLUMN=c('age','residence_puma5ce','residence_census_tract')),
       SUMMARIZE=list(COLUMN='has_fever', IN= c(TRUE))
     )
   )
@@ -65,8 +65,8 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','encountered_week','PUMA5CE','GEOID')),
-  GROUP_BY =list(COLUMN=c('encountered_week','PUMA5CE','GEOID')),
+  SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma5ce','residence_census_tract')),
+  GROUP_BY =list(COLUMN=c('encountered_week','residence_puma5ce','residence_census_tract')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- expandDB(selectFromDB( queryIn ))
@@ -75,8 +75,8 @@ head(db$observedData)
 ## return has_fever summary by age and location
 queryJSON <- jsonlite::toJSON(
   list(
-    SELECT   =list(COLUMN=c('has_fever','age','PUMA5CE','GEOID')),
-    GROUP_BY =list(COLUMN=c('age','PUMA5CE','GEOID')),
+    SELECT   =list(COLUMN=c('has_fever','age','residence_puma5ce','residence_census_tract')),
+    GROUP_BY =list(COLUMN=c('age','residence_puma5ce','residence_census_tract')),
     SUMMARIZE=list(COLUMN='has_fever', IN= 'all')
   )
 )
@@ -87,29 +87,29 @@ head(db$observedData)
 ####         test masterShapeDB and joins      ###################
 ########################################################
 
-## return h1n1pdm summary by GEOID
+## return h1n1pdm summary by residence_census_tract
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','PUMA5CE','CRA_NAME','GEOID')),
-  GROUP_BY =list(COLUMN=c('PUMA5CE','CRA_NAME','GEOID')),
+  SELECT   =list(COLUMN=c('pathogen','residence_puma5ce','residence_cra_name','residence_census_tract')),
+  GROUP_BY =list(COLUMN=c('residence_puma5ce','residence_cra_name','residence_census_tract')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- selectFromDB( queryIn )
 
 shp<-masterSpatialDB(shape_level = 'census_tract', source = "seattle_geojson")
-plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('GEOID','geometry')))
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
 plot(plotDat)
 
-## return h1n1pdm summary by CRA_NAME
+## return h1n1pdm summary by residence_cra_name
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','PUMA5CE','CRA_NAME')),
-  GROUP_BY =list(COLUMN=c('PUMA5CE','CRA_NAME')),
+  SELECT   =list(COLUMN=c('pathogen','residence_puma5ce','residence_cra_name')),
+  GROUP_BY =list(COLUMN=c('residence_puma5ce','residence_cra_name')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- selectFromDB( queryIn )
-# CRA_NAME
+# residence_cra_name
 shp<-masterSpatialDB(shape_level = 'cra_name', source = "seattle_geojson")
-names(shp)[names(shp) == 'CRA_NAM']<-'CRA_NAME'
-plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('CRA_NAME','geometry')))
+names(shp)[names(shp) == 'CRA_NAM']<-'residence_cra_name'
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_cra_name','geometry')))
 plot(plotDat)
 
 
