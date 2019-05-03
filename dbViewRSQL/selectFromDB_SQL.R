@@ -66,14 +66,15 @@ library('rlist')
 
 
 #location of your pg_service and pgpass file - users should edit this as appropriate
-user_path = "C:/Users/grhuynh"
+user_path = "/home/rstudio/seattle_flu"
 
 #service you want to access
 service_string = "seattleflu-production"
 
 
+
 #get host and dbname from pg_service file, then get user and password from the pgpass file 
-pg_service_file<-read.table(file.path(user_path, "pg_service.conf"), header=FALSE) #read in file
+pg_service_file<-read.table(file.path(user_path, ".pg_service.conf"), header=FALSE) #read in file
 service_index <-which(str_detect(pg_service_file$V1, service_string)) #get index for specified service
 host_string <- strsplit(as.character(pg_service_file$V1[service_index+1]), "=") #host string is next item after index for service
 host_string <- host_string[[1]][2]
@@ -81,12 +82,12 @@ dbname_string <- strsplit(as.character(pg_service_file$V1[service_index+2]), "="
 dbname_string <- dbname_string[[1]][2]
 
 #read in pgpass file
-pgpass_file <- read.table(file.path(user_path, "pgpass.conf"), header=FALSE)
+pgpass_file <- read.table(file.path(user_path, ".pgpass"), header=FALSE)
 pgpass_file <- strsplit(levels(pgpass_file$V1), ":") #convert from factor to list
 
 #get index for which row has the correct host
 host_index<-which(grepl(host_string, pgpass_file))
-db <- dbConnect(RPostgres::Postgres(), 
+db <- DBI::dbConnect(RPostgres::Postgres(), 
                 host=host_string, 
                 dbname = dbname_string, 
                 user=pgpass_file[[host_index]][4], 
@@ -94,7 +95,7 @@ db <- dbConnect(RPostgres::Postgres(),
 
 
 #load entire dataset
-all_data <- dbGetQuery(db, "select * from shipping.incidence_model_observation_v1;")
+all_data <- DBI::dbGetQuery(db, "select * from shipping.incidence_model_observation_v1;")
 dbDisconnect(db)
 
 ##below some helpful filtering of the overall dataset
