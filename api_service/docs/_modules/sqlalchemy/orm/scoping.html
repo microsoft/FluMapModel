@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>sqlalchemy.orm.scoping &#8212; seattle_flu_incidence_mapper 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for sqlalchemy.orm.scoping</h1><div class="highlight"><pre>
+<span></span><span class="c1"># orm/scoping.py</span>
+<span class="c1"># Copyright (C) 2005-2019 the SQLAlchemy authors and contributors</span>
+<span class="c1"># &lt;see AUTHORS file&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This module is part of SQLAlchemy and is released under</span>
+<span class="c1"># the MIT License: http://www.opensource.org/licenses/mit-license.php</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">class_mapper</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">exc</span> <span class="k">as</span> <span class="n">orm_exc</span>
+<span class="kn">from</span> <span class="nn">.session</span> <span class="k">import</span> <span class="n">Session</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">exc</span> <span class="k">as</span> <span class="n">sa_exc</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">ScopedRegistry</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">ThreadLocalRegistry</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">warn</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;scoped_session&quot;</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">scoped_session</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Provides scoped management of :class:`.Session` objects.</span>
+
+<span class="sd">    See :ref:`unitofwork_contextual` for a tutorial.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">session_factory</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="sd">&quot;&quot;&quot;The `session_factory` provided to `__init__` is stored in this</span>
+<span class="sd">    attribute and may be accessed at a later time.  This can be useful when</span>
+<span class="sd">    a new non-scoped :class:`.Session` or :class:`.Connection` to the</span>
+<span class="sd">    database is needed.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_factory</span><span class="p">,</span> <span class="n">scopefunc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a new :class:`.scoped_session`.</span>
+
+<span class="sd">        :param session_factory: a factory to create new :class:`.Session`</span>
+<span class="sd">         instances. This is usually, but not necessarily, an instance</span>
+<span class="sd">         of :class:`.sessionmaker`.</span>
+<span class="sd">        :param scopefunc: optional function which defines</span>
+<span class="sd">         the current scope.   If not passed, the :class:`.scoped_session`</span>
+<span class="sd">         object assumes &quot;thread-local&quot; scope, and will use</span>
+<span class="sd">         a Python ``threading.local()`` in order to maintain the current</span>
+<span class="sd">         :class:`.Session`.  If passed, the function should return</span>
+<span class="sd">         a hashable token; this token will be used as the key in a</span>
+<span class="sd">         dictionary in order to store and retrieve the current</span>
+<span class="sd">         :class:`.Session`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_factory</span> <span class="o">=</span> <span class="n">session_factory</span>
+
+        <span class="k">if</span> <span class="n">scopefunc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">registry</span> <span class="o">=</span> <span class="n">ScopedRegistry</span><span class="p">(</span><span class="n">session_factory</span><span class="p">,</span> <span class="n">scopefunc</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">registry</span> <span class="o">=</span> <span class="n">ThreadLocalRegistry</span><span class="p">(</span><span class="n">session_factory</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the current :class:`.Session`, creating it</span>
+<span class="sd">        using the :attr:`.scoped_session.session_factory` if not present.</span>
+
+<span class="sd">        :param \**kw: Keyword arguments will be passed to the</span>
+<span class="sd">         :attr:`.scoped_session.session_factory` callable, if an existing</span>
+<span class="sd">         :class:`.Session` is not present.  If the :class:`.Session` is present</span>
+<span class="sd">         and keyword arguments have been passed,</span>
+<span class="sd">         :exc:`~sqlalchemy.exc.InvalidRequestError` is raised.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">kw</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">has</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="n">sa_exc</span><span class="o">.</span><span class="n">InvalidRequestError</span><span class="p">(</span>
+                    <span class="s2">&quot;Scoped session is already present; &quot;</span>
+                    <span class="s2">&quot;no new arguments may be specified.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_factory</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">sess</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">sess</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dispose of the current :class:`.Session`, if present.</span>
+
+<span class="sd">        This will first call :meth:`.Session.close` method</span>
+<span class="sd">        on the current :class:`.Session`, which releases any existing</span>
+<span class="sd">        transactional/connection resources still being held; transactions</span>
+<span class="sd">        specifically are rolled back.  The :class:`.Session` is then</span>
+<span class="sd">        discarded.   Upon next usage within the same scope,</span>
+<span class="sd">        the :class:`.scoped_session` will produce a new</span>
+<span class="sd">        :class:`.Session` object.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">has</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;reconfigure the :class:`.sessionmaker` used by this</span>
+<span class="sd">        :class:`.scoped_session`.</span>
+
+<span class="sd">        See :meth:`.sessionmaker.configure`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">has</span><span class="p">():</span>
+            <span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;At least one scoped session is already present. &quot;</span>
+                <span class="s2">&quot; configure() can not affect sessions that have &quot;</span>
+                <span class="s2">&quot;already been created.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_factory</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">query_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return a class property which produces a :class:`.Query` object</span>
+<span class="sd">        against the class and the current :class:`.Session` when called.</span>
+
+<span class="sd">        e.g.::</span>
+
+<span class="sd">            Session = scoped_session(sessionmaker())</span>
+
+<span class="sd">            class MyClass(object):</span>
+<span class="sd">                query = Session.query_property()</span>
+
+<span class="sd">            # after mappers are defined</span>
+<span class="sd">            result = MyClass.query.filter(MyClass.name==&#39;foo&#39;).all()</span>
+
+<span class="sd">        Produces instances of the session&#39;s configured query class by</span>
+<span class="sd">        default.  To override and use a custom implementation, provide</span>
+<span class="sd">        a ``query_cls`` callable.  The callable will be invoked with</span>
+<span class="sd">        the class&#39;s mapper as a positional argument and a session</span>
+<span class="sd">        keyword argument.</span>
+
+<span class="sd">        There is no limit to the number of query properties placed on</span>
+<span class="sd">        a class.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">class</span> <span class="nc">query</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mapper</span> <span class="o">=</span> <span class="n">class_mapper</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">mapper</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">query_cls</span><span class="p">:</span>
+                            <span class="c1"># custom query class</span>
+                            <span class="k">return</span> <span class="n">query_cls</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">())</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># session&#39;s configured query class</span>
+                            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">orm_exc</span><span class="o">.</span><span class="n">UnmappedClassError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">query</span><span class="p">()</span>
+
+
+<span class="n">ScopedSession</span> <span class="o">=</span> <span class="n">scoped_session</span>
+<span class="sd">&quot;&quot;&quot;Old name for backwards compatibility.&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">instrument</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">do</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">(),</span> <span class="n">name</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">do</span>
+
+
+<span class="k">for</span> <span class="n">meth</span> <span class="ow">in</span> <span class="n">Session</span><span class="o">.</span><span class="n">public_methods</span><span class="p">:</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">scoped_session</span><span class="p">,</span> <span class="n">meth</span><span class="p">,</span> <span class="n">instrument</span><span class="p">(</span><span class="n">meth</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">makeprop</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">(),</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">registry</span><span class="p">(),</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">get</span><span class="p">,</span> <span class="n">set_</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span>
+    <span class="s2">&quot;bind&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dirty&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;deleted&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;new&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;identity_map&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;is_active&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;autoflush&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;no_autoflush&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;info&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;autocommit&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">scoped_session</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">makeprop</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">clslevel</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">do</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">Session</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">classmethod</span><span class="p">(</span><span class="n">do</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;close_all&quot;</span><span class="p">,</span> <span class="s2">&quot;object_session&quot;</span><span class="p">,</span> <span class="s2">&quot;identity_key&quot;</span><span class="p">):</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">scoped_session</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">clslevel</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">seattle_flu_incidence_mapper</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Seattle Flu Incidence Mapper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">seattle_flu_incidence_mapper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Credits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html#id1">0.0.1</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

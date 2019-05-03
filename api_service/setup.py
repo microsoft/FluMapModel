@@ -53,7 +53,7 @@ setup(
     ],
 
     extras_require={
-        'dev': ['check-manifest', 'nose', 'sphinx'],
+        'dev': ['check-manifest', 'nose', 'sphinx', 'sphinxcontrib-plantuml'],
         'tests': ['coverage'],
         'production': ['uwsgi']
     },

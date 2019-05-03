@@ -32,7 +32,7 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - "/model_data:/model_data"
+      - "/model_store:/model_store"
     environment:
     - "DEBUG=1"
     - "FLASK_ENV=development"
