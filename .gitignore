@@ -10,3 +10,4 @@ api_service/docs_src/seattle_flu*rst
 data/*
 .pg_service.conf
 .pgpass
+model_data/*

@@ -17,6 +17,8 @@ services:
         context: api_service
         dockerfile: Dockerfile
       image: idm-docker-production.packages.idmod.org/sfim:${version:-latest}
+      volumes:
+      - "/model_store:/model_store"
       environment:
         - SQLALCHEMY_URI=postgres://seattle_flu:@db
       depends_on:

@@ -32,7 +32,7 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - "./seattle_flu:/app/seattle_flu"
+      - "/model_data:/model_data"
     environment:
     - "DEBUG=1"
     - "FLASK_ENV=development"

@@ -97,13 +97,13 @@ def update(pathogen_model_id, pathogen_model):
 
         # turn the passed in pathogen_model into a db object
         schema = PathogenModelSchema()
-        update = schema.load(pathogen_model, session=db.session).data
+        updated = schema.load(pathogen_model, session=db.session).data
 
         # Set the id to the pathogen_model we want to update
-        update.id = update_pathogen_model.id
+        updated.id = update_pathogen_model.id
 
         # merge the new object into the old and commit it to the db
-        db.session.merge(update)
+        db.session.merge(updated)
         db.session.commit()
 
         # return updated pathogen_model in the response
