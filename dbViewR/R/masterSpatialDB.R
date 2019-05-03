@@ -89,8 +89,8 @@ masterSpatialDB <- function(shape_level = 'census_tract', source = 'king_county_
       shp$work_neighborhood_district_name <- as.character(shp[[FIELDNAME]])
     } else if (grepl('PUMA',NAME,ignore.case = TRUE)){
       FIELDNAME <- names(shp)[grepl('PUMA',names(shp),ignore.case = TRUE)]
-      shp$residence_puma5ce <- as.character(shp[[FIELDNAME]])
-      shp$work_puma5ce <- as.character(shp[[FIELDNAME]])
+      shp$residence_puma <- as.character(shp[[FIELDNAME]])
+      shp$work_puma <- as.character(shp[[FIELDNAME]])
     } else if (grepl('CITY',NAME,ignore.case = TRUE)){
       FIELDNAME <- names(shp)[grepl('CITY',names(shp),ignore.case = TRUE)]
       shp$residence_city <- as.character(shp[[FIELDNAME]])

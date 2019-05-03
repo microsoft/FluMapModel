@@ -6,7 +6,9 @@
 \usage{
 expandDB(db = dbViewR::selectFromDB(),
   linelist = dbViewR::selectFromDB(db$queryList[names(db$queryList)
-  \%in\% c("SELECT", "WHERE")]), shp = dbViewR::masterSpatialDB())
+  \%in\% c("SELECT", "WHERE")]),
+  shp = dbViewR::masterSpatialDB(shape_level = "census_tract", source =
+  "king_county_geojson"))
 }
 \arguments{
 \item{db}{tibble with valid column names for INLA model}

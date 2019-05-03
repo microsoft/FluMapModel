@@ -37,8 +37,8 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
   queryIn <- list(
-      SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
-      GROUP_BY =list(COLUMN=c('encountered_date','residence_puma5ce','residence_census_tract')),
+      SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma','residence_census_tract')),
+      GROUP_BY =list(COLUMN=c('encountered_date','residence_puma','residence_census_tract')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
     )
   db <- selectFromDB( queryIn )
@@ -49,8 +49,8 @@ library(dplyr)
 ## return has_fever summary by age and location
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT   =list(COLUMN=c('has_fever','age','residence_puma5ce','residence_census_tract')),
-      GROUP_BY =list(COLUMN=c('age','residence_puma5ce','residence_census_tract')),
+      SELECT   =list(COLUMN=c('has_fever','age','residence_puma','residence_census_tract')),
+      GROUP_BY =list(COLUMN=c('age','residence_puma','residence_census_tract')),
       SUMMARIZE=list(COLUMN='has_fever', IN= c(TRUE))
     )
   )
@@ -65,8 +65,8 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma5ce','residence_census_tract')),
-  GROUP_BY =list(COLUMN=c('encountered_week','residence_puma5ce','residence_census_tract')),
+  SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma','residence_census_tract')),
+  GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- expandDB(selectFromDB( queryIn ))
@@ -75,8 +75,8 @@ head(db$observedData)
 ## return has_fever summary by age and location
 queryJSON <- jsonlite::toJSON(
   list(
-    SELECT   =list(COLUMN=c('has_fever','age','residence_puma5ce','residence_census_tract')),
-    GROUP_BY =list(COLUMN=c('age','residence_puma5ce','residence_census_tract')),
+    SELECT   =list(COLUMN=c('age','residence_puma','residence_census_tract')),
+    GROUP_BY =list(COLUMN=c('age','residence_puma','residence_census_tract')),
     SUMMARIZE=list(COLUMN='has_fever', IN= 'all')
   )
 )
@@ -89,8 +89,8 @@ head(db$observedData)
 
 ## return h1n1pdm summary by residence_census_tract
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','residence_puma5ce','residence_cra_name','residence_census_tract')),
-  GROUP_BY =list(COLUMN=c('residence_puma5ce','residence_cra_name','residence_census_tract')),
+  SELECT   =list(COLUMN=c('pathogen','residence_puma','residence_cra_name','residence_census_tract')),
+  GROUP_BY =list(COLUMN=c('residence_puma','residence_cra_name','residence_census_tract')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- selectFromDB( queryIn )
@@ -101,8 +101,8 @@ plot(plotDat)
 
 ## return h1n1pdm summary by residence_cra_name
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','residence_puma5ce','residence_cra_name')),
-  GROUP_BY =list(COLUMN=c('residence_puma5ce','residence_cra_name')),
+  SELECT   =list(COLUMN=c('pathogen','residence_puma','residence_cra_name')),
+  GROUP_BY =list(COLUMN=c('residence_puma','residence_cra_name')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 )
 db <- selectFromDB( queryIn )
@@ -120,7 +120,7 @@ plot(plotDat)
 ## return all
 queryJSON <- jsonlite::toJSON(list(SELECT  =c("*")))
 db <- selectFromDB( queryJSON, source = 'production')
-head(db$observedData)
+dim(db$observedData)
 
 names(db$observedData)
 
@@ -134,7 +134,7 @@ queryJSON <- jsonlite::toJSON(
   )
 )
 db <- selectFromDB( queryJSON, source = 'production' )
-head(db$observedData)
+dim(db$observedData)
 
 
 ## return subset
@@ -145,7 +145,8 @@ queryJSON <- jsonlite::toJSON(
   )
 )
 db <- selectFromDB( queryJSON, source = 'production' )
-head(db$observedData)
+dim(db$observedData)
+
 
 # basic map
 queryJSON <- jsonlite::toJSON(
@@ -189,10 +190,32 @@ queryJSON <- jsonlite::toJSON(
     SUMMARIZE=list(COLUMN='site_type', IN='all')
   )
 )
-db <- expandDB(selectFromDB( queryJSON, source = 'production' ))
-head(db$observedData)
+db <- selectFromDB( queryJSON, source = 'production' ,na.rm=TRUE)
+dim(db$observedData)
+
+db <- expandDB(db)
+dim(db$observedData)
+
+shp<-masterSpatialDB(shape_level = 'census_tract')
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
+plot(plotDat)
+
+
+# basic map
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('site_type','residence_puma')),
+    WHERE   =list(COLUMN='site_type', IN='childrensHospital'),
+    GROUP_BY=list(COLUMN=c('site_type','residence_puma')),
+    SUMMARIZE=list(COLUMN='site_type', IN='all')
+  )
+)
+db <- selectFromDB( queryJSON, source = 'production' ,na.rm=TRUE)
+dim(db$observedData)
+
+db <- expandDB(db)
+dim(db$observedData)
 
 shp<-masterSpatialDB(shape_level = 'census_tract', source = "simulated_data")
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
 plot(plotDat)
-

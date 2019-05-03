@@ -8,10 +8,10 @@
 selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   c("pathogen", "encountered_date", "residence_puma5ce",
   "residence_census_tract")), MUTATE = list(COLUMN = c("encountered_date"),
-  AS = "epi_week"), GROUP_BY = list(COLUMN = c("epi_week",
+  AS = "encountered_week"), GROUP_BY = list(COLUMN = c("encountered_week",
   "residence_puma5ce", "residence_census_tract")), SUMMARIZE = list(COLUMN
   = "pathogen", IN = c("h1n1pdm")))), source = "simulated_data",
-  credentials_path = "/home/rstudio/seattle_flu", na.rm = TRUE)
+  credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE)
 }
 \arguments{
 \item{queryIn}{list or json specifying query  (See example)}
@@ -20,7 +20,7 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
 
 \item{credentials_path}{path to your pg_service and pgpass file for production database}
 
-\item{na.rm}{= TRUE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway}
+\item{na.rm}{= FALSE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway}
 }
 \value{
 dbViewR list with query and observedData table that has been prepared for defineModels.R

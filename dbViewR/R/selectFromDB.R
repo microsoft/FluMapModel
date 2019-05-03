@@ -6,7 +6,7 @@
 #' @param queryIn  list or json specifying query  (See example)
 #' @param source source database, one of: 'simulated_data' (default) or 'production'
 #' @param credentials_path path to your pg_service and pgpass file for production database
-#' @param na.rm = TRUE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway
+#' @param na.rm = FALSE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway
 #' @return dbViewR list with query and observedData table that has been prepared for defineModels.R
 #'
 #' @import jsonlite
@@ -24,9 +24,8 @@
 #' return h1n1pdm summary by time and location
 #' queryJSON <- jsonlite::toJSON(
 #'   list(
-#'       SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
-#'       MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-#'       GROUP_BY =list(COLUMN=c('epi_week','residence_puma5ce','residence_census_tract')),
+#'       SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma','residence_census_tract')),
+#'       GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
 #'       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 #'       )
 #'    )
@@ -35,12 +34,12 @@
 selectFromDB <- function( queryIn = jsonlite::toJSON(
                             list(
                               SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
-                              MUTATE   =list(COLUMN=c('encountered_date'), AS='epi_week'),
-                              GROUP_BY =list(COLUMN=c('epi_week','residence_puma5ce','residence_census_tract')),
+                              MUTATE   =list(COLUMN=c('encountered_date'), AS='encountered_week'),
+                              GROUP_BY =list(COLUMN=c('encountered_week','residence_puma5ce','residence_census_tract')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
                           ), source = 'simulated_data', credentials_path = '/home/rstudio/seattle_flu',
-                          na.rm = TRUE){
+                          na.rm = FALSE){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
@@ -125,7 +124,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     
   # type harmonization
-    for( COLUMN in names(db)[names(db) %in% c('residence_census_tract','residence_cra_name','residence_puma5ce','residence_neighborhood_district_name')]){
+    for( COLUMN in names(db)[names(db) %in% c('residence_census_tract','residence_cra_name','residence_puma','residence_neighborhood_district_name')]){
       db[[COLUMN]] <- as.character(db[[COLUMN]])
     }
 

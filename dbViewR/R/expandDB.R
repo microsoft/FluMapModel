@@ -12,86 +12,89 @@
 #'
 expandDB <- function( db = dbViewR::selectFromDB(), 
                       linelist = dbViewR::selectFromDB(db$queryList[names(db$queryList) %in% c("SELECT","WHERE")]),
-                      shp = dbViewR::masterSpatialDB() ){
+                      shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson') ){
   
-  # bounded columns
-  # this needs to be done differently, to account for different data types and database sources
-  validColumnData <- list(
-    num_date = unique(linelist$observedData$num_date),
-    encountered_date = unique(linelist$observedData$encountered_date),
-    sampling_location = unique(linelist$observedData$sampling_location),
-    sex = unique(linelist$observedData$sex),
-    flu_shot = unique(linelist$observedData$flu_shot),
-    age = unique(linelist$observedData$age),
-    has_fever = unique(linelist$observedData$has_fever),
-    has_cough = unique(linelist$observedData$has_cough),
-    has_myalgia = unique(linelist$observedData$has_myalgia),
-    residence_census_tract = shp$residence_census_tract,
-    residence_cra_name = unique(shp$residence_cra_name),
-    residence_neighborhood_district_name = unique(shp$residence_neighborhood_district_name),
-    residence_puma5ce = unique(shp$residence_puma5ce),
-    pathogen = unique(linelist$observedData$pathogen)
-  ) 
+  
+  # list of valid column data for expanding and joining
+    
+    validColumnData <- list()
+    
+    # encountered_week
+    if ("encountered_week" %in% names(db$observedData)){
+      weeks <- unique(sort(db$observedData$encountered_week))
+      minYear <- year<-as.numeric(gsub('-W[0-9]{2}','',weeks[1]))
+      maxYear <- year<-as.numeric(gsub('-W[0-9]{2}','',weeks[length(weeks)]))
+      minWeek <- as.numeric(gsub('[0-9]{4}-W','',weeks[1] ))
+      maxWeek <- as.numeric(gsub('[0-9]{4}-W','',weeks[length(weeks)] )) + (maxYear-minYear)*52 + 4 # 4 week look-ahead
+      
+      weeks <- 1+( (seq(minWeek,maxWeek,by=1)-1) %% 52)
+      yearBreaks <- c(0,which(diff(weeks)<1), length(weeks))
+      years=c()
+      for (k in 2:length(yearBreaks)){
+          years <- c(years, rep(minYear+(k-2), yearBreaks[k]-yearBreaks[k-1]  ))
+      }    
+      validColumnData$encountered_week <- paste(years,'-W',sprintf("%02d",weeks),sep='')
+      validColumnData$time_row <- 1:length(validColumnData$encountered_week)
+    }
+
+    # age
+      validColumnData$age = seq(0,90,by=1)
+    
+    # age bin
+    if(any(grepl('age',names(db$observedData)))) {
+      validColumnData$age_bin <- seq(0,90,by=5)
+      validColumnData$age_row <- 1:length(validColumnData$age_bin)
+    }
+      
+    # geography
+      validColumnData$residence_census_tract = shp$residence_census_tract
+      validColumnData$residence_cra_name = sort(unique(shp$residence_cra_name))
+      validColumnData$residence_neighborhood_district_name = sort(unique(shp$residence_neighborhood_district_name))
+      validColumnData$residence_puma = sort(unique(shp$residence_puma))
+      validColumnData$residence_city = sort(unique(shp$residence_city))
+      validColumnData$work_census_tract = shp$work_census_tract
+      validColumnData$work_cra_name = sort(unique(shp$work_cra_name))
+      validColumnData$work_neighborhood_district_name = sort(unique(shp$work_neighborhood_district_name))
+      validColumnData$work_puma = sort(unique(shp$work_puma))
+      validColumnData$work_city = sort(unique(shp$work_city))
+      
+    # factors (these don't get interpolated by the models, so we only want the valid levels for the dataset at hand)
+      factorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('age','n','positive')) | 
+                                                grepl('residence_',names(db$observedData)) | 
+                                                grepl('work_',names(db$observedData)) |
+                                                grepl('encounter',names(db$observedData))  )]
+      for ( COLUMN in factorNames){ 
+        validColumnData[[COLUMN]] <- sort(unique(db$observedData[[COLUMN]]))
+      }
+
   
   # don't expand on nested shape variables
-  if ('residence_census_tract' %in% names(db$observedData) ){
-    nestedVariables <- list(residence_cra_name = "residence_census_tract", residence_neighborhood_district_name = "residence_census_tract", residence_puma5ce = "residence_census_tract")
-  } else if ('residence_cra_name' %in% names(db$observedData) & !('residence_census_tract' %in% names(db$observedData)) ){
-    nestedVariables <- list(residence_neighborhood_district_name = "residence_cra_name", residence_puma5ce = "residence_census_tract")
-  } else if ('residence_neighborhood_district_name' %in% names(db$observedData) & !any(c('residence_cra_name','residence_census_tract') %in% names(db$observedData)) ){
-    nestedVariables <- list(residence_puma5ce = "residence_census_tract")
-  } else {
-    nestedVariables <- list()
-  }
-  
-  # transformations
+    nestedVariables <- c('cra_name','neighborhood_district_name','puma','city')
 
-  # encountered_week
-  if('encountered_week' %in% names(db$observedData)){
-    validColumnData$encountered_week <- sort(unique(db$observedData$encountered_week))
-    validColumnData$time_row <- 1:(length(validColumnData$encountered_week)+4)
-    
-    # format predict iso week str (# there is surely a better way to do this!)
-    tmp<-sapply(strsplit(validColumnData$encountered_week[length(validColumnData$encountered_week)],'-W'),as.numeric)
-    for(k in 1:4){
-      ew <- (tmp[2] + k) %% 52
-      ey <- tmp[1] + floor((tmp[2] + k)/52)
-      validColumnData$encountered_week[length(validColumnData$encountered_week)+1]<-paste(ey,'-W',ew,sep='')
-    }
-  }
-  
-  # age bin
-  if(any(grepl('age_bin',names(db$observedData)))) {
-    validColumnData$age_bin <- seq(0,90,by=1)
-    validColumnData$age_row <- 1+seq(0,90,by=1)
-  }
-  
   # expand.grid for non-nested variables
-  colIdx <- ( names(validColumnData) %in% names(db$observedData) ) & 
-    !( names(validColumnData) %in% names(nestedVariables)) &
-    !( names(validColumnData) %in% c('encountered_date','age'))
-  tmp<-expand.grid(validColumnData[colIdx],stringsAsFactors = FALSE)
-  
+    colIdx <- ( names(validColumnData) %in% names(db$observedData) ) &  !( names(validColumnData) %in% nestedVariables) 
+    tmp<-expand.grid(validColumnData[colIdx],stringsAsFactors = FALSE)
+    
   # join
   db$observedData <- dplyr::left_join(tmp,db$observedData, by=names(validColumnData)[colIdx])
   
   # sample size as zero instead of NaN
-  db$observedData$n[is.na(db$observedData$n)]<-0
-    
-    # positives as 0 instead of NaN when positive count is total count always (eg catchments) 
-    idx <- !is.na(db$observedData$positive)
-    if(all(db$observedData$positive[idx]==db$observedData$n[idx])){
-      db$observedData$positive[!idx]<-0
-    }
-    
+  if ("n" %in% names(db$observedData)){
+    db$observedData$n[is.na(db$observedData$n)]<-0
+      
+      # positives as 0 instead of NaN when positive count is total count always (eg catchments) 
+      idx <- !is.na(db$observedData$positive)
+      if(all(db$observedData$positive[idx]==db$observedData$n[idx])){
+        db$observedData$positive[!idx]<-0
+      }
+  }
+  
   # nested variables
-  if(length(nestedVariables) > 0) {
-    colIdx <- which(( names(validColumnData) %in% names(db$observedData) ) & ( names(validColumnData) %in% names(nestedVariables) ) )
+    colIdx <- which(( names(validColumnData) %in% names(db$observedData) ) & ( names(validColumnData) %in% nestedVariables ) )
     for( k in colIdx){
       colName <- names(validColumnData)[k]
-      db$observedData[[colName]] <- shp[[colName]][match(db$observedData[[nestedVariables[[colName]]]],as.character(shp[[nestedVariables[[colName]]]]))]
+      db$observedData[[colName]] <- shp[[colName]][match(db$observedData[[nestedVariables[nestedVariables == colName]]],as.character(shp[[nestedVariables[nestedVariables == colName]]]))]
     }
-  }
   
   # row indices for INLA
   if(any(grepl('encountered_week',names(db$observedData)))){
