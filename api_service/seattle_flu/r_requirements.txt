@@ -1,3 +1,0 @@
-optparse=1.6.0
-jsonlite=1.6
-test=1
