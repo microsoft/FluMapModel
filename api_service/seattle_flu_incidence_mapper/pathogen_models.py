@@ -167,7 +167,7 @@ def model_file(modelId):
     else:
         abort(
             404,
-            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=pathogen_model_id),
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=modelId),
         )
 
 
@@ -189,5 +189,5 @@ def model_rds(modelId):
     else:
         abort(
             404,
-            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=pathogen_model_id),
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=modelId),
         )

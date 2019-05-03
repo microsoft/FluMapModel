@@ -48,7 +48,9 @@ setup(
         'connexion[swagger-ui]',
         'flask_sqlalchemy',
         'flask_marshmallow',
-        'marshmallow-sqlalchemy'
+        'marshmallow-sqlalchemy',
+        "docker",
+        'dockerpty'
     ],
 
     extras_require={
