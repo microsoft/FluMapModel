@@ -5,7 +5,11 @@ from flask import current_app
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel
 
 
-def get_model_id_from_quetry_str(query_str):
+def create_id_from_query_str(query_str):
+    return query_str
+
+
+def get_model_id_from_query_str(query_str):
     # do query string cleanup here
     # TODO
     pathogen_model = PathogenModel.query.filter(PathogenModel.query_str == query_str).first()

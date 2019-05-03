@@ -1,8 +1,8 @@
 # API Methods for the /pathogen_models calls
-from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file
+from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file, create_id_from_query_str
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel, PathogenModelSchema
 from seattle_flu_incidence_mapper.config import db
-from flask import abort, request, config, current_app, make_response, send_file
+from flask import abort, request,  make_response, send_file
 
 
 def read_all():
@@ -48,10 +48,6 @@ def read(model_id):
         )
 
 
-def make_id_from_query_str(param):
-    return "aaaaa"
-
-
 def create():
     """
     This function creates a new pathogen_model in the pathogen_models structure
@@ -62,7 +58,7 @@ def create():
 
 
     #build our pathogenmodel object first
-    pathogen_model = dict(id=make_id_from_query_str(request.form['query_str']),
+    pathogen_model = dict(id=create_id_from_query_str(request.form['query_str']),
                           name=request.form['name'],
                           query_str=request.form['query_str'],
                           latent='modelLatent' in request.files)
