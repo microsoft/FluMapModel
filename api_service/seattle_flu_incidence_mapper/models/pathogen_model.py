@@ -1,17 +1,20 @@
-from config import db, ma
-import datetime
+from datetime import datetime
 
-class PathoGenModel(db.Model):
+from seattle_flu_incidence_mapper.orm_config import db
+from seattle_flu_incidence_mapper.utils import ma
+
+
+class PathogenModel(db.Model):
     __tablename__ = 'pathogen_model'
     id = db.Column(db.String,  primary_key=True)
     name = db.Column(db.String)
-    query = db.Column(db.String)
-    latent = db.Column(db.Bool)
-    created = db.Column(db.DateTime, 
-                          default=datetime.utcnow, 
-                          onupdate=datetime.utcnow)
+    query_str = db.Column(db.String)
+    latent = db.Column(db.Boolean, default=False)
+    created = db.Column(db.DateTime, primary_key=True,
+                          default=datetime.utcnow)
 
-class PathoGenModelSchema(ma.ModelSchema):
+
+class PathogenModelSchema(ma.ModelSchema):
     class Meta:
-        model = PathoGenModel
+        model = PathogenModel
         sqla_session = db.session

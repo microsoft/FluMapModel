@@ -1,6 +1,9 @@
 # API Methods for the /pathogen_models calls
+from seattle_flu_incidence_mapper.model_store import save_model_file
+from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel, PathogenModelSchema
+from seattle_flu_incidence_mapper.config import db
+from flask import abort, request, config, current_app, make_response
 
-from models.pathogen_model import PathoGenModel, PathoGenModelSchema
 
 def read_all():
     """
@@ -8,145 +11,145 @@ def read_all():
     with the complete lists of models
     :return:        json string of list of models
     """
-    # Create the list of pathogen models from our data
+    # Create the list of pathogen_models from our data
 
-    # Create the list of pathogen models from our data
-    pathogen models = PathoGenModel.query.order_by(PathoGenModel.lname).all()
+    # Create the list of pathogen_models from our data
+    pathogen_models = PathogenModel.query.order_by(PathogenModel.created.desc()).all()
 
     # Serialize the data for the response
-    pathogen model_schema = PathoGenModelSchema(many=True)
-    data = pathogen model_schema.dump(pathogen models).data
+    pathogen_model_schema = PathogenModelSchema(many=True)
+    data = pathogen_model_schema.dump(pathogen_models).data
     return data
 
 
-
-def read_one(model_id):
+def read(model_id):
     """
-    This function responds to a request for /api/pathogen_models/{pathogen model_id}
-    with one matching pathogen model from pathogen models
-    :param pathogen model_id:   Id of pathogen model to find
-    :return:            pathogen model matching id
+    This function responds to a request for /api/pathogen_models/{pathogen_model_id}
+    with one matching pathogen_model from pathogen_models
+    :param pathogen_model_id:   Id of pathogen_model to find
+    :return:            pathogen_model matching id
     """
-    # Get the pathogen model requested
-    pathogen model = PathoGenModel.query.filter(PathoGenModel.pathogen model_id == pathogen model_id).one_or_none()
+    # Get the pathogen_model requested
+    pathogen_model = PathogenModel.query.filter(PathogenModel.id == model_id).one_or_none()
 
-    # Did we find a pathogen model?
-    if pathogen model is not None:
+    # Did we find a pathogen_model?
+    if pathogen_model is not None:
 
         # Serialize the data for the response
-        pathogen model_schema = PathoGenModelSchema()
-        data = pathogen model_schema.dump(pathogen model).data
+        pathogen_model_schema = PathogenModelSchema()
+        data = pathogen_model_schema.dump(pathogen_model).data
         return data
 
-    # Otherwise, nope, didn't find that pathogen model
+    # Otherwise, nope, didn't find that pathogen_model
     else:
         abort(
             404,
-            "Pathogen Model not found for Id: {pathogen model_id}".format(pathogen model_id=pathogen model_id),
+            "Pathogen Model not found for Id: {id}".format(id=model_id),
         )
 
 
-def create(pathogen model):
+def make_id_from_query_str(param):
+    return "aaaaa"
+
+
+def create():
     """
-    This function creates a new pathogen model in the pathogen models structure
-    based on the passed in pathogen model data
-    :param pathogen model:  pathogen model to create in pathogen models structure
-    :return:        201 on success, 406 on pathogen model exists
+    This function creates a new pathogen_model in the pathogen_models structure
+    based on the passed in pathogen_model data
+    :param pathogen_model:  pathogen_model to create in pathogen_models structure
+    :return:        201 on success, 406 on pathogen_model exists
     """
-    fname = PathoGenModel.get("fname")
-    lname = PathoGenModel.get("lname")
-
-    existing_pathogen model = (
-        PathoGenModel.query.filter(PathoGenModel.fname == fname)
-        .filter(PathoGenModel.lname == lname)
-        .one_or_none()
-    )
-
-    # Can we insert this pathogen model?
-    if existing_pathogen model is None:
-
-        # Create a pathogen model instance using the schema and the passed in pathogen model
-        schema = PathoGenModelSchema()
-        new_pathogen model = schema.load(pathogen model, session=db.session).data
-
-        # Add the pathogen model to the database
-        db.session.add(new_pathogen model)
-        db.session.commit()
-
-        # Serialize and return the newly created pathogen model in the response
-        data = schema.dump(new_pathogen model).data
-
-        return data, 201
-
-    # Otherwise, nope, pathogen model exists already
-    else:
-        abort(
-            409,
-            "Pathogen Model {fname} {lname} exists already".format(
-                fname=fname, lname=lname
-            ),
-        )
 
 
-def update(pathogen model_id, pathogen model):
+    #build our pathogenmodel object first
+    pathogen_model = dict(id=make_id_from_query_str(request.form['query_str']),
+                          name=request.form['name'],
+                          query_str=request.form['query_str'],
+                          latent='modelLatent' in request.files)
+
+    schema = PathogenModelSchema()
+    new_pathogen_model = schema.load(pathogen_model, session=db.session).data
+    # Add the pathogen_model to the database
+    db.session.add(new_pathogen_model)
+    db.session.commit()
+
+    # save the files to our config directory
+    save_model_file(request.files['model'], f'{new_pathogen_model.id}.csv')
+    save_model_file(request.files['modelRDS'], f'{new_pathogen_model.id}.RDS')
+    if 'modelLatent' in request.files:
+        save_model_file(request.files['modelLatent'], f'{new_pathogen_model.id}.latent_field.csv')
+    # Serialize and return the newly created pathogen_model in the response
+    data = schema.dump(new_pathogen_model).data
+
+    return data, 201
+
+
+def update(pathogen_model_id, pathogen_model):
     """
-    This function updates an existing pathogen model in the pathogen models structure
-    :param pathogen model_id:   Id of the pathogen model to update in the pathogen models structure
-    :param pathogen model:      pathogen model to update
-    :return:            updated pathogen model structure
+    This function updates an existing pathogen_model in the pathogen_models structure
+    :param pathogen_model_id:   Id of the pathogen_model to update in the pathogen_models structure
+    :param pathogen_model:      pathogen_model to update
+    :return:            updated pathogen_model structure
     """
-    # Get the pathogen model requested from the db into session
-    update_pathogen model = PathoGenModel.query.filter(
-        PathoGenModel.pathogen model_id == pathogen model_id
+    # Get the pathogen_model requested from the db into session
+    update_pathogen_model = PathogenModel.query.filter(
+        PathogenModel.id == pathogen_model_id
     ).one_or_none()
 
-    # Did we find a pathogen model?
-    if update_pathogen model is not None:
+    # Did we find a pathogen_model?
+    if update_pathogen_model is not None:
 
-        # turn the passed in pathogen model into a db object
-        schema = PathoGenModelSchema()
-        update = schema.load(pathogen model, session=db.session).data
+        # turn the passed in pathogen_model into a db object
+        schema = PathogenModelSchema()
+        update = schema.load(pathogen_model, session=db.session).data
 
-        # Set the id to the pathogen model we want to update
-        update.id = update_PathoGenModel.pathogen model_id
+        # Set the id to the pathogen_model we want to update
+        update.id = update_pathogen_model.id
 
         # merge the new object into the old and commit it to the db
         db.session.merge(update)
         db.session.commit()
 
-        # return updated pathogen model in the response
-        data = schema.dump(update_pathogen model).data
+        # return updated pathogen_model in the response
+        data = schema.dump(update_pathogen_model).data
 
         return data, 200
 
-    # Otherwise, nope, didn't find that pathogen model
+    # Otherwise, nope, didn't find that pathogen_model
     else:
         abort(
             404,
-            "Pathogen Model not found for Id: {pathogen model_id}".format(pathogen model_id=pathogen model_id),
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=pathogen_model_id),
         )
 
 
-def delete(pathogen model_id):
+def delete(pathogen_model_id):
     """
-    This function deletes a pathogen model from the pathogen models structure
-    :param pathogen model_id:   Id of the pathogen model to delete
+    This function deletes a pathogen_model from the pathogen_models structure
+    :param pathogen_model_id:   Id of the pathogen_model to delete
     :return:            200 on successful delete, 404 if not found
     """
-    # Get the pathogen model requested
-    pathogen model = PathoGenModel.query.filter(PathoGenModel.pathogen model_id == pathogen model_id).one_or_none()
+    # Get the pathogen_model requested
+    pathogen_model = PathogenModel.query.filter(PathogenModel.id == pathogen_model_id).one_or_none()
 
-    # Did we find a pathogen model?
-    if pathogen model is not None:
-        db.session.delete(pathogen model)
+    # Did we find a pathogen_model?
+    if pathogen_model is not None:
+        db.session.delete(pathogen_model)
         db.session.commit()
         return make_response(
-            "Pathogen Model {pathogen model_id} deleted".format(pathogen model_id=pathogen model_id), 200
+            "Pathogen Model {pathogen_model_id} deleted".format(pathogen_model_id=pathogen_model_id), 200
         )
 
-    # Otherwise, nope, didn't find that pathogen model
+    # Otherwise, nope, didn't find that pathogen_model
     else:
         abort(
             404,
-            "Pathogen Model not found for Id: {pathogen model_id}".format(pathogen model_id=pathogen model_id),
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=pathogen_model_id),
 )
+
+
+def model_file(pathogen_model_id):
+    return None
+
+def model_rds(pathogen_model_id):
+    return None
