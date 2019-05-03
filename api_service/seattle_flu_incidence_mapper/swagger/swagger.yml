@@ -21,6 +21,28 @@ schemes:
 - "https"
 - "http"
 paths:
+  /query:
+    post:
+      tags:
+      - "query_model"
+      summary: "Query a model"
+      description: "Query a model for a result set"
+      operationId: "seattle_flu_incidence_mapper.query_model.query"
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: query_json
+          description: "JSON Query Object"
+          required: true
+          schema:
+            type: object
+            additionalProperties: true
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
   /pathogen_models:
     get:
       tags:
@@ -179,8 +201,7 @@ paths:
         in: "path"
         description: "ID of Pathogen Model to return"
         required: true
-        type: "integer"
-        format: "int64"
+        type: "string"
       - name: "latent"
         in: "query"
         description: "Return the latent verion of model file"
@@ -196,7 +217,7 @@ paths:
           description: "Invalid ID supplied"
         404:
           description: "PathogenModel not found"
-  /pathogen_models/{modelId}/modelRDS:
+  /pathogen_models/{modelId}/rds:
     get:
       tags:
       - "pathogen_model"
@@ -228,43 +249,6 @@ securityDefinitions:
     in: "header"
     x-apikeyInfoFunc: "seattle_flu_incidence_mapper.apikey_auth.apikey_auth"
 definitions:
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      pathogen modelId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-        default: false
-    xml:
-      name: "Order"
-  Category:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
   PathogenModel:
     type: "object"
     required:

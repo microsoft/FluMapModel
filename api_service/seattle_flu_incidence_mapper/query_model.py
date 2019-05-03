@@ -1,1 +1,5 @@
-# API Methods for the /query_model calls
+# API Methods for the /query
+
+
+def query(query_json):
+    print(query_json)

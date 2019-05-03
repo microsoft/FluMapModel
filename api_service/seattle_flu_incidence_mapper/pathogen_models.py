@@ -1,8 +1,8 @@
 # API Methods for the /pathogen_models calls
-from seattle_flu_incidence_mapper.model_store import save_model_file
+from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel, PathogenModelSchema
 from seattle_flu_incidence_mapper.config import db
-from flask import abort, request, config, current_app, make_response
+from flask import abort, request, config, current_app, make_response, send_file
 
 
 def read_all():
@@ -148,8 +148,46 @@ def delete(pathogen_model_id):
 )
 
 
-def model_file(pathogen_model_id):
-    return None
+def model_file(modelId):
+    """
+    Returns the model file to the user
+    :param pathogen_model_id:
+    :return:
+    """
+    # Get the pathogen_model requested from the db into session
+    pathogen_model = PathogenModel.query.filter(
+        PathogenModel.id == modelId
+    ).order_by(PathogenModel.created.desc()).first()
 
-def model_rds(pathogen_model_id):
-    return None
+    # Did we find a pathogen_model?
+    if pathogen_model is not None:
+        is_latent = request.args.get("latent", "0").lower() in ('1', 'y', 'yes', 't', 'true', True, 1)
+        send_file(get_model_file(modelId,latent=is_latent))
+    # Otherwise, nope, didn't find that pathogen_model
+    else:
+        abort(
+            404,
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=pathogen_model_id),
+        )
+
+
+def model_rds(modelId):
+    """
+        Returns the model file to the user
+        :param pathogen_model_id:
+        :return:
+        """
+    # Get the pathogen_model requested from the db into session
+    pathogen_model = PathogenModel.query.filter(
+        PathogenModel.id == modelId
+    ).one_or_none()
+
+    # Did we find a pathogen_model?
+    if pathogen_model is not None:
+        send_file(get_model_file(modelId, rds=True))
+    # Otherwise, nope, didn't find that pathogen_model
+    else:
+        abort(
+            404,
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=pathogen_model_id),
+        )

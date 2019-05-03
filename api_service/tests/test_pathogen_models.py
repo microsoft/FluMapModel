@@ -12,12 +12,11 @@ def read_file_and_format_for_upload(filepath):
 
 
 url = '/v1/pathogen_models'
-
+test_filehash = '0ee3faca1f6a66c65ae3d2ae67ab5939'
 
 class TestUploadModel(BaseApiTest):
 
     def test_upload(self):
-        test_filehash = '0ee3faca1f6a66c65ae3d2ae67ab5939'
         headers = {
             "X-Auth": "asdf1234567890"
         }
@@ -25,7 +24,7 @@ class TestUploadModel(BaseApiTest):
             "name": 'test',
             "query_str": 'test',
             "model": read_file_and_format_for_upload('{}.csv'.format(test_filehash)),
-            "modelRDS": read_file_and_format_for_upload('{}.RDS'.format(test_filehash)),
+            "modelRDS": read_file_and_format_for_upload('{}.csv'.format(test_filehash)),
             "modelLatent": read_file_and_format_for_upload('{}.latent_field.csv'.format(test_filehash)),
         }
 
@@ -33,7 +32,13 @@ class TestUploadModel(BaseApiTest):
         self.assertEqual(201, response.status_code,
                          "Create failed: {} - {} ".format(response.status_code, str(response.data)))
 
+        model = json.loads(response.data)
+
+        response = self.app.get(f"{url}/{model['id']}/model")
+        self.assertEqual(200, response.status_code)
+
     def test_zlist(self):
         response = self.app.get(url)
+        self.assertEqual(200, response.status_code)
         models = json.loads(response.data)
         self.assertIsInstance(models, list, 'Return is {} not list'.format(type(models)))
