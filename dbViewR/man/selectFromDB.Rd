@@ -11,7 +11,9 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   AS = "encountered_week"), GROUP_BY = list(COLUMN = c("encountered_week",
   "residence_puma5ce", "residence_census_tract")), SUMMARIZE = list(COLUMN
   = "pathogen", IN = c("h1n1pdm")))), source = "simulated_data",
-  credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE)
+  credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE,
+  shp = dbViewR::masterSpatialDB(shape_level = "census_tract", source =
+  "king_county_geojson"))
 }
 \arguments{
 \item{queryIn}{list or json specifying query  (See example)}
@@ -21,6 +23,8 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
 \item{credentials_path}{path to your pg_service and pgpass file for production database}
 
 \item{na.rm}{= FALSE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway}
+
+\item{shp}{= dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson') (Needed hack until higher-level shape labels are in database)}
 }
 \value{
 dbViewR list with query and observedData table that has been prepared for defineModels.R
@@ -32,9 +36,8 @@ STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODU
 return h1n1pdm summary by time and location
 queryJSON <- jsonlite::toJSON(
   list(
-      SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
-      MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-      GROUP_BY =list(COLUMN=c('epi_week','residence_puma5ce','residence_census_tract')),
+      SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma','residence_census_tract')),
+      GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
       )
    )

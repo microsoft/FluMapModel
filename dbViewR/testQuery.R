@@ -108,7 +108,7 @@ queryIn <- list(
 db <- selectFromDB( queryIn )
 # residence_cra_name
 shp<-masterSpatialDB(shape_level = 'cra_name', source = "seattle_geojson")
-plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_cra_name','geometry')))
+plotDat<- sf::st_as_sf(db$observedData %>% right_join(shp %>% select('residence_cra_name','geometry')))
 plot(plotDat)
 
 
@@ -201,7 +201,7 @@ plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_c
 plot(plotDat)
 
 
-# basic map
+# puma map
 queryJSON <- jsonlite::toJSON(
   list(
     SELECT  =list(COLUMN=c('site_type','residence_puma')),
@@ -216,6 +216,25 @@ dim(db$observedData)
 db <- expandDB(db)
 dim(db$observedData)
 
-shp<-masterSpatialDB(shape_level = 'census_tract', source = "simulated_data")
-plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
+shp<-masterSpatialDB(shape_level = 'puma')
+plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_puma','geometry')))
+plot(plotDat)
+
+# cra_name map
+queryJSON <- jsonlite::toJSON(
+  list(
+    SELECT  =list(COLUMN=c('site_type','residence_cra_name')),
+    WHERE   =list(COLUMN='site_type', IN='childrensHospital'),
+    GROUP_BY=list(COLUMN=c('site_type','residence_cra_name')),
+    SUMMARIZE=list(COLUMN='site_type', IN='all')
+  )
+)
+db <- selectFromDB( queryJSON, source = 'production' ,na.rm=TRUE)
+dim(db$observedData)
+
+db <- expandDB(db)
+dim(db$observedData)
+
+shp<-masterSpatialDB(shape_level = 'cra_name', source ="seattle_geojson")
+plotDat<- sf::st_as_sf(db$observedData %>% right_join(shp %>% select('residence_cra_name','geometry'))) 
 plot(plotDat)
