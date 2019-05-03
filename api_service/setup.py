@@ -49,8 +49,7 @@ setup(
         'flask_sqlalchemy',
         'flask_marshmallow',
         'marshmallow-sqlalchemy',
-        "docker",
-        'dockerpty'
+        "docker"
     ],
 
     extras_require={
