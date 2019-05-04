@@ -1,6 +1,6 @@
 #' masterSpatialDB: function for fetching spatial data from master source
 #'
-#' @param shape_level one of "census_tract" (default),"cra_name","neighborhood","city"
+#' @param shape_level one of "census_tract" (default),"cra_name","neighborhood_district_name","city"
 #' @param source source database, one of "king_county_geojson" (default), "wa_geojson", "seattle_geojson", or "simulated_data"
 #' @param rm_files indicator to remove local files (TRUE == default)
 #' @return sf object with shapefile data
@@ -15,7 +15,7 @@
 #'
 masterSpatialDB <- function(shape_level = 'census_tract', source = 'king_county_geojson', rm_files = TRUE){
 
-  validShapeLevels <- c("census_tract","cra_name","neighborhood","puma","city")
+  validShapeLevels <- c("census_tract","cra_name","neighborhood_district_name","puma","city")
   
   if (source == 'seattle_geojson' & shape_level %in% validShapeLevels){
 
