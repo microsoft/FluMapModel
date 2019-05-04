@@ -47,7 +47,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
  
   
   # we smooth across factor levels with random effects replicates: http://www.r-inla.org/models/tools#TOC-Models-with-more-than-one-type-of-likelihood
-  validFactorNames <- c('pathogen','sampling_location','flu_shot','sex','has_fever','has_cough','has_myalgia')
+  validFactorNames <- names(modelDefinition$observedData)[ !( (names(db$observedData) %in% c('age','n','positive')) | 
+                                                              grepl('residence_',names(db$observedData)) | 
+                                                              grepl('work_',names(db$observedData)) |
+                                                              grepl('encounter',names(db$observedData))  )]
+  
   factorIdx <- validFactorNames %in% names(db$observedData) 
   
   # combine factors for independent intercepts
@@ -103,19 +107,19 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
                           f(age_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
     }
     
-    if(COLUMN %in% c('residence_puma5ce')){
+    if(COLUMN %in% c('residence_puma')){
       
-      inputData$residence_puma5ceRow <- match(inputData$residence_puma5ce,unique(inputData$residence_puma5ce))
+      inputData$residence_pumaRow <- match(inputData$residence_puma,unique(inputData$residence_puma))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_residence_puma5ce <- inputData$time_row
+        inputData$time_row_residence_puma <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_residence_puma5ce, control.group=list(model="rw2")))
+        formula <- update(formula,  ~ . + f(residence_pumaRow, model='iid', hyper=modelDefinition$global, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_puma, control.group=list(model="rw2")))
       } else {
         
-        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        formula <- update(formula,  ~ . + f(residence_pumaRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
       }
     }
     

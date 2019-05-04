@@ -81,7 +81,11 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   }
   
   # factors as fixed effects, assuming no interaction terms
-  validFactorNames <- c('sampling_location','flu_shot','sex','has_fever','has_cough','has_myalgia')
+  validFactorNames <- names(modelDefinition$observedData)[ !( (names(db$observedData) %in% c('age','n','positive')) | 
+                                                                grepl('residence_',names(db$observedData)) | 
+                                                                grepl('work_',names(db$observedData)) |
+                                                                grepl('encounter',names(db$observedData))  )]
+  
   factorIdx <- names(db$observedData) %in% validFactorNames
   for(COLUMN in names(db$observedData)[factorIdx]){
     formula <- as.formula(paste(as.character(formula)[2],'~',paste(as.character(formula)[3],COLUMN,sep='+')))
@@ -112,21 +116,21 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
       validLatentFieldColumns <- c(validLatentFieldColumns,'age_row_rw2','age_row_IID')
     }
     
-    if(COLUMN %in% c('residence_puma5ce')){
+    if(COLUMN %in% c('residence_puma')){
       
-      inputData$residence_puma5ceRow <- match(inputData$residence_puma5ce,unique(inputData$residence_puma5ce))
+      inputData$residence_pumaRow <- match(inputData$residence_puma,unique(inputData$residence_puma))
       
       if('time_row' %in% names(inputData)){
         
-        inputData$time_row_residence_puma5ce <- inputData$time_row
+        inputData$time_row_residence_puma <- inputData$time_row
         
-        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
-                                            group = time_row_residence_puma5ce, control.group=list(model="rw2")))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_puma5ceRow','time_row_residence_puma5ce')
+        formula <- update(formula,  ~ . + f(residence_pumaRow, model='iid', hyper=modelDefinition$local, constr = TRUE, replicate=replicateIdx,
+                                            group = time_row_residence_puma, control.group=list(model="rw2")))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_pumaRow','time_row_residence_puma')
       } else {
         
-        formula <- update(formula,  ~ . + f(residence_puma5ceRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
-        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_puma5ceRow')
+        formula <- update(formula,  ~ . + f(residence_pumaRow, model='iid', hyper=modelDefinition$hyper$global, replicate=replicateIdx))
+        validLatentFieldColumns <- c(validLatentFieldColumns,'residence_pumaRow')
       }
     }
     
@@ -224,7 +228,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
           pathogenNames <- '(Intercept)'
         }
         
-      } else if (!(COLUMN == 'time_row_residence_puma5ce' )) {
+      } else if (!(COLUMN == 'time_row_residence_puma' )) {
         groupIdx<-grepl( paste0('_',gsub('Row','',COLUMN)) ,validLatentFieldColumns)  # this nasty thing will get refactored: https://github.com/seattleflu/incidence-mapper/issues/13
         if(any(groupIdx & !spentColumn)){ # grouped?
           lcIdx[[COLUMN]] <- inla.idx(lc.data[[COLUMN]], group = lc.data[[validLatentFieldColumns[groupIdx]]], replicate = lc.data$replicateIdx)          
