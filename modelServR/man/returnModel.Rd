@@ -10,7 +10,7 @@ returnModel(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   c("sampling_location", "residence_census_tract")), SUMMARIZE =
   list(COLUMN = "sampling_location", IN = c("kiosk")))), type = "smooth",
   format = "json", version = "latest",
-  cloudDir = "/home/rstudio/seattle_flu")
+  cloudDir = "/home/rstudio/seattle_flu/data")
 }
 \arguments{
 \item{queryIn}{JSON query to dbViewR that defines model}

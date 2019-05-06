@@ -31,7 +31,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                             type = 'smooth',
                             format = 'json',
                             version = 'latest',
-                            cloudDir = '/home/rstudio/seattle_flu'){
+                            cloudDir = '/home/rstudio/seattle_flu/data'){
 
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
 

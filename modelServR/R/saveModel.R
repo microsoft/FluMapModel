@@ -8,7 +8,7 @@
 #' 
 #' @export
 #'
-saveModel <- function(model, cloudDir = '/home/rstudio/seattle_flu'){
+saveModel <- function(model, cloudDir = '/home/rstudio/seattle_flu/data'){
 
   ts <- Sys.time()
   attr(ts, "tzone")<-'UTC'
@@ -21,7 +21,10 @@ saveModel <- function(model, cloudDir = '/home/rstudio/seattle_flu'){
                        queryJSON=as.character(jsonlite::toJSON(model$modelDefinition$queryList)),
                        type = 'inla',
                        created = ts)
-  saveRDS(model,paste(cloudDir,'/',filename,'.RDS',sep=''))
+  
+  outfile <- xzfile(paste(cloudDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
+  saveRDS(model,file = outfile)
+  close(outfile)
   
   # all models output smooth
   newRow <- rbind(newRow, 

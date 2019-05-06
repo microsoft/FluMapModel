@@ -4,7 +4,7 @@
 \alias{saveModel}
 \title{saveModel: function to save models and register them in modelDB.csv}
 \usage{
-saveModel(model, cloudDir = "/home/rstudio/seattle_flu")
+saveModel(model, cloudDir = "/home/rstudio/seattle_flu/data")
 }
 \arguments{
 \item{model}{INLA object}
