@@ -34,9 +34,8 @@
 #'
 selectFromDB <- function( queryIn = jsonlite::toJSON(
                             list(
-                              SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce','residence_census_tract')),
-                              MUTATE   =list(COLUMN=c('encountered_date'), AS='encountered_week'),
-                              GROUP_BY =list(COLUMN=c('encountered_week','residence_puma5ce','residence_census_tract')),
+                              SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma','residence_census_tract')),
+                              GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
                           ), source = 'simulated_data', 
@@ -73,6 +72,11 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
     DBI::dbDisconnect(rawData)
+    
+    # fake pathogen field until db is ready
+    if (!('pathogen' %in% names(db))){
+      db$pathogen <- 'any'
+    }
 
   } else {
      print('unknown source database!')
@@ -105,9 +109,11 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
         if( any(grepl('IN',names(queryList[[FILTER]])))){
 
-          filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
-          db <- db %>% dplyr::filter_(filter_criteria)
-
+          if(queryList[[FILTER]]$IN != 'all'){
+            filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
+            db <- db %>% dplyr::filter_(filter_criteria)
+          }
+        
         } else if( any(grepl('BETWEEN',names(queryList[[FILTER]])))){
 
           filter_criteria_low <- lazyeval::interp(~y >= x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$BETWEEN[1]))
@@ -144,7 +150,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     
   # type harmonization
-    for( COLUMN in names(db)[names(db) %in% c('residence_census_tract','residence_cra_name','residence_puma','residence_neighborhood_district_name')]){
+    for( COLUMN in names(db)[names(db) %in% c('residence_census_tract','residence_cra_name','residence_puma','residence_neighborhood_district_name','residence_city',
+                                              'work_census_tract','work_cra_name','work_puma','work_neighborhood_district_name','work_city')]){
       db[[COLUMN]] <- as.character(db[[COLUMN]])
     }
 

@@ -59,7 +59,8 @@ expandDB <- function( db = dbViewR::selectFromDB(),
       validColumnData$work_city = sort(unique(shp$work_city))
       
     # factors (these don't get interpolated by the models, so we only want the valid levels for the dataset at hand)
-      factorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('age','n','positive')) | 
+      factorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('n','positive')) | 
+                                                grepl('age',names(db$observedData)) | 
                                                 grepl('residence_',names(db$observedData)) | 
                                                 grepl('work_',names(db$observedData)) |
                                                 grepl('encounter',names(db$observedData))  )]

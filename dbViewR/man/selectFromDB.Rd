@@ -6,11 +6,11 @@
 (Currently pulls from simulated data at https://github.com/seattleflu/simulated-data)}
 \usage{
 selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
-  c("pathogen", "encountered_date", "residence_puma5ce",
-  "residence_census_tract")), MUTATE = list(COLUMN = c("encountered_date"),
-  AS = "encountered_week"), GROUP_BY = list(COLUMN = c("encountered_week",
-  "residence_puma5ce", "residence_census_tract")), SUMMARIZE = list(COLUMN
-  = "pathogen", IN = c("h1n1pdm")))), source = "simulated_data",
+  c("pathogen", "encountered_date", "residence_puma",
+  "residence_census_tract")), GROUP_BY = list(COLUMN =
+  c("encountered_week", "residence_puma", "residence_census_tract")),
+  SUMMARIZE = list(COLUMN = "pathogen", IN = c("h1n1pdm")))),
+  source = "simulated_data",
   credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE,
   shp = dbViewR::masterSpatialDB(shape_level = "census_tract", source =
   "king_county_geojson"))
