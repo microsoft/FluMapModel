@@ -58,10 +58,10 @@ expandDB <- function( db = dbViewR::selectFromDB(),
       validColumnData$work_puma = sort(unique(shp$work_puma))
       validColumnData$work_city = sort(unique(shp$work_city))
       
+      # NA handling
       validColumnData$residence_cra_name = validColumnData$residence_cra_name[validColumnData$residence_cra_name!='NA']
       validColumnData$residence_neighborhood_district_name = validColumnData$residence_neighborhood_district_name[validColumnData$residence_neighborhood_district_name!='NA']
       validColumnData$residence_city = validColumnData$residence_city[validColumnData$residence_city!='NA']
-      
       validColumnData$work_cra_name = validColumnData$work_cra_name[validColumnData$work_cra_name!='NA']
       validColumnData$work_neighborhood_district_name = validColumnData$work_neighborhood_district_name[validColumnData$work_neighborhood_district_name!='NA']
       validColumnData$work_city = validColumnData$work_city[validColumnData$work_city!='NA']

@@ -125,9 +125,10 @@ for (SOURCE in names(geoLevels)){
         GROUP_BY =list(COLUMN=c('pathogen',factors,GEO,"encountered_week")),
         SUMMARIZE=list(COLUMN='pathogen', IN= PATHOGEN)
       )
-      db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ) )
       
       shp <- masterSpatialDB(shape_level = gsub('residence_','',GEO), source = SOURCE)
+      
+      db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ), shp=shp )
       
       db <- appendCatchmentModel(db,shp=shp, source='production', na.rm=TRUE  )
       
@@ -137,7 +138,7 @@ for (SOURCE in names(geoLevels)){
       print(summary(model$inla))
       
       saveModel(model)
-      fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,factors,GEO,'encountered_week',sep='-'),'.png',sep='')
+      fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,paste(factors,collapse='-'),GEO,'encountered_week',sep='-'),'.png',sep='')
       png(filename = fname,width = 6, height = 5, units = "in", res = 300)
       print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) )
       dev.off()
@@ -145,3 +146,4 @@ for (SOURCE in names(geoLevels)){
   }
 }
 
+# change offset standardization

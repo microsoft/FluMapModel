@@ -11,9 +11,7 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   c("encountered_week", "residence_puma", "residence_census_tract")),
   SUMMARIZE = list(COLUMN = "pathogen", IN = c("h1n1pdm")))),
   source = "simulated_data",
-  credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE,
-  shp = dbViewR::masterSpatialDB(shape_level = "census_tract", source =
-  "king_county_geojson"))
+  credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE)
 }
 \arguments{
 \item{queryIn}{list or json specifying query  (See example)}

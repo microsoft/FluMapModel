@@ -40,9 +40,12 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                             )
                           ), source = 'simulated_data', 
                           credentials_path = '/home/rstudio/seattle_flu',
-                          na.rm = FALSE,
-                          shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson') ){
+                          na.rm = FALSE
+                          ){
 
+  #(Needed hack until higher-level shape labels are in database)
+  shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
+  
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
   } else if(class(queryIn) == "list"){

@@ -43,7 +43,7 @@ appendCatchmentModel <- function(db,shp = NULL, source='simulated_data', na.rm=T
     GROUP_BY =list(COLUMN=c('site_type',geo)),
     SUMMARIZE=list(COLUMN='site_type', IN= 'all')
   )
-  catchmentDb <- expandDB( selectFromDB(  queryIn, source=source, na.rm=na.rm ) )
+  catchmentDb <- expandDB( selectFromDB(  queryIn, source=source, na.rm=na.rm ), shp=shp )
   
   # at some point, we maybe should check if the catchment map is already saved, 
   # although this is a cheap computation relative to everything else, so that may never matter
@@ -54,8 +54,8 @@ appendCatchmentModel <- function(db,shp = NULL, source='simulated_data', na.rm=T
   # append catchment as intercept covariate
   db$observedData <- db$observedData %>% left_join(catchmentModel$modeledData %>% select(site_type, geo, modeled_count_0_5quant))
   names(db$observedData)[names(db$observedData) %in% 'modeled_count_0_5quant'] <- 'catchment'
-  db$observedData$catchment <- log(db$observedData$catchment)
-  db$observedData$catchment <- (db$observedData$catchment - mean(db$observedData$catchment))/sd(db$observedData$catchment)
+  db$observedData$catchment <- log(db$observedData$catchment) - mean(log(db$observedData$catchment))
+  # db$observedData$catchment <- db$observedData$catchment/sd(db$observedData$catchment)
   
   return(db)
 }
