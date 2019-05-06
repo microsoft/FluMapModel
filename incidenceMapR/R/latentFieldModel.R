@@ -82,6 +82,7 @@ latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::master
   
   # factors as fixed effects, assuming no interaction terms
   validFactorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('pathogen','n','positive')) | 
+                                                                grepl('row',names(db$observedData)) |
                                                                 grepl('age',names(db$observedData)) | 
                                                                 grepl('residence_',names(db$observedData)) | 
                                                                 grepl('work_',names(db$observedData)) |

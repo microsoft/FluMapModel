@@ -24,7 +24,8 @@ plotDat$positive[plotDat$n==0]<-NaN
 
 bbox<-sf::st_bbox(shp$geometry)
 
-mapSettings <- ggplot() + xlim(c(min(122.5, -bbox[1]),max(121.7,-bbox[3]))) + ylim(c(max(47.17,bbox[2]),min(47.76,bbox[4]))) +  theme_bw() +
+mapSettings <- ggplot() + #xlim(c(min(122.5, -bbox[1]),max(121.7,-bbox[3]))) + ylim(c(max(47.17,bbox[2]),min(47.76,bbox[4]))) +
+  theme_bw() +
   theme(axis.text=element_blank(),axis.ticks=element_blank(),panel.grid.major=element_line(colour="transparent"), panel.border = element_blank())
 p<-mapSettings + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 

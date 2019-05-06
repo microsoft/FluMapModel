@@ -55,7 +55,7 @@ for (SOURCE in names(geoLevels)){
           tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
           fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
           png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-          ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO)
+          print(ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO))
           dev.off()
         }
         
@@ -114,7 +114,6 @@ for (PATHOGEN in pathogens){
 ###### timeseries models ############
 #####################################
 
-
 # number of subjects with pathogen and factor at residence location 
 for (SOURCE in names(geoLevels)){
   for (PATHOGEN in pathogens){
@@ -140,8 +139,9 @@ for (SOURCE in names(geoLevels)){
       saveModel(model)
       fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,factors,GEO,'encountered_week',sep='-'),'.png',sep='')
       png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-      ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) 
+      print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) )
       dev.off()
     }
   }
 }
+

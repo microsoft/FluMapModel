@@ -48,10 +48,11 @@ smoothModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpati
   
   # we smooth across factor levels with random effects replicates: http://www.r-inla.org/models/tools#TOC-Models-with-more-than-one-type-of-likelihood
   validFactorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('pathogen','n','positive')) | 
-                                                              grepl('age',names(db$observedData)) | 
-                                                              grepl('residence_',names(db$observedData)) | 
-                                                              grepl('work_',names(db$observedData)) |
-                                                              grepl('encounter',names(db$observedData))  )]
+                                                                grepl('row',names(db$observedData)) |
+                                                                grepl('age',names(db$observedData)) | 
+                                                                grepl('residence_',names(db$observedData)) | 
+                                                                grepl('work_',names(db$observedData)) |
+                                                                grepl('encounter',names(db$observedData))  )]
   
   factorIdx <- validFactorNames %in% names(db$observedData) 
   

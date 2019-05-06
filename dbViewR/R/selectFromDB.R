@@ -157,8 +157,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
   # drop rows with NA since incidenceMapR (INLA) will ignore them anyway
   if(na.rm){
-    db <- db %>% tidyr::drop_na()
-  }    
+    db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
+  }
   
   summarizedData <- list(observedData = db,queryList = c(queryList))
 
