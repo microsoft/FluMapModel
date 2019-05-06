@@ -11,15 +11,17 @@
 appendSmoothData <- function(model,modelDefinition){
   
   modeledData <- modelDefinition$observedData
+  outputColName <- 'modeled_count'
   
   if(modelDefinition$family[1] == 'binomial'){
     modeledData$fraction <- modeledData$positive/modeledData$n
+    outputColName <- 'modeled_fraction'
   }
   
   # summary.fitted.values is only relevant output for smoothModel
   nCol <- ncol(modeledData)
   modeledData[,nCol+1:ncol(model$summary.fitted.values)]<-model$summary.fitted.values
-  names(modeledData)[nCol+1:ncol(model$summary.fitted.values)]<-paste('fitted.values',names(model$summary.fitted.values),sep='.')
+  names(modeledData)[nCol+1:ncol(model$summary.fitted.values)]<-paste(outputColName,names(model$summary.fitted.values),sep='.')
   
   rownames(modeledData)<-c()
   
@@ -45,12 +47,15 @@ appendLatentFieldData <- function(model,modelDefinition){
   # summary.fitted.values
   modeledData <- appendSmoothData(model,modelDefinition)
   
+  outputColName <- 'modeled_intensity'
+  
+  
   # latent field
   # summary.lincomb.derived
   latentField <- modelDefinition$latentFieldData
   nCol <- ncol(latentField)
   latentField[,nCol+1:ncol(model$summary.lincomb.derived)]<-model$summary.lincomb.derived
-  names(latentField)[nCol+1:ncol(model$summary.lincomb.derived)]<-paste('latent.field',names(model$summary.lincomb.derived),sep='.')
+  names(latentField)[nCol+1:ncol(model$summary.lincomb.derived)]<-paste(outputColName,names(model$summary.lincomb.derived),sep='.')
   
   rownames(latentField)<-c()
   
