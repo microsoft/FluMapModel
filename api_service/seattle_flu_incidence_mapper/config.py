@@ -10,6 +10,7 @@ connex_app = connexion.App("seattle_flu_incidence_mapper.config", specification_
 
 # Get the underlying Flask app instance
 app = connex_app.app
+app.config['WORKER_IMAGE'] = os.environ.get('WORKER_IMAGE', 'idm-docker-production.packages.idmod.org/sfim-worker:latest')
 app.config['MODEL_STORE'] = os.environ.get('MODEL_STORE', '/model_store')
 
 db = setup_db(basedir, app)

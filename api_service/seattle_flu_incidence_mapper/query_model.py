@@ -1,14 +1,11 @@
 # API Methods for the /query
 import docker
-
+from flask import current_app
 from seattle_flu_incidence_mapper.model_store import get_model_id_from_quetry_str
 
 loaded_models = []
 client = docker.DockerClient()
 api_client = docker.APIClient()
-
-image = 'sfli.modelServe'
-#image="r-base"
 
 
 def query(query_json):
@@ -20,6 +17,7 @@ def query(query_json):
             container = None
         if container is None: # need to check container is running
             #start the model worker
+            image = current_app.config['WORKER_IMAGE']
             container = client.containers.run(image, name=f"sfim-{model.id}", tty=True, detach=True, stdin_open=True,)
 
 

@@ -28,13 +28,11 @@ build-r-package: pull-r-env ## Build the r package as tar ball
 				cd ../incidenceMapR && R CMD build . && \
 				cd ../modelServR && R CMD build ."
 
-build-api: build-r-package get_version ## Builds the api
+build-production: build-r-package get_version ## Builds the api
 	-mkdir -p api_service/models
-	# Copy our models over to api service models
-	cp predictModelTestPkg/*.tar.gz api_service/models
 	docker-compose -f docker-compose.production.yml build
 
-publish-api: build-api ## Publishes the API
+publish-production: build-production ## Publishes the API
 	docker-compose -f docker-compose.production.yml push
 
 deploy-api: ## Deploys over ssh to prod server. Requires setup of ssh before hand
