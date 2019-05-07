@@ -16,7 +16,7 @@ services:
       build:
         context: api_service
         dockerfile: Dockerfile
-      image: idm-docker-production.packages.idmod.org/sfim:${version:-latest}
+      image: idm-docker-production.packages.idmod.org/sfim-api:${version:-latest}
       volumes:
       - "/model_store:/model_store"
       environment:
