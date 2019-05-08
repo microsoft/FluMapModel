@@ -15,6 +15,9 @@ app.config['MODEL_STORE'] = os.environ.get('MODEL_STORE', '/model_store')
 
 db = setup_db(basedir, app)
 set_marshmallow(app)
+
+# DO NOT MOVE this line. The order matters here
+# we need to init our db before loading our models
 from seattle_flu_incidence_mapper.models import *
 
 if os.environ.get('DEBUG', '0').lower() in ['1', 'y', 'yes', 't', 'true']:

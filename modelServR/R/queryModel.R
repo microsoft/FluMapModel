@@ -1,0 +1,64 @@
+#' queryModelById function for getting modeled data by a known id
+#'
+#' This function loads a cached model object
+#'
+#' This function is intended for use by the API server. 
+#' @param modelId modelId to load
+#' @param outputFile File to save the query result to
+#' @param queryFile Path to JSON query to filter the model data for. 
+#' @param format = "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)
+#' @param outputDir = directory where to save result to
+#'
+#' @return TRUE if output was written to outputFile
+#'
+#' @import dbViewR
+#' @import jsonlite
+#' @import magrittr
+#' @importFrom RCurl getURL
+#' @importFrom dplyr group_by_at
+#' @importFrom tidyr nest
+#' @export
+#' @examples
+#'
+queryModelById <-
+  function(modelId,
+           outputFile,
+           queryFile = NULL,
+           format = "csv",
+           outputDir = Sys.getenv('WORKER_DIR', '/tmp')) {
+    db <- loadModelFileById(modelId, data_dir)
+    return(queryLoadedModel(model, queryFile, outputFile, format, outputDir))
+  }
+
+
+queryLoadedModel <-
+  function(model,
+           outputFile,
+           format = "csv",
+           queryFile = NULL,
+           outputDir = Sys.getenv('WORKER_DIR', '/tmp')) {
+    if(queryFile != NULL) {
+      # load the query from the specified fiel
+      query <-
+        jsonlite::read_json(file.path(outputDir, queryFile))
+      # perform our query here
+      # at moment we do NO filtering just return the full model
+    }
+    
+    #the write our result
+    if (format == "csv") {
+      write.csv(
+        model,
+        file.path(outputDir, outputFile),
+        row.names = FALSE,
+        quote = FALSE
+      )
+    } else if (format == 'json') {
+      jsonlite::write_json(file.path(model))
+    }
+    return(TRUE)
+  }
+
+#initializeModel <- function (modelId) {
+#  return(loadModelFileById(modelId))
+#}

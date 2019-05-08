@@ -1,5 +1,6 @@
 library(logging)
 basicConfig()
+setLevel("FINEST")
 
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
 #'
@@ -8,7 +9,7 @@ basicConfig()
 #' @export
 #'
 getHumanReadableModelIdFromModel <- function(model) {
-  return (getHumanReadableModelIdFromQuery(model$modelDefinition$queryList))
+  return (getHumanReadableModelIdFromQuery(getModelQueryObjectFromModel(model)))
 }
 
 #' getHumanReadableModelIdFromQuery: return human readable verion of model from query
@@ -19,19 +20,30 @@ getHumanReadableModelIdFromModel <- function(model) {
 #'
 getHumanReadableModelIdFromQuery <- function(query) {
   props <- getModelQueryObjectFromQuery(query)
-  # pathogen_geo_resolution_sequential_variable_outcome
   result <- tolower(sprintf("%s-%s", 
-                            paste(props$select, collapse = "."), 
-                            paste(props$groupby,collapse = ".")))
+                            paste(props$type,collapse = "."),
+                            paste(props$observed, collapse = ".")))
   return(result)
 }
 
 
-getModelQueryObjectFromModel<- function(model) {
+getModelQueryObjectFromModel<- function(model, latent = FALSE) {
   # maybe  we should do something more like
   # m <- getModelQueryObjectFromQuery(model$modelDefinition$queryList)
   # m$type <- model$modelDefinition$type ?
-  return (getModelQueryObjectFromQuery(model$modelDefinition$queryList))
+  
+  result <- newEmptyObject()
+  if (latent) {
+    result$model_type <- unbox("latent")
+    result$observed <- sort(colnames(modelTest$modelDefinition$latentFieldData))
+    
+  }
+  else {
+    result$model_type <- unbox("smooth")
+    result$observed <- sort(colnames(modelTest$modelDefinition$observedData))
+  }
+  
+  return(result)
 }
 #' getModelQueryObjectFromQuery: return a model query object with just the fields that make up the unique id
 #'
@@ -40,35 +52,12 @@ getModelQueryObjectFromModel<- function(model) {
 #' @export
 #'
 getModelQueryObjectFromQuery <- function(query) {
-  logdebug("Src:", str(query))
+  logdebug("getModelQueryObjectFromQuery Src:", str(query))
+  logdebug("$observed", attr(query, "observed"))
   result <- newEmptyObject()
-  # when building the query object, we only care aboout the select and group by
-  # since those are the fields that drive uniqueness of model
-  # the where fields are filters are data that we could then later use to filter
-  # outputs or query but not in the id
-  
-  if (!is.null(query$GROUP_BY$COLUMN)) {
-    fields <- c()
-    for (p in query$GROUP_BY$COLUMN) {
-      props <- fields
-      fields <- append(props, p)
-    }
-    result$groupby <- sort(fields)
-  }
-  
-  if (!is.null(query$SELECT$COLUMN)) {
-    fields <- c()
-    for (p in query$SELECT$COLUMN) {
-      props <- fields
-      fields <- append(props, p)
-    }
-    result$select <- sort(fields)
-  }
-  
-  #if (!is.null(query$type)) {
-  #  props$type <- query$type
-  #}
-  logdebug("Result:", str(result))
+  result$observed <- sort(query$observed)
+  result$model_type <- query$model_type
+  logdebug("getModelQueryObjectFromQuery result:", str(result))
   return(result)
 }
 
@@ -79,7 +68,7 @@ getModelQueryObjectFromQuery <- function(query) {
 #' @export
 #'
 getModelIdFromModel <- function(model) {
-  return(getModelIdFromQuery(model$modelDefinition$queryList))
+  return(getModelIdFromQuery(getModelQueryObjectFromModel(model)))
 }
 
 #' getModelIdFromQuery: function to save models and register them in modelDB.csv
@@ -92,9 +81,11 @@ getModelIdFromModel <- function(model) {
 #' @export
 #'
 getModelIdFromQuery <- function(query) {
-  props <- getModelQueryObjectFromQuery(query)
-  modelId <- as.character(jsonlite::toJSON(props))
-  modelId <- digest::digest(modelId)
+  #props <- getModelQueryObjectFromQuery(query)
+  modelId <- as.character(jsonlite::toJSON(query, simplifyDataFrame=))
+  logdebug("Model ID JSON:", jsonlite::toJSON(query, simplifyDataFrame=))
+  modelId <- digest::digest(modelId, serialize=FALSE)
+  logdebug("Model ID Hash:", modelId)
   return(modelId)
 }
 
@@ -110,9 +101,14 @@ saveModel <- function(model, db = NULL, cloudDir =  Sys.getenv('MODEL_BIN_DIR', 
   attr(ts, "tzone") <- 'UTC'
   ts <- paste0(as.character(ts), 'Z')
   
+  # we always dump to our directory. We then use the python upload script to post 
+  # trained models to production
+  modelDBfilename <- paste(cloudDir, '/', 'modelDB.tsv', sep = '')
+  
   # create an id that is predictable based on the query the produced the model
   name <- getHumanReadableModelIdFromModel(model)
-  modelId <- getModelIdFromModel(model)
+  modelQuery <- getModelQueryObjectFromModel(model)
+  modelId <- getModelIdFromQuery(modelQuery)
   # extract json in sorted order
   # with only fields that matter
   filename <-modelId
@@ -122,47 +118,61 @@ saveModel <- function(model, db = NULL, cloudDir =  Sys.getenv('MODEL_BIN_DIR', 
   newRow <- data.frame(
     filename = filename,
     name = name,
-    queryJSON = as.character(jsonlite::toJSON(getModelQueryObjectFromModel(model))),
+    queryJSON = as.character(jsonlite::toJSON(modelQuery)),
     type = 'inla',
     created = ts
   )
   
-  newRow$rds <- TRUE
+  print("Saving RDS")
   outfile <- xzfile(paste(cloudDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
   saveRDS(model,file = outfile)
   close(outfile)
   
   
+  print("Saving smooth model")
   # all models output smooth
-  newRow$smooth <- TRUE
+  newRow$latent <- FALSE
   write.csv(
     model$modeledData,
     paste(cloudDir, '/', filename, '.csv', sep = ''),
     row.names = FALSE,
     quote = FALSE
   )
-  
-  # If we have a latent_field type, write out that csv
-  newRow$latent_field <- model$modelDefinition$type == 'latent_field'
-  if (model$modelDefinition$type == 'latent_field') {
-    write.csv(
-      model$latentField,
-      paste(cloudDir, '/', filename, '.latent_field.csv', sep = ''),
-      row.names = FALSE,
-      quote = FALSE
-    )
-  }
-  
-
-  # we always dump to our directory. We then use the python upload script to post 
-  # trained models to production
-  modelDBfilename <- paste(cloudDir, '/', 'modelDB.tsv', sep = '')
   write.table(
     newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
     quote = FALSE, append = file.exists(modelDBfilename)
   )
   
-  
+  # If we have a latent_field type, write out that csv
+  if (model$modelDefinition$type == 'latent_field') {
+    modelQuery <- getModelQueryObjectFromModel(model, TRUE)
+    modelId <- getModelIdFromQuery(modelQuery)
+    name <- getHumanReadableModelIdFromModel(model)
+    filename <-modelId
+    newRow <- data.frame(
+      filename = filename,
+      name = name,
+      queryJSON = as.character(jsonlite::toJSON(modelQuery)),
+      type = 'inla',
+      created = ts
+    )
+    newRow$latent <- TRUE
+    
+    print("Saving latent model")
+    
+    write.csv(
+      model$latentField,
+      paste(cloudDir, '/', filename, '.csv', sep = ''),
+      row.names = FALSE,
+      quote = FALSE
+    )
+    
+    # write to our model db file
+    write.table(
+      newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
+      quote = FALSE, append = file.exists(modelDBfilename)
+    )
+  }
 }
 
 

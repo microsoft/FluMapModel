@@ -2,6 +2,15 @@ library(logging)
 basicConfig()
 setLevel(10)
 
+
+loadModelFileById <- function (filename, data_dir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
+  # expand path to the full path
+  filename <- file.path(data_dir, filename)
+  # load the data
+  db <- read.csv(paste(filename, type,'csv',sep='.'))
+  return(db)
+}
+
 #' returnModel function for getting modeled data
 #'
 #' This function loads a cached model object containing two datasets
@@ -44,7 +53,8 @@ returnModel <- function(queryIn = jsonlite::toJSON(
 
   # NEED TO Pull multiple formats of data once saving latent fields is implemented in incidenceMapR
   #  ACTUALLY, current plan is to have csv obey format for each model type
-
+  
+  
   if(class(queryIn)== 'list'){
     queryList <- queryIn
     queryIn <- jsonlite::toJSON(queryIn)
@@ -82,7 +92,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
   }
 
   if (format %in% c('csv','json')){
-    db <- read.csv(paste(filename,type,'csv',sep='.'))
+    db <- loadModelFile(modelID, cloudDir)
 
     dataOut<-list(query = queryList, type = type)
 
