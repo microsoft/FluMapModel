@@ -44,9 +44,9 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                           ){
 
   if(class(queryIn) == "json"){
-    queryList <- jsonlite::fromJSON(queryIn)
+    queryIn <- jsonlite::fromJSON(queryIn)
   } else if(class(queryIn) == "list"){
-    queryList<-queryIn
+    queryIn<-queryIn
   }
   
 
@@ -86,49 +86,49 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   
   # run query
   # this logic will probably move to sql queries in the database instead of dplyr after....
-    if(queryList$SELECT !="*"){
+    if(queryIn$SELECT !="*"){
 
       #(Needed hack until higher-level shape labels are in database)
-      
-        if (! any( grepl('cra_name',queryIn$SELECT$COLUMN) | grepl('neighbo',queryIn$SELECT$COLUMN) ) ){
-          shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
-        } else {
-          shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson')
-        }
-        
-        # append higher-level spatial labels
-        # this feature will eventually be in the database, but it's needed for now to index to pumas, cra_name, etc
-        nestedVariables <- c('cra_name','neighborhood_district_name','puma','city')
-        
-        for( COLUMN in nestedVariables){
-          COLNAME <- paste0('residence_',COLUMN)
-          if( ('residence_census_tract' %in% names(db))  & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
-            db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$residence_census_tract,shp$residence_census_tract)])
+        if ( any( grepl('residence',queryIn$SELECT$COLUMN) | grepl('work',queryIn$SELECT$COLUMN) ) ){
+          if (! any( grepl('cra_name',queryIn$SELECT$COLUMN) | grepl('neighbo',queryIn$SELECT$COLUMN) ) ){
+            shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
+          } else {
+            shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson')
           }
-          COLNAME <- paste0('work_',COLUMN)
-          if( ('work_census_tract' %in% names(db)) & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
-            db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$work_census_tract,shp$work_census_tract)])
+        
+          # append higher-level spatial labels
+          # this feature will eventually be in the database, but it's needed for now to index to pumas, cra_name, etc
+          nestedVariables <- c('cra_name','neighborhood_district_name','puma','city')
+          
+          for( COLUMN in nestedVariables){
+            COLNAME <- paste0('residence_',COLUMN)
+            if( ('residence_census_tract' %in% names(db))  & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
+              db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$residence_census_tract,shp$residence_census_tract)])
+            }
+            COLNAME <- paste0('work_',COLUMN)
+            if( ('work_census_tract' %in% names(db)) & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
+              db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$work_census_tract,shp$work_census_tract)])
+            }
           }
         }
-        
       
       ## real flow starts here
         
-      db <- db %>% dplyr::select(dplyr::one_of(queryList$SELECT$COLUMN))
+      db <- db %>% dplyr::select(dplyr::one_of(queryIn$SELECT$COLUMN))
 
-      for(FILTER in which(grepl('WHERE',names(queryList)))){
+      for(FILTER in which(grepl('WHERE',names(queryIn)))){
 
-        if( any(grepl('IN',names(queryList[[FILTER]])))){
+        if( any(grepl('IN',names(queryIn[[FILTER]])))){
 
-          if(any(queryList[[FILTER]]$IN != 'all')){
-            filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
+          if(any(queryIn[[FILTER]]$IN != 'all')){
+            filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryIn[[FILTER]]$COLUMN), x = queryIn[[FILTER]]$IN))
             db <- db %>% dplyr::filter_(filter_criteria)
           }
         
-        } else if( any(grepl('BETWEEN',names(queryList[[FILTER]])))){
+        } else if( any(grepl('BETWEEN',names(queryIn[[FILTER]])))){
 
-          filter_criteria_low <- lazyeval::interp(~y >= x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$BETWEEN[1]))
-          filter_criteria_high <- lazyeval::interp(~y <= x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$BETWEEN[2]))
+          filter_criteria_low <- lazyeval::interp(~y >= x, .values=list(y = as.name(queryIn[[FILTER]]$COLUMN), x = queryIn[[FILTER]]$BETWEEN[1]))
+          filter_criteria_high <- lazyeval::interp(~y <= x, .values=list(y = as.name(queryIn[[FILTER]]$COLUMN), x = queryIn[[FILTER]]$BETWEEN[2]))
 
           db <- db %>% dplyr::filter_(filter_criteria_low)  %>% dplyr::filter_(filter_criteria_high)
 
@@ -140,18 +140,18 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # this is nasty!  I need to transform to age bins for modeling, but I don't want to carry the MUTATE query around!
     if(any(grepl('age',names(db)))){ 
       db$age_bin <- floor(pmin(db$age,90))
-      queryList$GROUP_BY$COLUMN[queryList$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
+      queryIn$GROUP_BY$COLUMN[queryIn$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
     }
     
 
-    if('GROUP_BY' %in% names(queryList)){
-      db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
+    if('GROUP_BY' %in% names(queryIn)){
+      db<- db %>% dplyr::group_by_(.dots=queryIn$GROUP_BY$COLUMN)
     }
     
-    if('SUMMARIZE' %in% names(queryList)){
+    if('SUMMARIZE' %in% names(queryIn)){
 
-      if (queryList$SUMMARIZE$IN != 'all'){
-        summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryList$SUMMARIZE$COLUMN), x = queryList$SUMMARIZE$IN))
+      if (queryIn$SUMMARIZE$IN != 'all'){
+        summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryIn$SUMMARIZE$COLUMN), x = queryIn$SUMMARIZE$IN))
       } else {
         summary_criteria <- lazyeval::interp(~n())  # must always output n and positive for downstream interpretation!
       }
@@ -171,7 +171,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
   }
   
-  summarizedData <- list(observedData = db,queryList = c(queryList))
+  summarizedData <- list(observedData = db,queryIn = c(queryIn))
 
   return(summarizedData)
 }
