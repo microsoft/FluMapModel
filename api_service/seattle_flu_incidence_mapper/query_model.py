@@ -1,4 +1,8 @@
 # API Methods for the /query
+import tarfile
+import uuid
+from io import BytesIO
+
 import docker
 from flask import current_app
 from seattle_flu_incidence_mapper.model_store import get_model_id_from_quetry_str
@@ -11,22 +15,40 @@ api_client = docker.APIClient()
 def query(query_json):
     model = get_model_id_from_quetry_str(query_json)
     if model:
+        s = None
         try:
             container = client.containers.get(f'sfim-{model.id}-1')
         except docker.errors.NotFound:
             container = None
-        if container is None: # need to check container is running
-            #start the model worker
+
+        # start container is not running
+        if container is None:
             image = current_app.config['WORKER_IMAGE']
             container = client.containers.run(image, name=f"sfim-{model.id}", tty=True, detach=True, stdin_open=True,)
+            s = container.attach_socket(params={'stdin': 1, 'stream': 1})
+            # initialize our model by loading
+            s.sock.send(f'library(modelServR)\nmodel < - loadModelFileById("{model.id}")\n')
 
+        # if we need to connect to an existing container, do do now
+        if s is None:
+            s = container.attach_socket(params={'stdin': 1, 'stream': 1})
 
-        command = "2 + 2\n"
-        s = container.attach_socket(params={'stdin': 1, 'stream': 1})
-        s._sock.send(command.encode('utf-8'))
+        # define where we want our output written too
+        outfile = str(uuid.uuid4())
+
+        # Run our query against the model(should already be loaded)
+        command = f'queryLoadedModel(model, "{outfile}")\n'
+        s.sock.send(command.encode('utf-8'))
         s.close()
-        # now query the container
 
-        s = container.logs(stdout=True, stderr=False, tail=1)
-        return s
+        # Fetch our result
+        file_json = container.get_archive(f'/tmp/{outfile}')
+        stream, stat = file_json
+        file_obj = BytesIO()
+        for i in stream:
+            file_obj.write(i)
+        file_obj.seek(0)
+        tar = tarfile.open(mode='r', fileobj=file_obj)
+        text = tar.extractfile(outfile)
+        return text
 
