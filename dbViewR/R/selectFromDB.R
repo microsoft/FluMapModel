@@ -43,14 +43,12 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                           na.rm = FALSE
                           ){
 
-  #(Needed hack until higher-level shape labels are in database)
-  shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
-  
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
   } else if(class(queryIn) == "list"){
     queryList<-queryIn
   }
+  
 
   # connect to database
   if(source == 'simulated_data'){
@@ -85,34 +83,44 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
      print('unknown source database!')
   }
 
-  # append higher-level spatial labels
-  # this feature will eventually be in the database, but it's needed for now to index to pumas, cra_name, etc
-
-    nestedVariables <- c('cra_name','neighborhood_district_name','puma','city')
-
-    for( COLUMN in nestedVariables){
-      COLNAME <- paste0('residence_',COLUMN)
-      if( ('residence_census_tract' %in% names(db))  & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
-        db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$residence_census_tract,shp$residence_census_tract)])
-      }
-      COLNAME <- paste0('work_',COLUMN)
-      if( ('work_census_tract' %in% names(db)) & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
-        db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$work_census_tract,shp$work_census_tract)])
-      }
-    }
-  
   
   # run query
   # this logic will probably move to sql queries in the database instead of dplyr after....
     if(queryList$SELECT !="*"){
 
+      #(Needed hack until higher-level shape labels are in database)
+      
+        if (! any( grepl('cra_name',queryIn$SELECT$COLUMN) | grepl('neighbo',queryIn$SELECT$COLUMN) ) ){
+          shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
+        } else {
+          shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson')
+        }
+        
+        # append higher-level spatial labels
+        # this feature will eventually be in the database, but it's needed for now to index to pumas, cra_name, etc
+        nestedVariables <- c('cra_name','neighborhood_district_name','puma','city')
+        
+        for( COLUMN in nestedVariables){
+          COLNAME <- paste0('residence_',COLUMN)
+          if( ('residence_census_tract' %in% names(db))  & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
+            db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$residence_census_tract,shp$residence_census_tract)])
+          }
+          COLNAME <- paste0('work_',COLUMN)
+          if( ('work_census_tract' %in% names(db)) & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
+            db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$work_census_tract,shp$work_census_tract)])
+          }
+        }
+        
+      
+      ## real flow starts here
+        
       db <- db %>% dplyr::select(dplyr::one_of(queryList$SELECT$COLUMN))
 
       for(FILTER in which(grepl('WHERE',names(queryList)))){
 
         if( any(grepl('IN',names(queryList[[FILTER]])))){
 
-          if(queryList[[FILTER]]$IN != 'all'){
+          if(any(queryList[[FILTER]]$IN != 'all')){
             filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
             db <- db %>% dplyr::filter_(filter_criteria)
           }
