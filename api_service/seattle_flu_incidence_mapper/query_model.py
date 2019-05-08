@@ -2,10 +2,8 @@
 import tarfile
 import uuid
 from io import BytesIO
-
 import docker
 from flask import current_app
-from seattle_flu_incidence_mapper.model_store import get_model_id_from_quetry_str
 from seattle_flu_incidence_mapper.utils import get_model_id
 
 loaded_models = []
@@ -44,6 +42,9 @@ def query(query_json):
 
         # Fetch our result
         file_json = container.get_archive(f'/tmp/{outfile}')
+
+        # Fetch data from stream
+        # TODO , in prod maybe stream to user?
         stream, stat = file_json
         file_obj = BytesIO()
         for i in stream:
