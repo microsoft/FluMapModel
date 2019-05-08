@@ -9,7 +9,7 @@ class PathogenModel(db.Model):
     id = db.Column(db.String,  primary_key=True)
     name = db.Column(db.String)
     query_str = db.Column(db.String)
-    latent = db.Column(db.Boolean, default=False)
+    model_type = db.Column(db.String)
     created = db.Column(db.DateTime, primary_key=True,
                           default=datetime.utcnow)
 

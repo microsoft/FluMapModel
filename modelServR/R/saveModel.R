@@ -34,13 +34,13 @@ getModelQueryObjectFromModel<- function(model, latent = FALSE) {
   
   result <- newEmptyObject()
   if (latent) {
-    result$model_type <- unbox("latent")
-    result$observed <- sort(colnames(modelTest$modelDefinition$latentFieldData))
+    result$model_type <- jsonlite::unbox("latent")
+    result$observed <- sort(colnames(model$modelDefinition$latentFieldData))
     
   }
   else {
-    result$model_type <- unbox("smooth")
-    result$observed <- sort(colnames(modelTest$modelDefinition$observedData))
+    result$model_type <- jsonlite::unbox("smooth")
+    result$observed <- sort(colnames(model$modelDefinition$observedData))
   }
   
   return(result)

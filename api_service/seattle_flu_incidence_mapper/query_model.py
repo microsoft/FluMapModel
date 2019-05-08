@@ -4,6 +4,9 @@ import uuid
 from io import BytesIO
 import docker
 from flask import current_app
+from sqlalchemy.orm.exc import NoResultFound
+
+from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel
 from seattle_flu_incidence_mapper.utils import get_model_id
 
 loaded_models = []
@@ -13,20 +16,20 @@ api_client = docker.APIClient()
 
 def query(query_json):
     model_id = get_model_id(query_json)
-    if model:
+    try:
+        model = PathogenModel.query.filter(PathogenModel.id == model_id).order_by(PathogenModel.created.desc()).first()
         s = None
         try:
-            container = client.containers.get(f'sfim-{model_id}-1')
+            container = client.containers.get(f'sfim-{model_id}')
         except docker.errors.NotFound:
             container = None
-
         # start container is not running
         if container is None:
             image = current_app.config['WORKER_IMAGE']
-            container = client.containers.run(image, name=f"sfim-{model_id}", tty=True, detach=True, stdin_open=True,)
+            container = client.containers.run(image, name=f"sfim-{model_id}", tty=True, detach=True, stdin_open=True, )
             s = container.attach_socket(params={'stdin': 1, 'stream': 1})
             # initialize our model by loading
-            s.sock.send(f'library(modelServR)\nmodel < - loadModelFileById("{model_id}")\n')
+            s._sock.send(f'library(modelServR)\nmodel < - loadModelFileById("{model_id}")\n'.encode('utf-8'))
 
         # if we need to connect to an existing container, do do now
         if s is None:
@@ -37,7 +40,7 @@ def query(query_json):
 
         # Run our query against the model(should already be loaded)
         command = f'queryLoadedModel(model, "{outfile}")\n'
-        s.sock.send(command.encode('utf-8'))
+        s._sock.send(command.encode('utf-8'))
         s.close()
 
         # Fetch our result
@@ -53,4 +56,9 @@ def query(query_json):
         tar = tarfile.open(mode='r', fileobj=file_obj)
         text = tar.extractfile(outfile)
         return text
+    except NoResultFound:
+        raise NoResultFound
+
+
+
 

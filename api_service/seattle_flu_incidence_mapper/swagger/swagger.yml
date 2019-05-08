@@ -81,20 +81,15 @@ paths:
         required: true
         type: string
       - in: formData
-        name: modelRDS
-        type: file
-        description: "Model RDS."
+        name: "model_type"
+        description: "Type of model"
         required: true
+        type: string
       - in: formData
         name: model
         type: file
         description: "Model File."
         required: true
-      - in: formData
-        name: modelLatent
-        type: file
-        description: "Optional Latent Model File."
-        required: false
       responses:
         405:
           description: "Invalid input"
@@ -263,9 +258,8 @@ definitions:
         example: "flu1_latent_x"
       query_str:
         type: "string"
-      latent:
-        type: "boolean"
-        default: false
+      model_type:
+        type: "string"
       created:
         type: "string"
         format: "date-time"

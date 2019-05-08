@@ -14,7 +14,11 @@ def set_marshmallow(app):
     return ma
 
 def get_model_id(query):
-    query['observed'] = sorted(query['observed'], key=str.lower)
+    if type(query) is dict:
+        query['observed'] = sorted(query['observed'], key=str.lower)
+        json_str = json.dumps(query, sort_keys=True, separators=(',', ':'))
+    else:
+        json_str = query
     m = hashlib.md5()
-    m.update(json.dumps(query, sort_keys=True, separators=(',',':')).encode('ascii'))
+    m.update(json_str.encode('ascii'))
     return m.hexdigest()

@@ -55,6 +55,7 @@ setup(
     extras_require={
         'dev': ['check-manifest', 'nose', 'sphinx', 'sphinxcontrib-plantuml'],
         'tests': ['coverage'],
+        'upload': ['requests', 'tqdm'],
         'production': ['uwsgi']
     },
     project_urls={

@@ -4,6 +4,8 @@ from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel, Pa
 from seattle_flu_incidence_mapper.config import db
 from flask import abort, request,  make_response, send_file
 
+from seattle_flu_incidence_mapper.utils import get_model_id
+
 
 def read_all():
     """
@@ -58,10 +60,10 @@ def create():
 
 
     #build our pathogenmodel object first
-    pathogen_model = dict(id=create_id_from_query_str(request.form['query_str']),
+    pathogen_model = dict(id=get_model_id(request.form['query_str']),
                           name=request.form['name'],
                           query_str=request.form['query_str'],
-                          latent='modelLatent' in request.files)
+                          model_type=request.form['model_type'])
 
     schema = PathogenModelSchema()
     new_pathogen_model = schema.load(pathogen_model, session=db.session).data
@@ -71,9 +73,6 @@ def create():
 
     # save the files to our config directory
     save_model_file(request.files['model'], f'{new_pathogen_model.id}.csv')
-    save_model_file(request.files['modelRDS'], f'{new_pathogen_model.id}.RDS')
-    if 'modelLatent' in request.files:
-        save_model_file(request.files['modelLatent'], f'{new_pathogen_model.id}.latent_field.csv')
     # Serialize and return the newly created pathogen_model in the response
     data = schema.dump(new_pathogen_model).data
 

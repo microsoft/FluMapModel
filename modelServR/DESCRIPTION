@@ -11,6 +11,8 @@ License: What license it uses
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
+Suggest:
+    testthat
 Imports:
     digest,
     jsonlite,
