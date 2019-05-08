@@ -6,6 +6,7 @@ from io import BytesIO
 import docker
 from flask import current_app
 from seattle_flu_incidence_mapper.model_store import get_model_id_from_quetry_str
+from seattle_flu_incidence_mapper.utils import get_model_id
 
 loaded_models = []
 client = docker.DockerClient()
@@ -13,21 +14,21 @@ api_client = docker.APIClient()
 
 
 def query(query_json):
-    model = get_model_id_from_quetry_str(query_json)
+    model_id = get_model_id(query_json)
     if model:
         s = None
         try:
-            container = client.containers.get(f'sfim-{model.id}-1')
+            container = client.containers.get(f'sfim-{model_id}-1')
         except docker.errors.NotFound:
             container = None
 
         # start container is not running
         if container is None:
             image = current_app.config['WORKER_IMAGE']
-            container = client.containers.run(image, name=f"sfim-{model.id}", tty=True, detach=True, stdin_open=True,)
+            container = client.containers.run(image, name=f"sfim-{model_id}", tty=True, detach=True, stdin_open=True,)
             s = container.attach_socket(params={'stdin': 1, 'stream': 1})
             # initialize our model by loading
-            s.sock.send(f'library(modelServR)\nmodel < - loadModelFileById("{model.id}")\n')
+            s.sock.send(f'library(modelServR)\nmodel < - loadModelFileById("{model_id}")\n')
 
         # if we need to connect to an existing container, do do now
         if s is None:
