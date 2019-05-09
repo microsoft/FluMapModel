@@ -3,7 +3,7 @@ import tarfile
 import uuid
 from io import BytesIO
 import docker
-from flask import current_app
+from flask import current_app, Response, send_file
 from sqlalchemy.orm.exc import NoResultFound
 
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel
@@ -15,64 +15,78 @@ api_client = docker.APIClient()
 
 
 def query(query_json):
-    model_id = get_model_id(query_json)
-    model = PathogenModel.query.filter(PathogenModel.id == model_id).order_by(PathogenModel.created.desc()).first()
-    if model is None:
-        raise NoResultFound
-
-    # We have our model, lets check to see if we alread have a worker container
-    s = None
     try:
-        container = client.containers.get(f'sfim-{model_id}')
-    except docker.errors.NotFound:
-        container = None
+        created = None
+        model_id = get_model_id(query_json)
+        model = PathogenModel.query.filter(PathogenModel.id == model_id).order_by(PathogenModel.created.desc()).first()
+        if model is None:
+            raise NoResultFound
 
-    # start container if it is not running
-    if container is None:
-        image = current_app.config['WORKER_IMAGE']
-        container_volumes = {
-            current_app.config['MODEL_HOST_PATH']: {
-                'bind': '/worker_model_store',
-                'mode': 'ro'
-        }
-        }
-        container_env = dict(MODEL_STORE="/worker_model_store")
-        container = client.containers.run(image,
-                                          name=f"sfim-{model_id}",
-                                          tty=True, detach=True,
-                                          environment=container_env,
-                                          volumes=container_volumes,
-                                          stdin_open=True,
-                                          auto_remove=True)
-        s = container.attach_socket(params={'stdin': 1, 'stream': 1})
-        # initialize our model by loading
-        s._sock.send(f'library(modelServR)\nmodel <- loadModelFileById("{model_id}.csv")\n'.encode('utf-8'))
+        # We have our model, lets check to see if we alread have a worker container
+        s = None
+        try:
+            container = client.containers.get(f'sfim-{model_id}')
+        except docker.errors.NotFound:
+            container = None
 
-    # if we need to connect to an existing container, do do now
-    if s is None:
-        s = container.attach_socket(params={'stdin': 1, 'stream': 1})
+        # start container if it is not running
+        if container is None:
+            image = current_app.config['WORKER_IMAGE']
+            container_volumes = {
+                current_app.config['MODEL_HOST_PATH']: {
+                    'bind': '/worker_model_store',
+                    'mode': 'ro'
+            }
+            }
+            container_env = dict(MODEL_STORE="/worker_model_store")
+            container = client.containers.run(image,
+                                              name=f"sfim-{model_id}",
+                                              tty=True, detach=True,
+                                              environment=container_env,
+                                              volumes=container_volumes,
+                                              stdin_open=True,
+                                              auto_remove=True)
+            s = container.attach_socket(params={'stdin': 1, 'stream': 1})
+            # initialize our model by loading
+            s._sock.send(f'library(modelServR)\nmodel <- loadModelFileById("{model_id}")\n'.encode('utf-8'))
 
-    # define where we want our output written too
-    outfile = str(uuid.uuid4())
+        # if we need to connect to an existing container, do do now
+        if s is None:
+            s = container.attach_socket(params={'stdin': 1, 'stream': 1})
 
-    # Run our query against the model(should already be loaded)
-    command = f'queryLoadedModel(model, "{outfile}")\n'
-    s._sock.send(command.encode('utf-8'))
-    s.close()
+        # define where we want our output written too
+        outfile = str(uuid.uuid4())
 
-    # Fetch our result
-    file_json = container.get_archive(f'/tmp/{outfile}')
+        # Run our query against the model(should already be loaded)
+        command = f'queryLoadedModel(model, "{outfile}")\n'
+        s._sock.send(command.encode('utf-8'))
+        s.close()
 
-    # Fetch data from stream
-    # TODO , in prod maybe stream to user?
-    stream, stat = file_json
-    file_obj = BytesIO()
-    for i in stream:
-        file_obj.write(i)
-    file_obj.seek(0)
-    tar = tarfile.open(mode='r', fileobj=file_obj)
-    text = tar.extractfile(outfile)
-    return text
+        # Fetch our result
+        file_json = container.get_archive(f'/tmp/{outfile}')
+
+        # Fetch data from stream
+        # TODO , in prod maybe stream to user?
+        stream, stat = file_json
+        file_obj = BytesIO()
+        for i in stream:
+            file_obj.write(i)
+        file_obj.seek(0)
+        tar = tarfile.open(mode='r', fileobj=file_obj)
+        text = tar.extractfile(outfile)
+        response = Response()
+        return send_file(
+            text,
+            as_attachment=True,
+            attachment_filename='test.csv',
+            mimetype='text/csv'
+        )
+    except Exception as e:
+        if created:
+            try:
+                container.stop()
+            except:
+                pass
 
 
 

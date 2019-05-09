@@ -16,7 +16,7 @@ basicConfig()
 #' @export
 #' @examples
 #'
-loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu', type ='csv')) {
+loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu'), type ='csv') {
   # expand path to the full path
   filename <- file.path(model_store_dir, filename)
   # load the data
@@ -51,7 +51,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                                   )),
                             type = 'smooth',
                             version = 'latest',
-                            cloudDir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')){
+                            cloudDir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')){
 
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
 

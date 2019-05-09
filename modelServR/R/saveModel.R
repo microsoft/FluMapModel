@@ -105,7 +105,7 @@ getModelIdFromQuery <- function(query) {
 #' 
 #' @export
 #'
-saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu/test_model_store')) {
+saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')) {
   ts <- Sys.time()
   attr(ts, "tzone") <- 'UTC'
   ts <- paste0(as.character(ts), 'Z')

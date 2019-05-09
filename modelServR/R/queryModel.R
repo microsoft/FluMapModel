@@ -44,7 +44,7 @@ queryLoadedModel <-
            format = "csv",
            queryFile = NULL,
            outputDir = Sys.getenv('WORKER_DIR', '/tmp')) {
-    if(queryFile != NULL) {
+    if(!is.null(queryFile)) {
       # load the query from the specified fiel
       query <-
         jsonlite::read_json(file.path(outputDir, queryFile))
