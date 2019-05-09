@@ -25,7 +25,19 @@ queryModelById <-
     return(queryLoadedModel(model, queryFile, outputFile, format, outputDir))
   }
 
-
+#' queryLoadedModel Function querys a model that is already loaded. Used by API
+#' @param model modelId to query
+#' @param outputFile File to save the query result to
+#' @param queryFile Path to JSON query to filter the model data for. 
+#' @param format = "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)
+#' @param outputDir = directory where to save result to
+#'
+#' @return TRUE if output was written to outputFile
+#'
+#' @import jsonlite
+#' @export
+#' @examples
+#'
 queryLoadedModel <-
   function(model,
            outputFile,

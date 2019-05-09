@@ -105,14 +105,14 @@ getModelIdFromQuery <- function(query) {
 #' 
 #' @export
 #'
-saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
+saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu/test_model_store')) {
   ts <- Sys.time()
   attr(ts, "tzone") <- 'UTC'
   ts <- paste0(as.character(ts), 'Z')
   
   # we always dump to our directory. We then use the python upload script to post 
   # trained models to production
-  modelDBfilename <- paste(cloudDir, '/', 'modelDB.tsv', sep = '')
+  modelDBfilename <- paste(modelStoreDir, '/', 'modelDB.tsv', sep = '')
   
   # create an id that is predictable based on the query the produced the model
   name <- getHumanReadableModelIdFromModel(model)
@@ -122,6 +122,8 @@ saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstu
   # with only fields that matter
   filename <-modelId
 
+  #ensure our model store directory exists
+  dir.create(modelStoreDir, showWarnings = FALSE)
   
   # all models output inla
   newRow <- data.frame(
@@ -133,7 +135,7 @@ saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstu
   )
   
   print("Saving RDS")
-  outfile <- xzfile(paste(cloudDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
+  outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
   saveRDS(model,file = outfile)
   close(outfile)
   
@@ -143,7 +145,7 @@ saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstu
   newRow$latent <- FALSE
   write.csv(
     model$modeledData,
-    paste(cloudDir, '/', filename, '.csv', sep = ''),
+    paste(modelStoreDir, '/', filename, '.csv', sep = ''),
     row.names = FALSE,
     quote = FALSE
   )
@@ -171,7 +173,7 @@ saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstu
     
     write.csv(
       model$latentField,
-      paste(cloudDir, '/', filename, '.csv', sep = ''),
+      paste(modelStoreDir, '/', filename, '.csv', sep = ''),
       row.names = FALSE,
       quote = FALSE
     )
@@ -183,5 +185,6 @@ saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstu
     )
   }
 }
+
 
 

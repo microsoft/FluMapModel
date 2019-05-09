@@ -16,11 +16,11 @@ basicConfig()
 #' @export
 #' @examples
 #'
-loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
+loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu', type ='csv')) {
   # expand path to the full path
   filename <- file.path(model_store_dir, filename)
   # load the data
-  db <- read.csv(paste(filename, type,'csv',sep='.'))
+  db <- read.csv(paste(filename,type,sep='.'))
   return(db)
 }
 
