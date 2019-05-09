@@ -19,8 +19,13 @@ services:
       image: idm-docker-production.packages.idmod.org/sfim-api:${version:-latest}
       volumes:
       - "/model_store:/model_store"
+      # pass docker so we can execute other containers
+      - /var/run/docker.sock:/var/run/docker.sock
       environment:
         - SQLALCHEMY_URI=postgres+psycopg2://seattle_flu:@db
+        - "CREATE_DB=1"
+        #- "MODEL_HOST_PATH=`pwd`/test_model_store"
+        #- "DEBUG_TOKENS=1"
       depends_on:
       - db
       ports:
