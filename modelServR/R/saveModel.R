@@ -1,7 +1,7 @@
+#' getHumanReadableModelIdFromModel: return human readable verion of model from query
 library(logging)
 
 
-#' getHumanReadableModelIdFromModel: return human readable verion of model from query
 #'
 #' @param model INLA model object that will generatie id from
 #'
@@ -57,12 +57,15 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FAL
 #'
 #' @param query query object container the observed and the model_type attributes
 #'
+#' @import logging
+#'
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
 getModelQueryObjectFromQuery <- function(query) {
   basicConfig()
   setLevel("FINEST")
+
   logdebug("getModelQueryObjectFromQuery Src:", str(query))
   logdebug("$observed", attr(query, "observed"))
   result <- newEmptyObject()
@@ -87,6 +90,7 @@ getModelIdFromModel <- function(model) {
 #' @param query query object container the observed and the model_type attributes
 #'
 #' @import digest
+#' @import logging
 #' @importFrom jsonlite toJSON
 #' 
 #' @export
@@ -94,6 +98,7 @@ getModelIdFromModel <- function(model) {
 getModelIdFromQuery <- function(query) {
   basicConfig()
   setLevel("FINEST")
+
   #props <- getModelQueryObjectFromQuery(query)
   modelId <- as.character(jsonlite::toJSON(query, simplifyDataFrame=))
   logdebug("Model ID JSON:", jsonlite::toJSON(query, simplifyDataFrame=))

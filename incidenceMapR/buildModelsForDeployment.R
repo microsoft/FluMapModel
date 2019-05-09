@@ -57,9 +57,10 @@ for (SOURCE in names(geoLevels)){
                     
                     saveModel(model)
                     
+                    dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
                     for(k in unique(model$modeledData[[FACTOR]])){
                       tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
-                      fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
+                      fname <- paste('/home/rstudio/seattle_flu/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
                       png(filename = fname,width = 6, height = 5, units = "in", res = 300)
                       print(ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO))
                       dev.off()
@@ -67,7 +68,6 @@ for (SOURCE in names(geoLevels)){
                     
                   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
                 )
-        
         
       }
     }

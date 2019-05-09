@@ -193,10 +193,11 @@ queryJSON <- jsonlite::toJSON(
 db <- selectFromDB( queryJSON, source = 'production' ,na.rm=TRUE)
 dim(db$observedData)
 
-db <- expandDB(db)
+shp<-masterSpatialDB(shape_level = 'census_tract')
+db <- expandDB(db, shp=shp)
 dim(db$observedData)
 
-shp<-masterSpatialDB(shape_level = 'census_tract')
+
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_census_tract','geometry')))
 plot(plotDat)
 
@@ -213,10 +214,11 @@ queryJSON <- jsonlite::toJSON(
 db <- selectFromDB( queryJSON, source = 'production' ,na.rm=TRUE)
 dim(db$observedData)
 
-db <- expandDB(db)
+shp<-masterSpatialDB(shape_level = 'puma')
+
+db <- expandDB(db, shp=shp)
 dim(db$observedData)
 
-shp<-masterSpatialDB(shape_level = 'puma')
 plotDat<- sf::st_as_sf(db$observedData %>% left_join(shp %>% select('residence_puma','geometry')))
 plot(plotDat)
 
@@ -232,9 +234,10 @@ queryJSON <- jsonlite::toJSON(
 db <- selectFromDB( queryJSON, source = 'production' ,na.rm=TRUE)
 dim(db$observedData)
 
-db <- expandDB(db)
+shp<-masterSpatialDB(shape_level = 'cra_name', source ="seattle_geojson")
+
+db <- expandDB(db,shp=shp)
 dim(db$observedData)
 
-shp<-masterSpatialDB(shape_level = 'cra_name', source ="seattle_geojson")
 plotDat<- sf::st_as_sf(db$observedData %>% right_join(shp %>% select('residence_cra_name','geometry'))) 
 plot(plotDat)
