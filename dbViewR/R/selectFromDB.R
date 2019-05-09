@@ -3,9 +3,11 @@
 #'
 #' STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODUCTION.
 #'
-#' @param queryIn  list or json specifying query  (See example)
+#' @param queryList  list or json specifying query  (See example)
 #' @param source source database, one of: 'simulated_data' (default) or 'production'
 #' @param credentials_path path to your pg_service and pgpass file for production database
+#' @param na.rm = FALSE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway
+#' @param shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson') (Needed hack until higher-level shape labels are in database)
 #' @return dbViewR list with query and observedData table that has been prepared for defineModels.R
 #'
 #' @import jsonlite
@@ -16,15 +18,15 @@
 #' @importFrom RCurl getURL
 #' @importFrom magrittr %>%
 #' @importFrom lazyeval interp
+#' @importFrom tidyr drop_na
 #'
 #' @export
 #' @examples
 #' return h1n1pdm summary by time and location
 #' queryJSON <- jsonlite::toJSON(
 #'   list(
-#'       SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
-#'       MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-#'       GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
+#'       SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma','residence_census_tract')),
+#'       GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
 #'       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
 #'       )
 #'    )
@@ -32,18 +34,21 @@
 #'
 selectFromDB <- function( queryIn = jsonlite::toJSON(
                             list(
-                              SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE','GEOID')),
-                              MUTATE   =list(COLUMN=c('encountered_date'), AS='epi_week'),
-                              GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE','GEOID')),
+                              SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma','residence_census_tract')),
+                              GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ), source = 'simulated_data', credentials_path = '/home/rstudio/seattle_flu' ){
+                          ), source = 'simulated_data', 
+                          credentials_path = '/home/rstudio/seattle_flu',
+                          na.rm = FALSE
+                          ){
 
   if(class(queryIn) == "json"){
     queryList <- jsonlite::fromJSON(queryIn)
   } else if(class(queryIn) == "list"){
     queryList<-queryIn
   }
+  
 
   # connect to database
   if(source == 'simulated_data'){
@@ -68,24 +73,58 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
     DBI::dbDisconnect(rawData)
+    
+    # fake pathogen field until db is ready
+    if (!('pathogen' %in% names(db))){
+      db$pathogen <- 'unknown'
+    }
 
   } else {
      print('unknown source database!')
   }
 
+  
   # run query
   # this logic will probably move to sql queries in the database instead of dplyr after....
     if(queryList$SELECT !="*"){
 
+      #(Needed hack until higher-level shape labels are in database)
+        if ( any( grepl('residence',queryList$SELECT$COLUMN) | grepl('work',queryList$SELECT$COLUMN) ) ){
+          if (! any( grepl('cra_name',queryList$SELECT$COLUMN) | grepl('neighbo',queryList$SELECT$COLUMN) ) ){
+            shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
+          } else {
+            shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson')
+          }
+        
+          # append higher-level spatial labels
+          # this feature will eventually be in the database, but it's needed for now to index to pumas, cra_name, etc
+          nestedVariables <- c('cra_name','neighborhood_district_name','puma','city')
+          
+          for( COLUMN in nestedVariables){
+            COLNAME <- paste0('residence_',COLUMN)
+            if( ('residence_census_tract' %in% names(db))  & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
+              db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$residence_census_tract,shp$residence_census_tract)])
+            }
+            COLNAME <- paste0('work_',COLUMN)
+            if( ('work_census_tract' %in% names(db)) & !(COLNAME %in% names(db)) & (COLNAME %in% names(shp))){
+              db[[COLNAME]] <- as.character(shp[[COLNAME]][match(db$work_census_tract,shp$work_census_tract)])
+            }
+          }
+        }
+      
+      ## real flow starts here
+        
       db <- db %>% dplyr::select(dplyr::one_of(queryList$SELECT$COLUMN))
 
       for(FILTER in which(grepl('WHERE',names(queryList)))){
 
         if( any(grepl('IN',names(queryList[[FILTER]])))){
 
-          filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
-          db <- db %>% dplyr::filter_(filter_criteria)
-
+          if(any(queryList[[FILTER]]$IN != 'all')){
+            filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
+            db <- db %>% dplyr::filter_(filter_criteria)
+          }
+        
         } else if( any(grepl('BETWEEN',names(queryList[[FILTER]])))){
 
           filter_criteria_low <- lazyeval::interp(~y >= x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$BETWEEN[1]))
@@ -122,10 +161,16 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     
   # type harmonization
-    for( COLUMN in names(db)[names(db) %in% c('GEOID','CRA_NAME','PUMA5CE','NEIGHBORHOOD_DISTRICT_NAME')]){
+    for( COLUMN in names(db)[names(db) %in% c('residence_census_tract','residence_cra_name','residence_puma','residence_neighborhood_district_name','residence_city',
+                                              'work_census_tract','work_cra_name','work_puma','work_neighborhood_district_name','work_city')]){
       db[[COLUMN]] <- as.character(db[[COLUMN]])
     }
-    
+
+  # drop rows with NA since incidenceMapR (INLA) will ignore them anyway
+  if(na.rm){
+    db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
+  }
+  
   summarizedData <- list(observedData = db,queryList = c(queryList))
 
   return(summarizedData)

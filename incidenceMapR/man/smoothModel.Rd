@@ -4,15 +4,13 @@
 \alias{smoothModel}
 \title{smoothModel: function to define variable smoothing models from dbViewR object}
 \usage{
-smoothModel(db = dbViewR::selectFromDB(),
-  shp = dbViewR::masterSpatialDB(), family = NULL,
-  neighborGraph = NULL)
+smoothModel(db, shp, family = NULL, neighborGraph = NULL)
 }
 \arguments{
 \item{db}{dbViewR object with valid column names for INLA model.
 Smoothing only makes sense by age, location, and time.  Factor variables cannot be smoothed!}
 
-\item{shp}{sf object with GEOID shapes (all higher levels assume iid and not local smoothing)}
+\item{shp}{sf object with residence_census_tract shapes (all higher levels assume iid and not local smoothing)}
 
 \item{family}{non-standard family override (default = NULL).}
 

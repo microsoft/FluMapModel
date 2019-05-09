@@ -5,7 +5,7 @@ setLevel("FINEST")
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
 #'
 #' @param model INLA model object that will generatie id from
-#' 
+#'
 #' @return Unique String representing model in human readable format
 #' @export
 #'
@@ -16,48 +16,48 @@ getHumanReadableModelIdFromModel <- function(model) {
 #' getHumanReadableModelIdFromQuery: return human readable verion of model from query
 #'
 #' @param query query object container the observed and the model_type attributes
-#' 
+#'
 #' @return Unique String representing model in human readable format
 #' @export
 #'
 getHumanReadableModelIdFromQuery <- function(query) {
   props <- getModelQueryObjectFromQuery(query)
-  result <- tolower(sprintf("%s-%s", 
+  result <- tolower(sprintf("%s-%s",
                             paste(props$model_type,collapse = "."),
                             paste(props$observed, collapse = ".")))
   return(result)
 }
 
-#' getModelQueryObjectFromModel: return query object from a model. 
+#' getModelQueryObjectFromModel: return query object from a model.
 #' This is the object we use to generate our unique ids.
 #'
 #' @param model = Model object to get query object for
 #' @param model_type = Model Type string. Default to inla
 #' @param latent = Bool determing if we are saving a latent model or a smooth model
-#' 
+#'
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
 getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FALSE) {
-  
+
   result <- newEmptyObject()
   if (latent) {
     result$model_type <- jsonlite::unbox(paste(model_type, "latent", collapse = "_"))
     result$observed <- sort(colnames(model$modelDefinition$latentFieldData))
-    
+
   }
   else {
     result$model_type <- jsonlite::unbox(model_type)
     result$observed <- sort(colnames(model$modelDefinition$observedData))
   }
-  
+
   return(result)
 }
 #' getModelQueryObjectFromQuery: Reformate a query object to ensure it is in proper order
 #' before generating id.
 #'
 #' @param query query object container the observed and the model_type attributes
-#' 
+#'
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
@@ -74,7 +74,7 @@ getModelQueryObjectFromQuery <- function(query) {
 #' getModelIdFromModel: function to get model id from a model objejct
 #'
 #' @param model INLA object
-#' 
+#'
 #' @export
 #'
 getModelIdFromModel <- function(model) {
@@ -102,7 +102,7 @@ getModelIdFromQuery <- function(query) {
 #' saveModel: function to save models and register them in modelDB.csv
 #'
 #' @param model INLA object
-#' 
+#'
 #' @export
 #'
 saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')) {
@@ -110,10 +110,10 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   attr(ts, "tzone") <- 'UTC'
   ts <- paste0(as.character(ts), 'Z')
   
-  # we always dump to our directory. We then use the python upload script to post 
+  # we always dump to our directory. We then use the python upload script to post
   # trained models to production
   modelDBfilename <- paste(modelStoreDir, '/', 'modelDB.tsv', sep = '')
-  
+
   # create an id that is predictable based on the query the produced the model
   name <- getHumanReadableModelIdFromModel(model)
   modelQuery <- getModelQueryObjectFromModel(model)
@@ -133,13 +133,13 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     type = 'inla',
     created = ts
   )
-  
+
   print("Saving RDS")
   outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
   saveRDS(model,file = outfile)
   close(outfile)
   
-  
+
   print("Saving smooth model")
   # all models output smooth
   newRow$latent <- FALSE
@@ -170,14 +170,14 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     newRow$latent <- TRUE
     
     print("Saving latent model")
-    
+
     write.csv(
       model$latentField,
       paste(modelStoreDir, '/', filename, '.csv', sep = ''),
       row.names = FALSE,
       quote = FALSE
     )
-    
+
     # write to our model db file
     write.table(
       newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),

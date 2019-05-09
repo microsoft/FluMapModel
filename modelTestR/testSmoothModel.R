@@ -19,10 +19,10 @@ plotSettings <- ggplot() + theme_bw() +  theme(panel.border = element_blank()) +
 
 # simulated data kiosk catchment map
 queryIn <- list(
-  SELECT   =list(COLUMN=c('sampling_location','GEOID')),
-  WHERE    =list(COLUMN='sampling_location', IN = c('kiosk')),
-  GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
-  SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
+  SELECT   =list(COLUMN=c('site_type','residence_census_tract')),
+  WHERE    =list(COLUMN='site_type', IN = c('kiosk')),
+  GROUP_BY =list(COLUMN=c('site_type','residence_census_tract')),
+  SUMMARIZE=list(COLUMN='site_type', IN= c('kiosk'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
 
@@ -34,10 +34,10 @@ ggplotSmoothMap(model,shp)
 
 # simulated data at_home catchment map
 queryIn <- list(
-  SELECT   =list(COLUMN=c('sampling_location','GEOID')),
-  WHERE    =list(COLUMN='sampling_location', IN = c('at_home')),
-  GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
-  SUMMARIZE=list(COLUMN='sampling_location', IN= c('at_home'))
+  SELECT   =list(COLUMN=c('site_type','residence_census_tract')),
+  WHERE    =list(COLUMN='site_type', IN = c('at_home')),
+  GROUP_BY =list(COLUMN=c('site_type','residence_census_tract')),
+  SUMMARIZE=list(COLUMN='site_type', IN= c('at_home'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
 
@@ -90,12 +90,12 @@ p1 <- p1 + geom_line(data=plotDat,aes(x=age_bin,y=fitted_values_mode)) +
 p1 + ggtitle('rsva fraction')
 
 
-# h3n2 PUMA5CE-time smoother
+# h3n2 residence_puma5ce-time smoother
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','encountered_date','PUMA5CE')),
+  SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma5ce')),
   WHERE    =list(COLUMN=c('pathogen'), IN=c('h3n2')),
   MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-  GROUP_BY =list(COLUMN=c('epi_week','PUMA5CE')),
+  GROUP_BY =list(COLUMN=c('epi_week','residence_puma5ce')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h3n2'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
@@ -107,23 +107,23 @@ plotDat <- model$modeledData
 p1 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive))
 p1 <- p1 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode)) +
   geom_ribbon(data=plotDat,aes(x=time_row,ymin=fitted_values_0_025quant,ymax=fitted_values_0_975quant),alpha=0.3)
-p1 + ggtitle('h3n2 counts') + facet_wrap("PUMA5CE")
+p1 + ggtitle('h3n2 counts') + facet_wrap("residence_puma5ce")
 
-plotDat <- plotDat %>% group_by(PUMA5CE) %>% mutate(peak = max(fitted_values_mode))
+plotDat <- plotDat %>% group_by(residence_puma5ce) %>% mutate(peak = max(fitted_values_mode))
 
-p2 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive/peak, group=PUMA5CE, color=PUMA5CE))
-p2 <- p2 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode/peak, group=PUMA5CE, color=PUMA5CE)) +
-  # geom_ribbon(data=plotDat,aes(x=time_row,ymin=fitted_values_0_025quant/peak,ymax=fitted_values_0_975quant/peak, group=PUMA5CE, fill=PUMA5CE),alpha=0.3) +
+p2 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive/peak, group=residence_puma5ce, color=residence_puma5ce))
+p2 <- p2 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode/peak, group=residence_puma5ce, color=residence_puma5ce)) +
+  # geom_ribbon(data=plotDat,aes(x=time_row,ymin=fitted_values_0_025quant/peak,ymax=fitted_values_0_975quant/peak, group=residence_puma5ce, fill=residence_puma5ce),alpha=0.3) +
   ggtitle('h3n2 peak timing')
 p2
 
 
-# h3n2 GEOID-time smoother
+# h3n2 residence_census_tract-time smoother
 queryIn <- list(
-  SELECT   =list(COLUMN=c('pathogen','encountered_date','GEOID')),
+  SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_census_tract')),
   WHERE    =list(COLUMN=c('pathogen'), IN=c('h3n2')),
   MUTATE   =list(COLUMN=c('encountered_date'), AS=c('epi_week')),
-  GROUP_BY =list(COLUMN=c('epi_week','GEOID')),
+  GROUP_BY =list(COLUMN=c('epi_week','residence_census_tract')),
   SUMMARIZE=list(COLUMN='pathogen', IN= c('h3n2'))
 )
 db <- expandDB( selectFromDB(  queryIn ) )
@@ -134,19 +134,19 @@ modelDefinition <- smoothModel(db=db, shp=shp)
 model <- modelTrainR(modelDefinition)
 
 plotDat <- model$modeledData
-p1 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive, group=GEOID, color=GEOID))
-p1 <- p1 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode, group=GEOID, color=GEOID))
+p1 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive, group=residence_census_tract, color=residence_census_tract))
+p1 <- p1 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode, group=residence_census_tract, color=residence_census_tract))
 p1 + ggtitle('h3n2 counts') + guides(color=FALSE)
 
-plotDat <- plotDat %>% group_by(GEOID) %>% mutate(peak = max(fitted_values_mode))
+plotDat <- plotDat %>% group_by(residence_census_tract) %>% mutate(peak = max(fitted_values_mode))
 
-p2 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive/peak, group=GEOID, color=GEOID))
-p2 <- p2 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode/peak, group=GEOID, color=GEOID))
+p2 <- plotSettings + geom_point(data=plotDat,aes(x=time_row,y=positive/peak, group=residence_census_tract, color=residence_census_tract))
+p2 <- p2 + geom_line(data=plotDat,aes(x=time_row,y=fitted_values_mode/peak, group=residence_census_tract, color=residence_census_tract))
 p2 + ggtitle('h3n2 peak timing')+ guides(color=FALSE)
 
 
 # coerce peak timing into ggplotSmoothMap expected format
-plotDat <- plotDat %>% group_by(GEOID) %>% summarize(fitted_values_mode = time_row[fitted_values_mode==max(fitted_values_mode)],
+plotDat <- plotDat %>% group_by(residence_census_tract) %>% summarize(fitted_values_mode = time_row[fitted_values_mode==max(fitted_values_mode)],
                                                      positive = mean(time_row[positive==max(positive)]))
 tmp<- list(modeledData = plotDat)
 ggplotSmoothMap(tmp,shp)

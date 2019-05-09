@@ -4,10 +4,10 @@ basicConfig()
 #' loadModelFileById function for getting modeled data
 #'
 #' This function will load a model from the model_store_dir by Id
-#' 
+#'
 #' Future enhancments will add versioning
 #'
-#' @param filename = At moment we expect full filename in format ID.extension. 
+#' @param filename = At moment we expect full filename in format ID.extension.
 #'  This is so in future we can more easily support different model save formats
 #' @param model_store_dir = directory where models are stored
 #'
@@ -44,9 +44,9 @@ loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_STO
 #'
 returnModel <- function(queryIn = jsonlite::toJSON(
                               list(
-                                SELECT   =list(COLUMN=c('sampling_location','GEOID')),
+                                SELECT   =list(COLUMN=c('sampling_location','residence_census_tract')),
                                 WHERE   =list(COLUMN='sampling_location', IN = c('kiosk')),
-                                GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
+                                GROUP_BY =list(COLUMN=c('sampling_location','residence_census_tract')),
                                 SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
                                   )),
                             type = 'smooth',
@@ -61,8 +61,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
 
   # NEED TO Pull multiple formats of data once saving latent fields is implemented in incidenceMapR
   #  ACTUALLY, current plan is to have csv obey format for each model type
-  
-  
+
   if(class(queryIn)== 'list'){
     queryList <- queryIn
     queryIn <- jsonlite::toJSON(queryIn)

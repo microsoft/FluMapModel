@@ -67,6 +67,6 @@ Currently, this service pulls data from seattleflu/simulated-data.  There are re
   
 ## incidenceMapR
 - adjacency networks
-  - define lowest spatial scale based on based shapes, instead of GEOID (census tract) only
+  - define lowest spatial scale based on based shapes, instead of residence_census_tract (census tract) only
   - allow adjacency network models beyond default contiguous nearest-neighbor
 

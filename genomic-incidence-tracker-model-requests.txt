@@ -3,19 +3,19 @@
 
 # some catchment maps using smooth model
 
-    # find catchment maps for each sampling_location at CRA_NAME geo_resolution
+    # find catchment maps for each site_type at residence_cra_name geo_resolution
     {
-        "geo_resolution": "CRA_NAME",
-        "group_by": "sampling_location",
+        "geo_resolution": "residence_cra_name",
+        "group_by": "site_type",
         "outcome": "expected_cases",
         "model_type": "smooth",
         "model_version": "latest",
     }
 
-    # find catchment maps for each sampling_location and race at GEOID geo_resolution from nearest model iteration to 29 March 2019
+    # find catchment maps for each site_type and race at residence_census_tract geo_resolution from nearest model iteration to 29 March 2019
     {
-        "geo_resolution": "GEOID",
-        "group_by": ["sampling_location", "race"],
+        "geo_resolution": "residence_census_tract",
+        "group_by": ["site_type", "race"],
         "outcome": "expected_cases",
         "model_type": "smooth",
         "model_version": "2019-03-29 12:00:00Z",
@@ -47,13 +47,13 @@
     }
 
 
-# call the smoothed observation data for h1n1pdm at the CRA_NAME level and encountered_week and stratified on sampling_location and flu_shot
+# call the smoothed observation data for h1n1pdm at the residence_cra_name level and encountered_week and stratified on site_type and flu_shot
     {
-        "geo_resolution": "CRA_NAME",
+        "geo_resolution": "residence_cra_name",
         "pathogen": "h1n1pdm",
         "sequential_variable": "encountered_week",
         "outcome": "expected_cases",
-        "group_by": ["sampling_location","flu_shot"],
+        "group_by": ["site_type","flu_shot"],
         "model_type": "smooth",
         "model_version": "latest",
     }

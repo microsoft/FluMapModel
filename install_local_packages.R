@@ -7,3 +7,4 @@ for(pkg in pkgs){
   devtools::build_vignettes(pkg)
   devtools::install(pkg)
 }
+
