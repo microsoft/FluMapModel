@@ -14,7 +14,6 @@ def set_marshmallow(app):
     return ma
 
 def get_model_id(query):
-    query_json=dict(observerd=query['observed'], key=str.lower)
     if type(query) is dict:
         query_json = dict(model_type=query['model_type'],
                           observed=sorted(query['observed'], key=str.lower))

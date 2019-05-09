@@ -8,7 +8,7 @@ if [ "$DEBUG" = "1" ]; then
 else
     echo "Launching Nginx"
     cd /app
-    uwsgi --ini /app/wsgi.ini &
+    uwsgi --ini /app/wsgi.ini --wsgi-disable-file-wrapper &
     nginx
     tail -f /var/log/nginx/*
 fi

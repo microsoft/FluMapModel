@@ -5,13 +5,6 @@ services:
     restart: always
     environment:
       POSTGRES_USER: seattle_flu
-  workers:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-    image: idm-docker-production.packages.idmod.org/sfim-worker:${version:-latest}
-    environment:
-        - SQLALCHEMY_URI=postgres://seattle_flu:@db
   service:
       build:
         context: api_service

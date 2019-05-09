@@ -4,7 +4,7 @@ from seattle_flu_incidence_mapper.orm_config import setup_db
 from seattle_flu_incidence_mapper.utils import set_marshmallow
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-
+true_vals = ['1', 'y', 'yes', 't', 'true']
 # Create the Connexion application instance
 connex_app = connexion.App("seattle_flu_incidence_mapper.config", specification_dir=os.path.join(basedir, 'swagger'))
 
@@ -21,6 +21,6 @@ set_marshmallow(app)
 # we need to init our db before loading our models
 from seattle_flu_incidence_mapper.models import *
 
-if os.environ.get('DEBUG', '0').lower() in ['1', 'y', 'yes', 't', 'true']:
+if os.environ.get('DEBUG', '0').lower() in true_vals or os.environ.get('CREATE_DB', '0').lower() in true_vals:
     db.create_all()
 
