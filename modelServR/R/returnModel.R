@@ -1,5 +1,4 @@
 library(logging)
-basicConfig()
 
 #' loadModelFileById function for getting modeled data
 #'
