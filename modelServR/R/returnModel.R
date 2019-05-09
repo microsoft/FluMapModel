@@ -1,11 +1,24 @@
 library(logging)
 basicConfig()
-setLevel(10)
 
-
-loadModelFileById <- function (filename, data_dir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
+#' loadModelFileById function for getting modeled data
+#'
+#' This function will load a model from the model_store_dir by Id
+#' 
+#' Future enhancments will add versioning
+#'
+#' @param filename = At moment we expect full filename in format ID.extension. 
+#'  This is so in future we can more easily support different model save formats
+#' @param model_store_dir = directory where models are stored
+#'
+#' @return model
+#'
+#' @export
+#' @examples
+#'
+loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
   # expand path to the full path
-  filename <- file.path(data_dir, filename)
+  filename <- file.path(model_store_dir, filename)
   # load the data
   db <- read.csv(paste(filename, type,'csv',sep='.'))
   return(db)
@@ -25,12 +38,7 @@ loadModelFileById <- function (filename, data_dir = Sys.getenv('MODEL_BIN_DIR', 
 #'
 #' @return model in requested format
 #'
-#' @import dbViewR
 #' @import jsonlite
-#' @import magrittr
-#' @importFrom RCurl getURL
-#' @importFrom dplyr group_by_at
-#' @importFrom tidyr nest
 #' @export
 #' @examples
 #'

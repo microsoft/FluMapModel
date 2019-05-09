@@ -4,13 +4,11 @@
 \alias{saveModel}
 \title{saveModel: function to save models and register them in modelDB.csv}
 \usage{
-saveModel(model, db = NULL, cloudDir = Sys.getenv("MODEL_BIN_DIR",
+saveModel(model, cloudDir = Sys.getenv("MODEL_BIN_DIR",
   "/home/rstudio/seattle_flu"))
 }
 \arguments{
 \item{model}{INLA object}
-
-\item{db}{dbViewR object}
 }
 \description{
 saveModel: function to save models and register them in modelDB.csv

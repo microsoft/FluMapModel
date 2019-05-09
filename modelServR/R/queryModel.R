@@ -11,12 +11,7 @@
 #'
 #' @return TRUE if output was written to outputFile
 #'
-#' @import dbViewR
 #' @import jsonlite
-#' @import magrittr
-#' @importFrom RCurl getURL
-#' @importFrom dplyr group_by_at
-#' @importFrom tidyr nest
 #' @export
 #' @examples
 #'

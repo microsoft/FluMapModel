@@ -4,8 +4,9 @@ setLevel("FINEST")
 
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
 #'
-#' @param model INLA model object contaomomg the modelDefinition$queryList properties
+#' @param model INLA model object that will generatie id from
 #' 
+#' @return Unique String representing model in human readable format
 #' @export
 #'
 getHumanReadableModelIdFromModel <- function(model) {
@@ -14,41 +15,50 @@ getHumanReadableModelIdFromModel <- function(model) {
 
 #' getHumanReadableModelIdFromQuery: return human readable verion of model from query
 #'
-#' @param query query object container $SELECT and $GROUP_BY propertiers 
+#' @param query query object container the observed and the model_type attributes
 #' 
+#' @return Unique String representing model in human readable format
 #' @export
 #'
 getHumanReadableModelIdFromQuery <- function(query) {
   props <- getModelQueryObjectFromQuery(query)
   result <- tolower(sprintf("%s-%s", 
-                            paste(props$type,collapse = "."),
+                            paste(props$model_type,collapse = "."),
                             paste(props$observed, collapse = ".")))
   return(result)
 }
 
-
-getModelQueryObjectFromModel<- function(model, latent = FALSE) {
-  # maybe  we should do something more like
-  # m <- getModelQueryObjectFromQuery(model$modelDefinition$queryList)
-  # m$type <- model$modelDefinition$type ?
+#' getModelQueryObjectFromModel: return query object from a model. 
+#' This is the object we use to generate our unique ids.
+#'
+#' @param model = Model object to get query object for
+#' @param model_type = Model Type string. Default to inla
+#' @param latent = Bool determing if we are saving a latent model or a smooth model
+#' 
+#' @return An object containing the observed and the model_type fields
+#' @export
+#'
+getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FALSE) {
   
   result <- newEmptyObject()
   if (latent) {
-    result$model_type <- jsonlite::unbox("latent")
+    result$model_type <- jsonlite::unbox(paste(model_type, "latent", collapse = "_"))
     result$observed <- sort(colnames(model$modelDefinition$latentFieldData))
     
   }
   else {
-    result$model_type <- jsonlite::unbox("smooth")
+    result$model_type <- jsonlite::unbox(model_type)
     result$observed <- sort(colnames(model$modelDefinition$observedData))
   }
   
   return(result)
 }
-#' getModelQueryObjectFromQuery: return a model query object with just the fields that make up the unique id
+#' getModelQueryObjectFromQuery: Reformate a query object to ensure it is in proper order
+#' before generating id.
 #'
-#' @param query query object container $SELECT and $GROUP_BY propertiers 
+#' @param query query object container the observed and the model_type attributes
 #' 
+#' @return An object containing the observed and the model_type fields
 #' @export
 #'
 getModelQueryObjectFromQuery <- function(query) {
@@ -73,7 +83,7 @@ getModelIdFromModel <- function(model) {
 
 #' getModelIdFromQuery: function to save models and register them in modelDB.csv
 #'
-#' @param query query object container $SELECT and $GROUP_BY propertiers 
+#' @param query query object container the observed and the model_type attributes
 #'
 #' @import digest
 #' @importFrom jsonlite toJSON
@@ -92,11 +102,10 @@ getModelIdFromQuery <- function(query) {
 #' saveModel: function to save models and register them in modelDB.csv
 #'
 #' @param model INLA object
-#' @param db dbViewR object
 #' 
 #' @export
 #'
-saveModel <- function(model, db = NULL, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
+saveModel <- function(model, cloudDir =  Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')) {
   ts <- Sys.time()
   attr(ts, "tzone") <- 'UTC'
   ts <- paste0(as.character(ts), 'Z')
@@ -153,7 +162,7 @@ saveModel <- function(model, db = NULL, cloudDir =  Sys.getenv('MODEL_BIN_DIR', 
       filename = filename,
       name = name,
       queryJSON = as.character(jsonlite::toJSON(modelQuery)),
-      type = 'inla',
+      type = 'inla_latent',
       created = ts
     )
     newRow$latent <- TRUE
