@@ -39,11 +39,26 @@ paths:
           schema:
             type: object
             additionalProperties: true
+            example: 
+              model_type: inla
+              observed:
+              - catchment
+              - encountered_week
+              - flu_shot
+              - n
+              - pathogen
+              - positive
+              - PUMA5CE
+              - sampling_location
+              - time_row
       responses:
         200:
           description: "successful operation"
           schema:
             type: "array"
+            items:
+              type: "object"
+
   /pathogen_models:
     get:
       tags:
