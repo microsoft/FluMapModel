@@ -4,9 +4,7 @@
 \alias{latentFieldModel}
 \title{latentFieldModel: function to define latent field models from dbViewR object}
 \usage{
-latentFieldModel(db = dbViewR::selectFromDB(),
-  shp = dbViewR::masterSpatialDB(), family = NULL,
-  neighborGraph = NULL)
+latentFieldModel(db, shp, family = NULL, neighborGraph = NULL)
 }
 \arguments{
 \item{db}{dbViewR object with valid column names for INLA model.

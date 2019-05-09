@@ -14,14 +14,13 @@
 #'     neighborGraph : as input or derived from shp during formula construction
 #'     
 #' @import INLA
-#' @import dbViewR
 #'
 #' @export
 #' @examples
 #' return h1n1pdm incidence model by time and location
 #'    modelDefinition <- smoothModel(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpatialDB())
 #'
-latentFieldModel <- function(db = dbViewR::selectFromDB(), shp = dbViewR::masterSpatialDB(), family = NULL, neighborGraph = NULL){
+latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
   
   #INLA data frame that may get augmented columns we don't need to see when we're done
   inputData <- db$observedData

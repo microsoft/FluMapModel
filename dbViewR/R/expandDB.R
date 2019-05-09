@@ -1,6 +1,7 @@
 #' expandDB: function to expand database to fill in unobserved elements for prediction/interpolation
 #'
 #' @param db tibble with valid column names for INLA model
+#' @param shp sf shapefile object with reference geodata
 #' @return db tibble with filled in NaNs or Zeros as required
 #'
 #' @import dplyr
@@ -10,8 +11,7 @@
 #' @export
 #' @examples
 #'
-expandDB <- function( db = dbViewR::selectFromDB(), 
-                      linelist = dbViewR::selectFromDB(db$queryList[names(db$queryList) %in% c("SELECT","WHERE")]),
+expandDB <- function( db = dbViewR::selectFromDB(),
                       shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson') ){
   
   

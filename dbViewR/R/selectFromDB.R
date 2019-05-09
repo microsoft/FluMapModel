@@ -3,7 +3,7 @@
 #'
 #' STANDARD DB QUERIES WILL ALL LIKELY MIGRATE TO THE HUTCH RESARCH DB BEFORE PRODUCTION.
 #'
-#' @param queryIn  list or json specifying query  (See example)
+#' @param queryList  list or json specifying query  (See example)
 #' @param source source database, one of: 'simulated_data' (default) or 'production'
 #' @param credentials_path path to your pg_service and pgpass file for production database
 #' @param na.rm = FALSE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway
@@ -44,9 +44,9 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                           ){
 
   if(class(queryIn) == "json"){
-    queryIn <- jsonlite::fromJSON(queryIn)
+    queryList <- jsonlite::fromJSON(queryIn)
   } else if(class(queryIn) == "list"){
-    queryIn<-queryIn
+    queryList<-queryIn
   }
   
 
@@ -76,7 +76,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     
     # fake pathogen field until db is ready
     if (!('pathogen' %in% names(db))){
-      db$pathogen <- 'any'
+      db$pathogen <- 'unknown'
     }
 
   } else {
@@ -86,11 +86,11 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   
   # run query
   # this logic will probably move to sql queries in the database instead of dplyr after....
-    if(queryIn$SELECT !="*"){
+    if(queryList$SELECT !="*"){
 
       #(Needed hack until higher-level shape labels are in database)
-        if ( any( grepl('residence',queryIn$SELECT$COLUMN) | grepl('work',queryIn$SELECT$COLUMN) ) ){
-          if (! any( grepl('cra_name',queryIn$SELECT$COLUMN) | grepl('neighbo',queryIn$SELECT$COLUMN) ) ){
+        if ( any( grepl('residence',queryList$SELECT$COLUMN) | grepl('work',queryList$SELECT$COLUMN) ) ){
+          if (! any( grepl('cra_name',queryList$SELECT$COLUMN) | grepl('neighbo',queryList$SELECT$COLUMN) ) ){
             shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'wa_geojson')
           } else {
             shp = dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson')
@@ -114,21 +114,21 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       
       ## real flow starts here
         
-      db <- db %>% dplyr::select(dplyr::one_of(queryIn$SELECT$COLUMN))
+      db <- db %>% dplyr::select(dplyr::one_of(queryList$SELECT$COLUMN))
 
-      for(FILTER in which(grepl('WHERE',names(queryIn)))){
+      for(FILTER in which(grepl('WHERE',names(queryList)))){
 
-        if( any(grepl('IN',names(queryIn[[FILTER]])))){
+        if( any(grepl('IN',names(queryList[[FILTER]])))){
 
-          if(any(queryIn[[FILTER]]$IN != 'all')){
-            filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryIn[[FILTER]]$COLUMN), x = queryIn[[FILTER]]$IN))
+          if(any(queryList[[FILTER]]$IN != 'all')){
+            filter_criteria <- lazyeval::interp(~y %in% x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$IN))
             db <- db %>% dplyr::filter_(filter_criteria)
           }
         
-        } else if( any(grepl('BETWEEN',names(queryIn[[FILTER]])))){
+        } else if( any(grepl('BETWEEN',names(queryList[[FILTER]])))){
 
-          filter_criteria_low <- lazyeval::interp(~y >= x, .values=list(y = as.name(queryIn[[FILTER]]$COLUMN), x = queryIn[[FILTER]]$BETWEEN[1]))
-          filter_criteria_high <- lazyeval::interp(~y <= x, .values=list(y = as.name(queryIn[[FILTER]]$COLUMN), x = queryIn[[FILTER]]$BETWEEN[2]))
+          filter_criteria_low <- lazyeval::interp(~y >= x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$BETWEEN[1]))
+          filter_criteria_high <- lazyeval::interp(~y <= x, .values=list(y = as.name(queryList[[FILTER]]$COLUMN), x = queryList[[FILTER]]$BETWEEN[2]))
 
           db <- db %>% dplyr::filter_(filter_criteria_low)  %>% dplyr::filter_(filter_criteria_high)
 
@@ -140,18 +140,18 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # this is nasty!  I need to transform to age bins for modeling, but I don't want to carry the MUTATE query around!
     if(any(grepl('age',names(db)))){ 
       db$age_bin <- floor(pmin(db$age,90))
-      queryIn$GROUP_BY$COLUMN[queryIn$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
+      queryList$GROUP_BY$COLUMN[queryList$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
     }
     
 
-    if('GROUP_BY' %in% names(queryIn)){
-      db<- db %>% dplyr::group_by_(.dots=queryIn$GROUP_BY$COLUMN)
+    if('GROUP_BY' %in% names(queryList)){
+      db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
     }
     
-    if('SUMMARIZE' %in% names(queryIn)){
+    if('SUMMARIZE' %in% names(queryList)){
 
-      if (queryIn$SUMMARIZE$IN != 'all'){
-        summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryIn$SUMMARIZE$COLUMN), x = queryIn$SUMMARIZE$IN))
+      if (queryList$SUMMARIZE$IN != 'all'){
+        summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryList$SUMMARIZE$COLUMN), x = queryList$SUMMARIZE$IN))
       } else {
         summary_criteria <- lazyeval::interp(~n())  # must always output n and positive for downstream interpretation!
       }
@@ -171,7 +171,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
   }
   
-  summarizedData <- list(observedData = db,queryIn = c(queryIn))
+  summarizedData <- list(observedData = db,queryList = c(queryList))
 
   return(summarizedData)
 }

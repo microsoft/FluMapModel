@@ -15,7 +15,7 @@ library(ggplot2)
 ### REAL DATA #######
 #####################
 
-db <- selectFromDB( list(SELECT  =c("*")), source = 'production')
+db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = 'production')
 
 pathogens <- c('all', unique(db$observedData$pathogen))
 factors   <- c('site_type','sex','flu_shot')
@@ -41,23 +41,33 @@ for (SOURCE in names(geoLevels)){
           GROUP_BY =list(COLUMN=c(FACTOR,GEO)),
           SUMMARIZE=list(COLUMN=FACTOR, IN= 'all')
         )
-        db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ) )
-        
+
         shp <- masterSpatialDB(shape_level = gsub('residence_','',GEO), source = SOURCE)
+
+        db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ), shp=shp )
         
         modelDefinition <- smoothModel(db=db, shp=shp)
-        model <- modelTrainR(modelDefinition)
-        print(summary(model$inla))
         
-        saveModel(model)
+        # training occassionaly segfaults but it does not appear to be deterministic...
+        tryCatch(
+                  {
+                    model <- modelTrainR(modelDefinition)
+                    
+                    print(summary(model$inla))
+                    
+                    saveModel(model)
+                    
+                    for(k in unique(model$modeledData[[FACTOR]])){
+                      tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
+                      fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
+                      png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+                      print(ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO))
+                      dev.off()
+                    }
+                    
+                  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
+                )
         
-        for(k in unique(model$modeledData[[FACTOR]])){
-          tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
-          fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
-          png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-          print(ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO))
-          dev.off()
-        }
         
       }
     }
@@ -130,20 +140,27 @@ for (SOURCE in names(geoLevels)){
       
       db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ), shp=shp )
       
-      db <- appendCatchmentModel(db,shp=shp, source='production', na.rm=TRUE  )
+      # training occassionaly segfaults on but it does not appear to be deterministic...
+      tryCatch(
+                {
+                  model <- modelTrainR(modelDefinition)
+              
+                  db <- appendCatchmentModel(db,shp=shp, source='production', na.rm=TRUE  )
+                
+                  modelDefinition <- latentFieldModel(db=db, shp=shp)
+                  model <- modelTrainR(modelDefinition)
+                  
+                  print(summary(model$inla))
+                  
+                  saveModel(model)
+                  fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,paste(factors,collapse='-'),GEO,'encountered_week',sep='-'),'.png',sep='')
+                  png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+                  print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) )
+                  dev.off()
+                
+              }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
+            )
       
-      modelDefinition <- latentFieldModel(db=db, shp=shp)
-      model <- modelTrainR(modelDefinition)
-      
-      print(summary(model$inla))
-      
-      saveModel(model)
-      fname <- paste('/home/rstudio/seattle_flu/data/plots/',paste(PATHOGEN,SOURCE,paste(factors,collapse='-'),GEO,'encountered_week',sep='-'),'.png',sep='')
-      png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-      print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) )
-      dev.off()
     }
   }
 }
-
-# change offset standardization

@@ -4,9 +4,7 @@
 \alias{smoothModel}
 \title{smoothModel: function to define variable smoothing models from dbViewR object}
 \usage{
-smoothModel(db = dbViewR::selectFromDB(),
-  shp = dbViewR::masterSpatialDB(), family = NULL,
-  neighborGraph = NULL)
+smoothModel(db, shp, family = NULL, neighborGraph = NULL)
 }
 \arguments{
 \item{db}{dbViewR object with valid column names for INLA model.

@@ -14,13 +14,13 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE)
 }
 \arguments{
-\item{queryIn}{list or json specifying query  (See example)}
-
 \item{source}{source database, one of: 'simulated_data' (default) or 'production'}
 
 \item{credentials_path}{path to your pg_service and pgpass file for production database}
 
 \item{na.rm}{= FALSE (default) Drop rows with NA from dataset as incidenceMapR will ignore them anyway}
+
+\item{queryList}{list or json specifying query  (See example)}
 
 \item{shp}{= dbViewR::masterSpatialDB(shape_level = 'census_tract', source = 'king_county_geojson') (Needed hack until higher-level shape labels are in database)}
 }
