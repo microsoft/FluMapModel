@@ -18,9 +18,11 @@ services:
         dockerfile: Dockerfile
       image: idm-docker-production.packages.idmod.org/sfim-api:${version:-latest}
       volumes:
-      - "/model_store:/model_store"
-      # pass docker so we can execute other containers
-      - /var/run/docker.sock:/var/run/docker.sock
+       - db-data:/var/lib/mysql/data
+      volumes:
+        - /model_store:/model_store
+        # pass docker so we can execute other containers
+        - /var/run/docker.sock:/var/run/docker.sock
       environment:
         - SQLALCHEMY_URI=postgres+psycopg2://seattle_flu:@db
         - "CREATE_DB=1"
