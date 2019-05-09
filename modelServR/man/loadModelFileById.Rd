@@ -8,7 +8,7 @@ loadModelFileById(filename, model_store_dir = Sys.getenv("MODEL_STORE",
   "/home/rstudio/seattle_flu"), type = "csv")
 }
 \arguments{
-\item{filename}{= At moment we expect full filename in format ID.extension. 
+\item{filename}{= At moment we expect full filename in format ID.extension.
 This is so in future we can more easily support different model save formats}
 
 \item{model_store_dir}{= directory where models are stored}
