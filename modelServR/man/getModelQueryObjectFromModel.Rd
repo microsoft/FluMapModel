@@ -2,7 +2,7 @@
 % Please edit documentation in R/saveModel.R
 \name{getModelQueryObjectFromModel}
 \alias{getModelQueryObjectFromModel}
-\title{getModelQueryObjectFromModel: return query object from a model. 
+\title{getModelQueryObjectFromModel: return query object from a model.
 This is the object we use to generate our unique ids.}
 \usage{
 getModelQueryObjectFromModel(model, model_type = "inla",
@@ -19,6 +19,6 @@ getModelQueryObjectFromModel(model, model_type = "inla",
 An object containing the observed and the model_type fields
 }
 \description{
-getModelQueryObjectFromModel: return query object from a model. 
+getModelQueryObjectFromModel: return query object from a model.
 This is the object we use to generate our unique ids.
 }

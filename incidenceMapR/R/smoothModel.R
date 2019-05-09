@@ -42,7 +42,7 @@ smoothModel <- function(db, shp, family = NULL, neighborGraph = NULL){
   hyper=list()
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
   hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
-  hyper$age <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+  hyper$age <- list(prec = list( prior = "pc.prec", param = 1, alpha = 0.01))
  
   
   # we smooth across factor levels with random effects replicates: http://www.r-inla.org/models/tools#TOC-Models-with-more-than-one-type-of-likelihood
