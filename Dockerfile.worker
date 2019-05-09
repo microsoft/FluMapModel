@@ -1,0 +1,33 @@
+FROM rocker/r-base
+LABEL description="Environment to execut model queries against"
+LABEL authors="ccollins@idmod.org"
+
+# Disable interactive questions like Timezone selection
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+
+RUN apt-get update && apt-get install -y \
+    # required by devtools and ggmap
+    libssl-dev libcurl4-gnutls-dev
+
+# Set default make to parallel build
+ENV MAKE="make -j8"
+RUN Rscript -e "install.packages(c('devtools'))" \
+    && rm -rf /tmp/*
+ARG MODEL_SERVR_VERSION=0.0.0.9000
+RUn mkdir -p /worker
+# ADD our model file
+COPY modelServR/modelServR_${MODEL_SERVR_VERSION}.tar.gz /worker/modelServR.tar.gz
+WORKDIR /worker
+RUN cd /worker && \
+    Rscript -e 'untar("modelServR.tar.gz", exdir="/tmp")' && \
+    Rscript -e 'devtools::install("/tmp/modelServR", dependencies=TRUE)' && \
+    rm -rf /tmp/* /worker/*.tar.gz
+
+# Our Organization(as others do) map Active Directory to LDAP for linux
+# These means when mapping in our us
+# docker -e USERID=$UID....
+# which remaps the rstudio UID,
+# the user ids can be large. To suppor that we need to update login.defs
+RUN perl -pi -e  's/UID_MAX\s+60000/UID_MAX           9304017490/g' /etc/login.defs
+RUN perl -pi -e  's|GID_MAX\s+60000|GID_MAX           9304017490|g' /etc/login.defs

@@ -47,9 +47,9 @@ docs-browsers: docs
 	$(BROWSER) docs_src/_build/html/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs_src/seattle_flu.rst
+	rm -f docs_src/seattle_flu*.rst
 	rm -f docs_src/modules.rst
-	sphinx-apidoc -o docs_src/ seattle_flu
+	sphinx-apidoc -o docs_src/ seattle_flu_incidence_mapper
 	$(MAKE) -C docs_src clean
 	$(MAKE) -C docs_src html
 	cp -r docs_src/_build/html/* docs

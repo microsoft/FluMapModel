@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
-SPHINXPROJ    = seattle_flu
+SPHINXPROJ    = seattle_flu_incidence_mapper
 SOURCEDIR     = .
 BUILDDIR      = ./_build
 
@@ -18,4 +18,4 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	export FLASK_ENV=documentation
-	GRAPHVIZ_DOT=`which dot` @$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	GRAPHVIZ_DOT=`which dot` $(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
