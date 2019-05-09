@@ -4,8 +4,8 @@
 \alias{loadModelFileById}
 \title{loadModelFileById function for getting modeled data}
 \usage{
-loadModelFileById(filename, model_store_dir = Sys.getenv("MODEL_BIN_DIR",
-  "/home/rstudio/seattle_flu", type = "csv"))
+loadModelFileById(filename, model_store_dir = Sys.getenv("MODEL_STORE",
+  "/home/rstudio/seattle_flu"), type = "csv")
 }
 \arguments{
 \item{filename}{= At moment we expect full filename in format ID.extension. 

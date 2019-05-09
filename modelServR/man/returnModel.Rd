@@ -9,8 +9,8 @@ returnModel(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   "sampling_location", IN = c("kiosk")), GROUP_BY = list(COLUMN =
   c("sampling_location", "GEOID")), SUMMARIZE = list(COLUMN =
   "sampling_location", IN = c("kiosk")))), type = "smooth",
-  version = "latest", cloudDir = Sys.getenv("MODEL_BIN_DIR",
-  "/home/rstudio/seattle_flu"))
+  version = "latest", cloudDir = Sys.getenv("MODEL_STORE",
+  "/home/rstudio/seattle_flu/test_model_store"))
 }
 \arguments{
 \item{queryIn}{JSON query to dbViewR that defines model}

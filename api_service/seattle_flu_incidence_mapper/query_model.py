@@ -1,9 +1,10 @@
 # API Methods for the /query
 import tarfile
+import time
 import uuid
 from io import BytesIO
 import docker
-from flask import current_app, Response, send_file
+from flask import current_app, Response, send_file, request
 from sqlalchemy.orm.exc import NoResultFound
 
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel
@@ -13,8 +14,8 @@ loaded_models = []
 client = docker.DockerClient()
 api_client = docker.APIClient()
 
-
 def query(query_json):
+    file_format  ='csv' if 'csv' in request.headers.get('accept', 'json').lower() else 'json'
     try:
         created = None
         model_id = get_model_id(query_json)
@@ -57,13 +58,26 @@ def query(query_json):
         # define where we want our output written too
         outfile = str(uuid.uuid4())
 
+
         # Run our query against the model(should already be loaded)
-        command = f'queryLoadedModel(model, "{outfile}")\n'
+        command = f'queryLoadedModel(model, "{outfile}", format="{file_format}")\n'
         s._sock.send(command.encode('utf-8'))
         s.close()
 
         # Fetch our result
-        file_json = container.get_archive(f'/tmp/{outfile}')
+
+        x = 0
+        file_json = None
+        while x < 3 and file_json is None:
+            try:
+                file_json = container.get_archive(f'/tmp/{outfile}')
+            except docker.errors.NotFound:
+                file_json = None
+            x+=1
+            time.sleep(0.05)
+
+        if file_json is None:
+            raise Exception("Problem executing model")
 
         # Fetch data from stream
         # TODO , in prod maybe stream to user?
@@ -74,14 +88,17 @@ def query(query_json):
         file_obj.seek(0)
         tar = tarfile.open(mode='r', fileobj=file_obj)
         text = tar.extractfile(outfile)
-        response = Response()
+
         return send_file(
             text,
-            as_attachment=True,
-            attachment_filename='test.csv',
-            mimetype='text/csv'
+            as_attachment=False,
+            mimetype='application/json' if file_format == 'json' else 'text/csv'
         )
+    # Errors we want to rethrow
+    except NoResultFound as e:
+        raise e
     except Exception as e:
+        current_app.logger.exception(e)
         if created:
             try:
                 container.stop()

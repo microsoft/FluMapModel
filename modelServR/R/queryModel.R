@@ -61,7 +61,8 @@ queryLoadedModel <-
         quote = FALSE
       )
     } else if (format == 'json') {
-      jsonlite::write_json(file.path(model))
+      
+      jsonlite::write_json(model, file.path(outputDir, outputFile))
     }
     return(TRUE)
   }

@@ -4,7 +4,7 @@
 \alias{saveModel}
 \title{saveModel: function to save models and register them in modelDB.csv}
 \usage{
-saveModel(model, modelStoreDir = Sys.getenv("MODEL_BIN_DIR",
+saveModel(model, modelStoreDir = Sys.getenv("MODEL_STORE",
   "/home/rstudio/seattle_flu/test_model_store"))
 }
 \arguments{

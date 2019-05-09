@@ -2,7 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-.idea/*
+*/.idea/*
 *.pyc
 *.egg-info
 *__pycache__*

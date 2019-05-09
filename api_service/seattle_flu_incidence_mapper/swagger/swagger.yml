@@ -30,6 +30,7 @@ paths:
       operationId: "seattle_flu_incidence_mapper.query_model.query"
       produces:
         - "application/json"
+        - "text/csv"
       parameters:
         - in: body
           name: query_json
