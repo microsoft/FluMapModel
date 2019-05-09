@@ -66,7 +66,3 @@ queryLoadedModel <-
     }
     return(TRUE)
   }
-
-#initializeModel <- function (modelId) {
-#  return(loadModelFileById(modelId))
-#}

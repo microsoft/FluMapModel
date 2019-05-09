@@ -49,7 +49,9 @@ setup(
         'flask_sqlalchemy',
         'flask_marshmallow',
         'marshmallow-sqlalchemy',
-        "docker"
+        "docker",
+        'psycopg2',
+        ''
     ],
 
     extras_require={
