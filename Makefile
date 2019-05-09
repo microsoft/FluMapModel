@@ -1,4 +1,4 @@
-BUILD_CONTAINER_NAME ?= idm-docker-staging.packages.idmod.org/sfim_build_env:latest
+BUILD_CONTAINER_NAME ?= idm-docker-staging.packages.idmod.org/sfim-build-env:latest
 DEPLOY_SERVER ?= 40.112.165.255
 DEPOLY_USERNAME ?= useradmin
 
@@ -22,16 +22,17 @@ build-r-package: pull-r-env ## Build the r package as tar ball
 	# We have to run this with the build user's ids
 	# otherwise we end up with files we cannot modify
 	docker run -u $(shell id -u):$(shell id -g) \
-		-v $(PWD)/predictModelTestPkg:/app -w /app $(BUILD_CONTAINER_NAME) \
-		R CMD build .
+		-v $(PWD)/:/app \
+		-w /app $(BUILD_CONTAINER_NAME) \
+		bash -c "cd dbViewR && R CMD build . && \
+				cd ../incidenceMapR && R CMD build . && \
+				cd ../modelServR && R CMD build ."
 
-build-api: build-r-package get_version ## Builds the api
+build-production: build-r-package get_version ## Builds the api
 	-mkdir -p api_service/models
-	# Copy our models over to api service models
-	cp predictModelTestPkg/*.tar.gz api_service/models
 	docker-compose -f docker-compose.production.yml build
 
-publish-api: build-api ## Publishes the API
+publish-production: build-production ## Publishes the API
 	docker-compose -f docker-compose.production.yml push
 
 deploy-api: ## Deploys over ssh to prod server. Requires setup of ssh before hand

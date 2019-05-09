@@ -1,3 +1,29 @@
+library(logging)
+basicConfig()
+
+#' loadModelFileById function for getting modeled data
+#'
+#' This function will load a model from the model_store_dir by Id
+#' 
+#' Future enhancments will add versioning
+#'
+#' @param filename = At moment we expect full filename in format ID.extension. 
+#'  This is so in future we can more easily support different model save formats
+#' @param model_store_dir = directory where models are stored
+#'
+#' @return model
+#'
+#' @export
+#' @examples
+#'
+loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu'), type ='csv') {
+  # expand path to the full path
+  filename <- file.path(model_store_dir, filename)
+  # load the data
+  db <- read.csv(paste(filename,type,sep='.'))
+  return(db)
+}
+
 #' returnModel function for getting modeled data
 #'
 #' This function loads a cached model object containing two datasets
@@ -12,12 +38,7 @@
 #'
 #' @return model in requested format
 #'
-#' @import dbViewR
 #' @import jsonlite
-#' @import magrittr
-#' @importFrom RCurl getURL
-#' @importFrom dplyr group_by_at
-#' @importFrom tidyr nest
 #' @export
 #' @examples
 #'
@@ -29,9 +50,8 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                                 SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
                                   )),
                             type = 'smooth',
-                            format = 'json',
                             version = 'latest',
-                            cloudDir = '/home/rstudio/seattle_flu'){
+                            cloudDir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')){
 
   # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
 
@@ -41,13 +61,17 @@ returnModel <- function(queryIn = jsonlite::toJSON(
 
   # NEED TO Pull multiple formats of data once saving latent fields is implemented in incidenceMapR
   #  ACTUALLY, current plan is to have csv obey format for each model type
-
+  
+  
   if(class(queryIn)== 'list'){
     queryList <- queryIn
     queryIn <- jsonlite::toJSON(queryIn)
   } else if(class(queryIn)=='json'){
     queryList <- jsonlite::fromJSON(queryIn)
   }
+
+  modelID <- getModelIdFromQuery(queryList)
+  logdebug("ModelID: ", modelID)
 
   modelDBfile<-paste(cloudDir,'modelDB.tsv',sep='/')
 
@@ -76,7 +100,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
   }
 
   if (format %in% c('csv','json')){
-    db <- read.csv(paste(filename,type,'csv',sep='.'))
+    db <- loadModelFile(modelID, cloudDir)
 
     dataOut<-list(query = queryList, type = type)
 

@@ -37,7 +37,7 @@ services:
         #  - "HTTP_PROXY=${HTTP_PROXY:-}"
         #  - "HTTPS_PROXY=${HTTPS_PROXY:-}"
         #  - "FTP_PROXY=${FTP_PROXY:-}"
-      image: seattleflu_rmodeldev
+      image: idm-docker-staging.packages.idmod.org/sfim_build_env:latest
       environment:
         - "DISABLE_AUTH=true"
         - "USERID=${UID:-1000}"

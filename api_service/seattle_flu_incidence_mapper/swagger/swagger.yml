@@ -1,0 +1,279 @@
+swagger: "2.0"
+info:
+  description: "This is a sample server PathogenModelstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to tests the authorization     filters."
+  version: "1.0.0"
+  title: "Seattle Flu Incidence Mapper API"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "apiteam@swagger.io"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost"
+basePath: "/v1"
+tags:
+- name: "pathogen_model"
+  description: "Everything about your PathogenModels"
+  externalDocs:
+    description: "Find out more"
+    url: "http://swagger.io"
+schemes:
+- "https"
+- "http"
+paths:
+  /query:
+    post:
+      tags:
+      - "query_model"
+      summary: "Query a model"
+      description: "Query a model for a result set"
+      operationId: "seattle_flu_incidence_mapper.query_model.query"
+      produces:
+        - "application/json"
+        - "text/csv"
+      parameters:
+        - in: body
+          name: query_json
+          description: "JSON Query Object"
+          required: true
+          schema:
+            type: object
+            additionalProperties: true
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+  /pathogen_models:
+    get:
+      tags:
+      - "pathogen_model"
+      summary: "List available models"
+      description: "List available pathogen models"
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.read_all"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/PathogenModel"
+    post:
+      tags:
+      - "pathogen_model"
+      summary: "Add a new pathogen model to the model store"
+      description: ""
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.create"
+      consumes:
+      - multipart/form-data
+      produces:
+      - "application/json"
+      parameters:
+      - in: formData
+        name: "name"
+        description: "Name of pathogen model"
+        required: true
+        type: string
+      - in: formData
+        name: "query_str"
+        description: "Query of pathogen model"
+        required: true
+        type: string
+      - in: formData
+        name: "model_type"
+        description: "Type of model"
+        required: true
+        type: string
+      - in: formData
+        name: model
+        type: file
+        description: "Model File."
+        required: true
+      responses:
+        405:
+          description: "Invalid input"
+      security:
+      - api_key: []
+  /pathogen_models/{modelId}:
+    get:
+      tags:
+      - "pathogen_model"
+      summary: "Find pathogen model by ID"
+      description: "Returns a single pathogen model"
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.read"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "modelId"
+        in: "path"
+        description: "ID of Pathogen Model to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PathogenModel"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "PathogenModel not found"
+    delete:
+      tags:
+      - "pathogen_model"
+      summary: "Deletes a pathogen model"
+      description: ""
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.delete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "api_key"
+        in: "header"
+        required: false
+        type: "string"
+      - name: "modelId"
+        in: "path"
+        description: "PathogenModel id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "PathogenModel not found"
+      security:
+      - api_key: []
+    put:
+      tags:
+      - "pathogen_model"
+      summary: "Update an existing model"
+      description: ""
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.update"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "api_key"
+        in: "header"
+        required: false
+        type: "string"
+      - name: "modelId"
+        in: "path"
+        description: "PathogenModel id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "PathogenModel object that needs to be updated in the store"
+        required: true
+        schema:
+          $ref: "#/definitions/PathogenModel"
+      responses:
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "PathogenModel not found"
+        405:
+          description: "Validation exception"
+      security:
+      - api_key: []
+  /pathogen_models/{modelId}/model:
+    get:
+      tags:
+      - "pathogen_model"
+      summary: "Find pathogen model file by ID"
+      description: "Returns a single pathogen model file"
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.model_file"
+      produces:
+      - "application/octet-stream"
+      parameters:
+      - name: "modelId"
+        in: "path"
+        description: "ID of Pathogen Model to return"
+        required: true
+        type: "string"
+      - name: "latent"
+        in: "query"
+        description: "Return the latent verion of model file"
+        required: false
+        type: "boolean"
+        default: false
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: file
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "PathogenModel not found"
+  /pathogen_models/{modelId}/rds:
+    get:
+      tags:
+      - "pathogen_model"
+      summary: "Find pathogen model RDS file by ID"
+      description: "Returns a single pathogen model RDS file"
+      operationId: "seattle_flu_incidence_mapper.pathogen_models.model_rds"
+      produces:
+      - "application/octet-stream"
+      parameters:
+      - name: "modelId"
+        in: "path"
+        description: "ID of Pathogen Model to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: file
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "PathogenModel not found"
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "X-Auth"
+    in: "header"
+    x-apikeyInfoFunc: "seattle_flu_incidence_mapper.apikey_auth.apikey_auth"
+definitions:
+  PathogenModel:
+    type: "object"
+    required:
+    - "name"
+    - "query_str"
+    properties:
+      id:
+        type: "string"
+        example: "abcdef01234567890"
+      name:
+        type: "string"
+        example: "flu1_latent_x"
+      query_str:
+        type: "string"
+      model_type:
+        type: "string"
+      created:
+        type: "string"
+        format: "date-time"
+  ApiResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      type:
+        type: "string"
+      message:
+        type: "string"
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"
