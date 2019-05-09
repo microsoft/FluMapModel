@@ -5,6 +5,13 @@ services:
     restart: always
     environment:
       POSTGRES_USER: seattle_flu
+  # placeholder for building worker
+  workers:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: idm-docker-production.packages.idmod.org/sfim-worker:${version:-latest}
+    command: touch t
   service:
       build:
         context: api_service
@@ -13,7 +20,7 @@ services:
       volumes:
       - "/model_store:/model_store"
       environment:
-        - SQLALCHEMY_URI=postgres://seattle_flu:@db
+        - SQLALCHEMY_URI=postgres+psycopg2://seattle_flu:@db
       depends_on:
       - db
       ports:
