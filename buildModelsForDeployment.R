@@ -21,10 +21,60 @@ db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = SRC)
 pathogens <- c('all', unique(db$observedData$pathogen))
 factors   <- c('site_type','sex','flu_shot')
 
-geoLevels <- list( seattle_geojson = c('residence_neighborhood_district_name','residence_cra_name'),
-                   wa_geojson = c('residence_puma'), # census tract impossible due to memory limits
-                   king_county_geojson = c('residence_census_tract')
+geoLevels <- list( seattle_geojson = c('residence_puma','residence_neighborhood_district_name','residence_cra_name','residence_census_tract') #,
+                   # king_county_geojson = c('residence_census_tract'),
+                   # wa_geojson = c('residence_puma') # census tract impossible due to memory limits
                  )
+
+
+##############################
+## time-independent maps #####
+##############################
+
+# catchments: number of subjects with pathogen and factor at residence location 
+for (SOURCE in names(geoLevels)){
+  for (PATHOGEN in pathogens){
+    for (FACTOR in factors){
+      for (GEO in geoLevels[[SOURCE]]){
+        
+        queryIn <- list(
+          SELECT   =list(COLUMN=c('pathogen', FACTOR, GEO)),
+          WHERE    =list(COLUMN='pathogen', IN=PATHOGEN),
+          GROUP_BY =list(COLUMN=c(FACTOR,GEO)),
+          SUMMARIZE=list(COLUMN=FACTOR, IN= 'all')
+        )
+        
+        shp <- masterSpatialDB(shape_level = gsub('residence_','',GEO), source = SOURCE)
+        
+        db <- expandDB( selectFromDB(  queryIn, source=SRC, na.rm=TRUE ), shp=shp )
+        
+        modelDefinition <- smoothModel(db=db, shp=shp)
+        
+        # training occassionaly segfaults but it does not appear to be deterministic...
+        tryCatch(
+          {
+            model <- modelTrainR(modelDefinition)
+            
+            print(summary(model$inla))
+            
+            saveModel(model)
+            
+            dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
+            for(k in unique(model$modeledData[[FACTOR]])){
+              tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
+              fname <- paste('/home/rstudio/seattle_flu/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
+              png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+              print(ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO))
+              dev.off()
+            }
+            
+          }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
+        )
+        
+      }
+    }
+  }
+}
 
 #####################################
 ###### timeseries models ############
@@ -74,57 +124,6 @@ for (SOURCE in names(geoLevels)){
     }
   }
 }
-
-
-##############################
-## time-independent maps #####
-##############################
-
-# catchments: number of subjects with pathogen and factor at residence location 
-for (SOURCE in names(geoLevels)){
-  for (PATHOGEN in pathogens){
-    for (FACTOR in factors){
-      for (GEO in geoLevels[[SOURCE]]){
-        
-        queryIn <- list(
-          SELECT   =list(COLUMN=c('pathogen', FACTOR, GEO)),
-          WHERE    =list(COLUMN='pathogen', IN=PATHOGEN),
-          GROUP_BY =list(COLUMN=c(FACTOR,GEO)),
-          SUMMARIZE=list(COLUMN=FACTOR, IN= 'all')
-        )
-
-        shp <- masterSpatialDB(shape_level = gsub('residence_','',GEO), source = SOURCE)
-
-        db <- expandDB( selectFromDB(  queryIn, source=SRC, na.rm=TRUE ), shp=shp )
-        
-        modelDefinition <- smoothModel(db=db, shp=shp)
-        
-        # training occassionaly segfaults but it does not appear to be deterministic...
-        tryCatch(
-                  {
-                    model <- modelTrainR(modelDefinition)
-                    
-                    print(summary(model$inla))
-                    
-                    saveModel(model)
-                    
-                    dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
-                    for(k in unique(model$modeledData[[FACTOR]])){
-                      tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
-                      fname <- paste('/home/rstudio/seattle_flu/plots/',paste(PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
-                      png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-                      print(ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO))
-                      dev.off()
-                    }
-                    
-                  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
-                )
-        
-      }
-    }
-  }
-}
-
 
 
 ###########################################
