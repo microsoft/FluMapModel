@@ -50,6 +50,8 @@ paths:
               - PUMA5CE
               - sampling_location
               - time_row
+              pathogen:
+              - vic
       responses:
         200:
           description: "successful operation"
