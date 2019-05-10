@@ -18,3 +18,4 @@ incidenceMapR_*.tar.gz
 modelDB.tsv
 test_model_store/*
 plots/*
+.idea/

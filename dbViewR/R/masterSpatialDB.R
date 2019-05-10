@@ -102,6 +102,9 @@ masterSpatialDB <- function(shape_level = 'census_tract', source = 'king_county_
     } 
   }
   
+  # add spatial domain
+  shp$domain <- paste(source,shape_level,sep="_")
+  
   return(shp)
   
 }

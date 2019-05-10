@@ -18,8 +18,9 @@ getHumanReadableModelIdFromModel <- function(model) {
 #'
 getHumanReadableModelIdFromQuery <- function(query) {
   props <- getModelQueryObjectFromQuery(query)
-  result <- tolower(sprintf("%s-%s",
+  result <- tolower(sprintf("%s-%s-%s",
                             paste(props$model_type,collapse = "."),
+                            paste(props$pathogen, collapse = "."),
                             paste(props$observed, collapse = ".")))
   return(result)
 }
@@ -28,38 +29,33 @@ getHumanReadableModelIdFromQuery <- function(query) {
 #' This is the object we use to generate our unique ids.
 #'
 #' @param model = Model object to get query object for
-#' @param model_type = Model Type string. Default to inla
+#' @param model_type = Model Type string: 'inla_observed' (default) or 'inla_latent'
 #' @param latent = Bool determing if we are saving a latent model or a smooth model
 #' @import logging
 #'
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
-getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FALSE) {
+getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', latent = FALSE) {
 
   result <- newEmptyObject()
   if (latent) {
-    result$model_type <- jsonlite::unbox(paste(model_type, "latent", collapse = "_"))
-    result$observed <- sort(colnames(model$modelDefinition$latentFieldData))
-
-  }
-  else {
+    result$model_type <- jsonlite::unbox('inla_latent')
+    validColumnNames <- sort(colnames(model$modelDefinition$latentFieldData))
+    
+  } else {
     result$model_type <- jsonlite::unbox(model_type)
-    
     validColumnNames <- sort(colnames(model$modelDefinition$observedData))
-    
-    validIdx <-  !(
-                    validColumnNames %in% c('catchment','n','pathogen','positive')  |
-                    grepl('row',validColumnNames, ignore.case = TRUE)
-                  ) 
-    
-    validColumnNames <- validColumnNames[validIdx]
-    
-    result$observed <- validColumnNames
-    
-    
-    
   }
+    
+  validIdx <-  !( validColumnNames %in% c('catchment','n','pathogen','positive') |
+                  grepl('row',validColumnNames, ignore.case = TRUE) ) 
+  
+  validColumnNames <- validColumnNames[validIdx]
+  
+  result$observed <- validColumnNames
+    
+  
   # grab the pathogen from the where clause
   if ("WHERE" %in% names(model$modelDefinition$queryList) && 
       "COLUMN" %in% names(model$modelDefinition$queryList$WHERE) &&
@@ -72,6 +68,10 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FAL
   } else {
     result$pathogen <- "all"
   }
+  
+  # grab spatial_domain from modelDefinition
+  result$spatial_domain <- model$modelDefinition$spatial_domain
+  
   logdebug("Result: ", result)
   return(result)
 }
@@ -94,6 +94,9 @@ getModelQueryObjectFromQuery <- function(query) {
   result <- newEmptyObject()
   result$observed <- sort(query$observed)
   result$model_type <- query$model_type
+  result$pathogen <- query$pathogen
+  result$spatial_domain <- query$spatial_domain
+  
   logdebug("getModelQueryObjectFromQuery result:", str(result))
   return(result)
 }
@@ -179,6 +182,7 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
 
   loginfo("Saving smooth model")
   # all models output smooth
+  newRow$type <- 'inla_observed'
   newRow$latent <- FALSE
   write.csv(
     model$modeledData,
@@ -193,7 +197,7 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   
   # If we have a latent_field type, write out that csv
   if (model$modelDefinition$type == 'latent_field') {
-    modelQuery <- getModelQueryObjectFromModel(model, latent=TRUE)
+    modelQuery <- getModelQueryObjectFromModel(model, latent = TRUE)
     modelId <- getModelIdFromQuery(modelQuery)
     name <- getHumanReadableModelIdFromModel(model)
     filename <-modelId

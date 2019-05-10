@@ -277,7 +277,8 @@ latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
                           latentFieldData = lc.data,  
                           observedData = db$observedData,
-                          queryList = db$queryList)
+                          queryList = db$queryList,
+                          spatialDomain = shp$domain)
 
   return(modelDefinition)
 }

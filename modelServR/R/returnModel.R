@@ -30,7 +30,7 @@ loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_STO
 #'   (2) modeled incidence after statistical smoothing
 #'
 #' @param queryIn JSON query to dbViewR that defines model
-#' @param type = "smooth" (default), "latent_field", "effects", "inla"
+#' @param type = "inla_observed" (default), "inla_latent", "inla"
 #' @param format = "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)
 #' @param version = "latest" (default) or ISO date and time created (UTC, like "2019-04-19 22:49:19Z")
 #' @param cloudDir = directory where models are stored
@@ -49,7 +49,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                                 GROUP_BY =list(COLUMN=c('site_type','residence_census_tract')),
                                 SUMMARIZE=list(COLUMN='site_type', IN= c('kiosk'))
                                   )),
-                            type = 'smooth',
+                            type = 'observed',
                             version = 'latest',
                             cloudDir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')){
 
