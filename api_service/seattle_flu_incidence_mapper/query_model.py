@@ -4,15 +4,17 @@ import time
 import uuid
 from io import BytesIO
 import docker
-from flask import current_app, Response, send_file, request
+from flask import current_app, send_file, request
 from sqlalchemy.orm.exc import NoResultFound
-
+import json
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel
-from seattle_flu_incidence_mapper.utils import get_model_id
+from seattle_flu_incidence_mapper.utils import get_model_id, ModelExecutionException
 
 loaded_models = []
 client = docker.DockerClient()
 api_client = docker.APIClient()
+
+
 
 def query(query_json):
     file_format  ='csv' if 'csv' in request.headers.get('accept', 'json').lower() else 'json'
@@ -21,7 +23,7 @@ def query(query_json):
         model_id = get_model_id(query_json)
         model = PathogenModel.query.filter(PathogenModel.id == model_id).order_by(PathogenModel.created.desc()).first()
         if model is None:
-            raise NoResultFound
+            raise NoResultFound(f"Could not find the model with the id {model_id} from query string: {json.dumps(query_json)}")
 
         # We have our model, lets check to see if we alread have a worker container
         s = None
@@ -77,7 +79,8 @@ def query(query_json):
             time.sleep(0.05)
 
         if file_json is None:
-            raise Exception("Problem executing model")
+            raise ModelExecutionException(f"Problem executing the model {model_id}. "
+                                          f"Could not get the model response from {outfile}")
 
         # Fetch data from stream
         # TODO , in prod maybe stream to user?

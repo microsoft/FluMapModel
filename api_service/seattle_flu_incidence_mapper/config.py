@@ -1,7 +1,11 @@
+import json
 import os
 import connexion
+from flask import Response
+from sqlalchemy.orm.exc import NoResultFound
+
 from seattle_flu_incidence_mapper.orm_config import setup_db
-from seattle_flu_incidence_mapper.utils import set_marshmallow
+from seattle_flu_incidence_mapper.utils import set_marshmallow, ModelExecutionException
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 true_vals = ['1', 'y', 'yes', 't', 'true']
@@ -24,3 +28,16 @@ from seattle_flu_incidence_mapper.models import *
 if os.environ.get('DEBUG', '0').lower() in true_vals or os.environ.get('CREATE_DB', '0').lower() in true_vals:
     db.create_all()
 
+
+def sqlalchemy_error_handler(exception):
+    return Response(response=json.dumps({'error': ' '.join(exception.args)}),
+                    status=404, mimetype="application/json")
+
+
+def model_exec_error_handler(exception):
+    return Response(response=json.dumps({'error': ' '.join(exception.title)}),
+                    status=500, mimetype="application/json")
+
+
+connex_app.add_error_handler(ModelExecutionException, model_exec_error_handler)
+connex_app.add_error_handler(NoResultFound, sqlalchemy_error_handler)

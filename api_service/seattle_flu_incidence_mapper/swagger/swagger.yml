@@ -60,6 +60,16 @@ paths:
             type: "array"
             items:
               type: "object"
+        404:
+          description: "Could not find a model matching the specified query"
+          schema:
+            type: "object"
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: "Model execution error"
+          schema:
+            type: "object"
+            $ref: '#/definitions/ErrorResponse'
 
   /pathogen_models:
     get:
@@ -308,6 +318,14 @@ definitions:
           type: "string"
         default:
           - "all"
+  ErrorResponse:
+    type: "object"
+    required:
+      - "error"
+    properties:
+      error:
+        type: "string"
+        example: "Could not find the specified id"
   ApiResponse:
     type: "object"
     properties:

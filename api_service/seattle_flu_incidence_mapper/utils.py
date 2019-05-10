@@ -1,17 +1,27 @@
 import json
 import hashlib
+
+from connexion import ProblemException
 from flask_marshmallow import Marshmallow
 
 ma = None
 
+
+class ModelExecutionException(ProblemException):
+    def __init__(self, title=None, **kwargs):
+        super(ModelExecutionException, self).__init__(title=title, **kwargs)
+
+
 def get_marshmallow():
     return ma
+
 
 def set_marshmallow(app):
     global ma
     # Initialize Marshmallow
     ma = Marshmallow(app)
     return ma
+
 
 def get_model_id(query):
     if type(query) is dict:
