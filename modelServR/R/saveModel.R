@@ -1,7 +1,4 @@
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
-library(logging)
-
-
 #'
 #' @param model INLA model object that will generatie id from
 #'

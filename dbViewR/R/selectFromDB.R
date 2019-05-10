@@ -134,32 +134,34 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
         }
       }
-    }
     
-    # age bin mutations
-    # this is nasty!  I need to transform to age bins for modeling, but I don't want to carry the MUTATE query around!
-    # if(any(grepl('age',names(db)))){ 
-    #   db$age_bin <- floor(pmin(db$age,90))
-    #   queryList$GROUP_BY$COLUMN[queryList$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
-    # }
-    # 
-
-    if('GROUP_BY' %in% names(queryList)){
-      db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
-    }
-    
-    if('SUMMARIZE' %in% names(queryList)){
-
-      if (queryList$SUMMARIZE$IN != 'all'){
-        summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryList$SUMMARIZE$COLUMN), x = queryList$SUMMARIZE$IN))
-      } else {
-        summary_criteria <- lazyeval::interp(~n())  # must always output n and positive for downstream interpretation!
+      if('GROUP_BY' %in% names(queryList)){
+        db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
       }
-        
-      db <- db %>% dplyr::summarise_(n = lazyeval::interp(~n()), positive = summary_criteria) 
-    }
-
+      
+      if('SUMMARIZE' %in% names(queryList)){
+  
+        if (queryList$SUMMARIZE$IN != 'all'){
+          summary_criteria <- lazyeval::interp(~sum(y %in% x), .values=list(y = as.name(queryList$SUMMARIZE$COLUMN), x = queryList$SUMMARIZE$IN))
+        } else {
+          summary_criteria <- lazyeval::interp(~n())  # must always output n and positive for downstream interpretation!
+        }
+          
+        db <- db %>% dplyr::summarise_(n = lazyeval::interp(~n()), positive = summary_criteria) 
+      }
+  
+      # "pathogen" column is required for incidenceMapR model definitions
+        if(!('pathogn' %in% queryList$GROUP_BY$COLUMN)){
+          if( 'pathogen' %in% queryList$WHERE$COLUMN){
+            db$pathogen <- queryList$WHERE$IN['pathogen' %in% queryList$WHERE$COLUMN]
+          } else {
+            db$pathogen<-'all' 
+          }
+        }
     
+    }
+  
+  
   # type harmonization
     for( COLUMN in names(db)[names(db) %in% c('residence_census_tract','residence_cra_name','residence_puma','residence_neighborhood_district_name','residence_city',
                                               'work_census_tract','work_cra_name','work_puma','work_neighborhood_district_name','work_city')]){
@@ -167,10 +169,10 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     }
 
   # drop rows with NA since incidenceMapR (INLA) will ignore them anyway
-  if(na.rm){
-    db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
-  }
-  
+    if(na.rm){
+      db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
+    }
+    
   summarizedData <- list(observedData = db,queryList = c(queryList))
 
   return(summarizedData)
