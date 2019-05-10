@@ -1,32 +1,34 @@
 version: '3'
 services:
-  redis:
-    # We use management so we can have a nice gui
-    # Default login is guest/guest
-    image: redis
-  rabbit:
-    image: rabbitmq:3.7
-    ports:
-      - "5672:5672"
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: seattle_flu
+  # placeholder for building worker
   workers:
     build:
-      context: api_service
-      dockerfile: Dockerfile
-    image: idm-docker-production.packages.idmod.org/sfim:${version:-latest}
-    environment:
-        - RABBIT_URI=amqp://guest:guest@172.22.0.1:5672
-    depends_on:
-      - rabbit
-    command: python3 seattle_flu/app.py workers start
+      context: .
+      dockerfile: Dockerfile.worker
+    image: idm-docker-production.packages.idmod.org/sfim-worker:${version:-latest}
+    command: touch t
   service:
       build:
         context: api_service
         dockerfile: Dockerfile
-      image: idm-docker-production.packages.idmod.org/sfim:${version:-latest}
+      image: idm-docker-production.packages.idmod.org/sfim-api:${version:-latest}
+      volumes:
+       - db-data:/var/lib/mysql/data
+      volumes:
+        - /model_store:/model_store
+        # pass docker so we can execute other containers
+        - /var/run/docker.sock:/var/run/docker.sock
       environment:
-        - RABBIT_URI=amqp://guest:guest@172.22.0.1:5672
+        - SQLALCHEMY_URI=postgres+psycopg2://seattle_flu:@db
+        - "CREATE_DB=1"
+        #- "MODEL_HOST_PATH=`pwd`/test_model_store"
+        #- "DEBUG_TOKENS=1"
       depends_on:
-      - rabbit
-      - workers
+      - db
       ports:
-       - "80:5000"
+       - "80:80"

@@ -48,12 +48,16 @@ setup(
         'connexion[swagger-ui]',
         'flask_sqlalchemy',
         'flask_marshmallow',
-        'marshmallow-sqlalchemy'
+        'marshmallow-sqlalchemy',
+        "docker",
+        'psycopg2',
+        ''
     ],
 
     extras_require={
-        'dev': ['check-manifest', 'nose', 'sphinx'],
+        'dev': ['check-manifest', 'nose', 'sphinx', 'sphinxcontrib-plantuml'],
         'tests': ['coverage'],
+        'upload': ['requests', 'tqdm'],
         'production': ['uwsgi']
     },
     project_urls={

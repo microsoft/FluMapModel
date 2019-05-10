@@ -2,7 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-.idea/*
+*/.idea/*
 *.pyc
 *.egg-info
 *__pycache__*
@@ -10,3 +10,10 @@ api_service/docs_src/seattle_flu*rst
 data/*
 .pg_service.conf
 .pgpass
+model_data/*
+models.db
+dbViewR_*.tar.gz
+modelServR_*.tar.gz
+incidenceMapR_*.tar.gz
+modelDB.tsv
+test_model_store/*

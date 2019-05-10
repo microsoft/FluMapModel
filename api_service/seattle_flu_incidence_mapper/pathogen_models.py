@@ -1,8 +1,10 @@
 # API Methods for the /pathogen_models calls
-from seattle_flu_incidence_mapper.model_store import save_model_file
+from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file, create_id_from_query_str
 from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel, PathogenModelSchema
 from seattle_flu_incidence_mapper.config import db
-from flask import abort, request, config, current_app, make_response
+from flask import abort, request,  make_response, send_file
+
+from seattle_flu_incidence_mapper.utils import get_model_id
 
 
 def read_all():
@@ -48,10 +50,6 @@ def read(model_id):
         )
 
 
-def make_id_from_query_str(param):
-    return "aaaaa"
-
-
 def create():
     """
     This function creates a new pathogen_model in the pathogen_models structure
@@ -62,10 +60,10 @@ def create():
 
 
     #build our pathogenmodel object first
-    pathogen_model = dict(id=make_id_from_query_str(request.form['query_str']),
+    pathogen_model = dict(id=get_model_id(request.form['query_str']),
                           name=request.form['name'],
                           query_str=request.form['query_str'],
-                          latent='modelLatent' in request.files)
+                          model_type=request.form['model_type'])
 
     schema = PathogenModelSchema()
     new_pathogen_model = schema.load(pathogen_model, session=db.session).data
@@ -75,9 +73,6 @@ def create():
 
     # save the files to our config directory
     save_model_file(request.files['model'], f'{new_pathogen_model.id}.csv')
-    save_model_file(request.files['modelRDS'], f'{new_pathogen_model.id}.RDS')
-    if 'modelLatent' in request.files:
-        save_model_file(request.files['modelLatent'], f'{new_pathogen_model.id}.latent_field.csv')
     # Serialize and return the newly created pathogen_model in the response
     data = schema.dump(new_pathogen_model).data
 
@@ -101,13 +96,13 @@ def update(pathogen_model_id, pathogen_model):
 
         # turn the passed in pathogen_model into a db object
         schema = PathogenModelSchema()
-        update = schema.load(pathogen_model, session=db.session).data
+        updated = schema.load(pathogen_model, session=db.session).data
 
         # Set the id to the pathogen_model we want to update
-        update.id = update_pathogen_model.id
+        updated.id = update_pathogen_model.id
 
         # merge the new object into the old and commit it to the db
-        db.session.merge(update)
+        db.session.merge(updated)
         db.session.commit()
 
         # return updated pathogen_model in the response
@@ -148,8 +143,46 @@ def delete(pathogen_model_id):
 )
 
 
-def model_file(pathogen_model_id):
-    return None
+def model_file(modelId):
+    """
+    Returns the model file to the user
+    :param pathogen_model_id:
+    :return:
+    """
+    # Get the pathogen_model requested from the db into session
+    pathogen_model = PathogenModel.query.filter(
+        PathogenModel.id == modelId
+    ).order_by(PathogenModel.created.desc()).first()
 
-def model_rds(pathogen_model_id):
-    return None
+    # Did we find a pathogen_model?
+    if pathogen_model is not None:
+        is_latent = request.args.get("latent", "0").lower() in ('1', 'y', 'yes', 't', 'true', True, 1)
+        send_file(get_model_file(modelId,latent=is_latent))
+    # Otherwise, nope, didn't find that pathogen_model
+    else:
+        abort(
+            404,
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=modelId),
+        )
+
+
+def model_rds(modelId):
+    """
+        Returns the model file to the user
+        :param pathogen_model_id:
+        :return:
+        """
+    # Get the pathogen_model requested from the db into session
+    pathogen_model = PathogenModel.query.filter(
+        PathogenModel.id == modelId
+    ).one_or_none()
+
+    # Did we find a pathogen_model?
+    if pathogen_model is not None:
+        send_file(get_model_file(modelId, rds=True))
+    # Otherwise, nope, didn't find that pathogen_model
+    else:
+        abort(
+            404,
+            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=modelId),
+        )

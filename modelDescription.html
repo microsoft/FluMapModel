@@ -53,7 +53,7 @@
   &quot;basis&quot;: [&quot;year&quot;],
   &quot;values&quot;: [&quot;incidence_median&quot;, &quot;incidence_sd&quot;]
 } </code></pre>
-<p>This query will return a JSON object with the model estimates of the incidence of flu in ILI broken down by <em>Census_Tract</em> (11 digit GEOID) and <em>vax_status</em> (0 = not vaccinated this year, 1 == vaccinated this year), with data points as the tuple <em>year, incidence_median, incidence_sd</em>. This is the default returned if no query is sent.</p>
+<p>This query will return a JSON object with the model estimates of the incidence of flu in ILI broken down by <em>Census_Tract</em> (11 digit residence_census_tract) and <em>vax_status</em> (0 = not vaccinated this year, 1 == vaccinated this year), with data points as the tuple <em>year, incidence_median, incidence_sd</em>. This is the default returned if no query is sent.</p>
 <p><strong>Request raw data</strong></p>
 <pre><code>{
   &quot;output&quot;: [&quot;observed&quot;],
@@ -61,7 +61,7 @@
   &quot;basis&quot;: [&quot;year&quot;],
   &quot;values&quot;: [&quot;flu_count&quot;, &quot;nsamples&quot;]
 } </code></pre>
-<p>This query will return a JSON object with the model estimates of the oberved counts of flu positives in ILI broken down by <em>Census_Tract</em> (11 digit GEOID) and <em>vax_status</em> (0 = not vaccinated this year, 1 == vaccinated this year), with data points as the tuple <em>year, flu_count, nsamples</em>. This is the default returned if no query is sent.</p>
+<p>This query will return a JSON object with the model estimates of the oberved counts of flu positives in ILI broken down by <em>Census_Tract</em> (11 digit residence_census_tract) and <em>vax_status</em> (0 = not vaccinated this year, 1 == vaccinated this year), with data points as the tuple <em>year, flu_count, nsamples</em>. This is the default returned if no query is sent.</p>
 <p><strong>Query schema (embryonic)</strong></p>
 <p>(Better schema and documentation to come!)</p>
 <p>The categories of <em>output</em> can be <em>observed</em> or <em>incidence</em>. (Obvious improvements would be <em>data</em> and <em>model</em>…).</p>

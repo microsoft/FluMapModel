@@ -16,7 +16,7 @@ ggplot object
 NOT YET IMPLEMENTED!
 }
 \examples{
-plotDat <- right_join(model$modeledData,shp, by=c('GEOID'))
+plotDat <- right_join(model$modeledData,shp, by=c('residence_census_tract'))
 plotDat$positive[plotDat$positive==0]<-NaN
 ggplotSmoothSequential(plotDat)
 

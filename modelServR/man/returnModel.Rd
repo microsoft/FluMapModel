@@ -5,23 +5,23 @@
 \title{returnModel function for getting modeled data}
 \usage{
 returnModel(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
-  c("sampling_location", "GEOID")), WHERE = list(COLUMN =
-  "sampling_location", IN = c("kiosk")), GROUP_BY = list(COLUMN =
-  c("sampling_location", "GEOID")), SUMMARIZE = list(COLUMN =
-  "sampling_location", IN = c("kiosk")))), type = "smooth",
-  format = "json", version = "latest",
-  cloudDir = "/home/rstudio/seattle_flu")
+  c("site_type", "residence_census_tract")), WHERE = list(COLUMN =
+  "site_type", IN = c("kiosk")), GROUP_BY = list(COLUMN = c("site_type",
+  "residence_census_tract")), SUMMARIZE = list(COLUMN = "site_type", IN =
+  c("kiosk")))), type = "smooth", version = "latest",
+  cloudDir = Sys.getenv("MODEL_STORE",
+  "/home/rstudio/seattle_flu/test_model_store"))
 }
 \arguments{
 \item{queryIn}{JSON query to dbViewR that defines model}
 
 \item{type}{= "smooth" (default), "latent_field", "effects", "inla"}
 
-\item{format}{= "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)}
-
 \item{version}{= "latest" (default) or ISO date and time created (UTC, like "2019-04-19 22:49:19Z")}
 
 \item{cloudDir}{= directory where models are stored}
+
+\item{format}{= "csv" (default: pre-defined data-only output), "json" (pre-defined data-only output), or "model" (incidenceMapR model object)}
 }
 \value{
 model in requested format

@@ -1,10 +1,22 @@
 FROM python:3.7-stretch
-RUN printf "deb http://cran.rstudio.com/bin/linux/debian stretch-cran34/" >> /etc/apt/sources.list.d/r.list && \ 
-    apt-key adv --keyserver keyserver.ubuntu.com--recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF' && \
-    apt update && apt install nginx r-base libssl-dev python-dev -y && \
+RUN apt update && apt install nginx \
+        python-dev \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg2 \
+        software-properties-common \
+        -y && \
+    curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey && \
+        add-apt-repository \
+        "deb [arch=amd64] https://download.docker.com/linux/debian \
+        $(lsb_release -cs) \
+        stable" && \
+        apt-get update && \
+        apt-get install docker-ce docker-ce-cli containerd.io -y
     # Make project directory
-    mkdir -p /app/seattle_flu
-
+RUN mkdir -p /app/seattle_flu_incidence_mapper \
+        /model_store
 ADD docker_scripts/pip.conf /etc/pip.conf
 
 ENV PYTHONPATH=/app:${PYTHONPATH}
@@ -12,24 +24,21 @@ ENV PATH=/app:${PATH}
 
 WORKDIR /app
 
+ENV MODEL_STORE=/model_store
+
 ADD setup.py README.rst /app/seattle_flu/
 RUN cd seattle_flu && \
     pip3 install -e .[production]
 
-# Add Model Related stuff
-# Start with setup
-ADD docker_scripts/setup_env.R  /app/
-ADD models  /app/models
-# Run our environment install which installs some
-# basic R libs and then all models we have
-RUN Rscript setup_env.R && \
-    # And now our api
-    pip install rse_api --upgrade
-
+# Define we will have a model data folder
+VOLUME /model_data
 # Finish the setup
 ADD docker_scripts/nginx.conf /etc/nginx/nginx.conf
 ADD docker_scripts/entrypoint.sh docker_scripts/wsgi.ini ./
 # Add the rest of our library here
-ADD seattle_flu ./seattle_flu
+ADD seattle_flu_incidence_mapper ./seattle_flu_incidence_mapper
+
+EXPOSE 80
+VOLUME [/model_store]
 
 CMD /app/entrypoint.sh

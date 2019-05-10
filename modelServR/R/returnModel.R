@@ -1,6 +1,27 @@
 library(logging)
-basicConfig()
-setLevel(10)
+
+#' loadModelFileById function for getting modeled data
+#'
+#' This function will load a model from the model_store_dir by Id
+#'
+#' Future enhancments will add versioning
+#'
+#' @param filename = At moment we expect full filename in format ID.extension.
+#'  This is so in future we can more easily support different model save formats
+#' @param model_store_dir = directory where models are stored
+#'
+#' @return model
+#'
+#' @export
+#' @examples
+#'
+loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu'), type ='csv') {
+  # expand path to the full path
+  filename <- file.path(model_store_dir, filename)
+  # load the data
+  db <- read.csv(paste(filename,type,sep='.'))
+  return(db)
+}
 
 #' returnModel function for getting modeled data
 #'
@@ -16,34 +37,23 @@ setLevel(10)
 #'
 #' @return model in requested format
 #'
-#' @import dbViewR
 #' @import jsonlite
-#' @import magrittr
-#' @importFrom RCurl getURL
-#' @importFrom dplyr group_by_at
-#' @importFrom tidyr nest
+#' @import logging
 #' @export
 #' @examples
 #'
 returnModel <- function(queryIn = jsonlite::toJSON(
                               list(
-                                SELECT   =list(COLUMN=c('sampling_location','GEOID')),
-                                WHERE   =list(COLUMN='sampling_location', IN = c('kiosk')),
-                                GROUP_BY =list(COLUMN=c('sampling_location','GEOID')),
-                                SUMMARIZE=list(COLUMN='sampling_location', IN= c('kiosk'))
+                                SELECT   =list(COLUMN=c('site_type','residence_census_tract')),
+                                WHERE   =list(COLUMN='site_type', IN = c('kiosk')),
+                                GROUP_BY =list(COLUMN=c('site_type','residence_census_tract')),
+                                SUMMARIZE=list(COLUMN='site_type', IN= c('kiosk'))
                                   )),
                             type = 'smooth',
                             version = 'latest',
-                            cloudDir = Sys.getenv('MODEL_BIN_DIR', '/home/rstudio/seattle_flu')){
+                            cloudDir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')){
 
-  # https://www.dropbox.com/sh/5loj4x6j4tar17i/AABy5kP70IlYtSwrePg4m44Ca?dl=0
-
-  # need to solve paths problem for intalled packages!
-  # ideally this would point to a web-based repository of models so that anyone can get to it.
-  # THIS DOES NOT WORK because of authentication.  Need to explore rdrop2 package!
-
-  # NEED TO Pull multiple formats of data once saving latent fields is implemented in incidenceMapR
-  #  ACTUALLY, current plan is to have csv obey format for each model type
+  basicConfig()
 
   if(class(queryIn)== 'list'){
     queryList <- queryIn
@@ -82,7 +92,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
   }
 
   if (format %in% c('csv','json')){
-    db <- read.csv(paste(filename,type,'csv',sep='.'))
+    db <- loadModelFile(modelID, cloudDir)
 
     dataOut<-list(query = queryList, type = type)
 

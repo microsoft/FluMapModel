@@ -4,12 +4,17 @@
 \alias{appendCatchmentModel}
 \title{appendCatchmentModel: function for adding catchment covariate estimated by smoothModel to dbViewR object for use in latentFieldModel}
 \usage{
-appendCatchmentModel(db, shp = NULL)
+appendCatchmentModel(db, shp = NULL, source = "simulated_data",
+  na.rm = TRUE)
 }
 \arguments{
 \item{db}{object from dbViewer with observedData tibble and query}
 
 \item{shp}{shapefile object from masterShapeDB}
+
+\item{source}{= 'simulated_data' (default) or 'production}
+
+\item{na.rm}{= TRUE (default) or FALSE.  Remove NA pathogens}
 }
 \value{
 db with added catchment column to observedData
