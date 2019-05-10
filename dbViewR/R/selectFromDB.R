@@ -138,11 +138,11 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     
     # age bin mutations
     # this is nasty!  I need to transform to age bins for modeling, but I don't want to carry the MUTATE query around!
-    if(any(grepl('age',names(db)))){ 
-      db$age_bin <- floor(pmin(db$age,90))
-      queryList$GROUP_BY$COLUMN[queryList$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
-    }
-    
+    # if(any(grepl('age',names(db)))){ 
+    #   db$age_bin <- floor(pmin(db$age,90))
+    #   queryList$GROUP_BY$COLUMN[queryList$GROUP_BY$COLUMN %in% 'age'] <- 'age_bin'
+    # }
+    # 
 
     if('GROUP_BY' %in% names(queryList)){
       db<- db %>% dplyr::group_by_(.dots=queryList$GROUP_BY$COLUMN)
