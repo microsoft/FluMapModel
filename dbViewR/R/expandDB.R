@@ -39,6 +39,11 @@ expandDB <- function( db = dbViewR::selectFromDB(),
 
     # age
       validColumnData$age = seq(0,90,by=1)
+      validColumnData$age_bin_fine_lower = c(0,2,seq(5,85,by=5))
+      validColumnData$age_bin_fine_upper = c(2,seq(5,90,by=5))
+      validColumnData$age_bin_coarse_lower = c(0,2,5,18,65,90)
+      validColumnData$age_bin_coarse_upper = c(2,5,18,65,90)
+      
     
     # age bin
     if(any(grepl('age',names(db$observedData)))) {
@@ -67,8 +72,7 @@ expandDB <- function( db = dbViewR::selectFromDB(),
       validColumnData$work_city = validColumnData$work_city[validColumnData$work_city!='NA']
       
     # factors (these don't get interpolated by the models, so we only want the valid levels for the dataset at hand)
-      factorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('n','positive')) | 
-                                                grepl('age',names(db$observedData)) | 
+      factorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('age','n','positive')) | 
                                                 grepl('residence_',names(db$observedData)) | 
                                                 grepl('work_',names(db$observedData)) |
                                                 grepl('encounter',names(db$observedData))  )]
@@ -110,9 +114,18 @@ expandDB <- function( db = dbViewR::selectFromDB(),
     db$observedData$time_row <- validColumnData$time_row[match(db$observedData$encountered_week,validColumnData$encountered_week)]
   }
 
-  if(any(grepl('age_bin',names(db$observedData)))){
-    db$observedData$age_row <- validColumnData$age_row[match(db$observedData$age_bin,validColumnData$age_bin)]
-  }
+  # if(any(grepl('age_bin',names(db$observedData)))){
+  #   db$observedData$age_row <- validColumnData$age_row[match(db$observedData$age_bin,validColumnData$age_bin)]
+  # }
+  if(any(grepl('age_range_fine_lower',names(db$observedData)))){
+    db$observedData$age_row <- validColumnData$age_range_fine_lower[match(db$observedData$age_range_fine_lower,validColumnData$age_range_fine_lower)]
+  } else if (any(grepl('age_range_fine_upper',names(db$observedData)))){
+    db$observedData$age_row <- validColumnData$age_range_fine_upper[match(db$observedData$age_range_fine_upper,validColumnData$age_range_fine_upper)]
+  } else if (any(grepl('age_range_coarse_lower',names(db$observedData)))){
+    db$observedData$age_row <- validColumnData$age_range_coarse_lower[match(db$observedData$age_range_coarse_lower,validColumnData$age_range_coarse_lower)]
+  } else if (any(grepl('age_range_coarse_upper',names(db$observedData)))){
+    db$observedData$age_row <- validColumnData$age_range_coarse_upper[match(db$observedData$age_range_coarse_upper,validColumnData$age_range_coarse_upper)]
+  } 
   
   return(db)
 }

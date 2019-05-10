@@ -39,7 +39,7 @@ latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
   # construct priors
   hyper=list()
   hyper$global <- list(prec = list( prior = "pc.prec", param = 1/10, alpha = 0.01))
-  hyper$local <- list(prec = list( prior = "pc.prec", param = 1/100, alpha = 0.01))
+  hyper$local <- list(prec = list( prior = "pc.prec", param = 1/200, alpha = 0.01))
   hyper$age <- list(prec = list( prior = "pc.prec", param = 1, alpha = 0.01))
   hyper$time <- list(prec = list( prior = "pc.prec", param = 1/50, alpha = 0.01))
   
@@ -268,7 +268,7 @@ latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
 
     
   # get original values for linear combination categories
-  lc.colIdx <- (names(inputData) %in% db$queryList$GROUP_BY$COLUMN) & !(names(inputData) %in% validFactorNames)
+  lc.colIdx <- (names(inputData) %in% c('pathogen',db$queryList$GROUP_BY$COLUMN)) & !(names(inputData) %in% validFactorNames)
   lc.data <- inputData[lc.rowIdx,lc.colIdx]
     
   df <- data.frame(outcome = outcome, inputData, replicateIdx)

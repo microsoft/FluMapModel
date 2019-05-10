@@ -21,10 +21,10 @@ library(dplyr)
 ## return subset
   queryJSON <- jsonlite::toJSON(
     list(
-      SELECT  =list(COLUMN=c('individual','pathogen','encountered_date','site_type','sex','flu_shot','age','has_fever','has_cough','has_myalgia')),
+      SELECT  =list(COLUMN=c('individual','pathogen','encountered_week','site_type','sex','flu_shot','age','has_fever','has_cough','has_myalgia')),
       WHERE   =list(COLUMN='pathogen', IN = c('h1n1pdm', 'h3n2')),
-      WHERE   =list(COLUMN='encountered_date', BETWEEN = c(2019,2019.2)),
-      WHERE   =list(COLUMN='sampling_location', IN='hospital')
+      WHERE   =list(COLUMN='encountered_week', IN= c('2018-W52','2019-W01')),
+      WHERE   =list(COLUMN='site_type', IN='hospital')
     )
   )
   db <- selectFromDB( queryJSON )
@@ -37,8 +37,8 @@ library(dplyr)
 
 ## return h1n1pdm summary by time and location
   queryIn <- list(
-      SELECT   =list(COLUMN=c('pathogen','encountered_date','residence_puma','residence_census_tract')),
-      GROUP_BY =list(COLUMN=c('encountered_date','residence_puma','residence_census_tract')),
+      SELECT   =list(COLUMN=c('pathogen','encountered_week','residence_puma','residence_census_tract')),
+      GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
       SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
     )
   db <- selectFromDB( queryIn )
@@ -128,8 +128,8 @@ names(db$observedData)
 ## return subset
 queryJSON <- jsonlite::toJSON(
   list(
-    SELECT  =list(COLUMN=c('individual','encountered_date','site_type','sex','flu_shot','age')),
-    WHERE   =list(COLUMN='encountered_date', BETWEEN = c('2019-01-01','2019-02-28')),
+    SELECT  =list(COLUMN=c('individual','encountered_week','site_type','sex','flu_shot','age')),
+    WHERE   =list(COLUMN='encountered_week', IN = c('2019-W04','2019-W05','2019-W06')),
     WHERE   =list(COLUMN='site_type', IN='childrensHospital')
   )
 )

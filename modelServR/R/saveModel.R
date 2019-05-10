@@ -1,7 +1,4 @@
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
-library(logging)
-
-
 #'
 #' @param model INLA model object that will generatie id from
 #'
@@ -48,7 +45,20 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FAL
   }
   else {
     result$model_type <- jsonlite::unbox(model_type)
-    result$observed <- sort(colnames(model$modelDefinition$observedData))
+    
+    validColumnNames <- sort(colnames(model$modelDefinition$observedData))
+    
+    validIdx <-  !(
+                    validColumnNames %in% c('catchment','n','pathogen','positive')  |
+                    grepl('row',validColumnNames, ignore.case = TRUE)
+                  ) 
+    
+    validColumnNames <- validColumnNames[validIdx]
+    
+    result$observed <- validColumnNames
+    
+    
+    
   }
   # grab the pathogen from the where clause
   if ("WHERE" %in% names(model$modelDefinition$queryList) && 

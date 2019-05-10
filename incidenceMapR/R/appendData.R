@@ -28,6 +28,9 @@ appendSmoothData <- function(model,modelDefinition){
   # snake_case
   names(modeledData) <- gsub('\\.','_',names(modeledData))
   
+  # clean quantile names
+  names(modeledData)[grepl('0_',names(modeledData))]<-paste(outputColName,c('lower_95_CI','median','upper_95_CI'),sep='_')
+  
   # pretty order 
   columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(modeledData)]
   modeledData <- modeledData %>% arrange_(.dots=columns)
@@ -61,6 +64,47 @@ appendLatentFieldData <- function(model,modelDefinition){
   
   # snake_case
   names(latentField) <- gsub('\\.','_',names(latentField))
+  
+  # filter out unwanted fields
+  latentField <- latentField
+  latentField <- latentField[!(names(latentField) %in% c('modeled_intensity_ID','modeled_intensity_kld'))]
+  
+  # clean quantile names
+  names(latentField)[grepl('0_',names(latentField))]<-paste('modeled_intensity',c('lower_95_CI','median','upper_95_CI'),sep='_')
+  
+  # apply link function
+  if (modelDefinition$family[1] == 'poisson'){
+    for( COLUMN in names(latentField)[grepl('modeled',names(latentField))]){
+      if (grepl('sd',COLUMN)){
+        latentField[[COLUMN]] <- exp(latentField$modeled_intensity_median + latentField$modeled_intensity_sd^2/2) * sqrt(exp(latentField$modeled_intensity_sd^2)-1)
+      } else if (grepl('mean',COLUMN)){
+        latentField[[COLUMN]] <- exp(latentField$modeled_intensity_median + latentField$modeled_intensity_sd^2/2)
+      } else {
+        latentField[[COLUMN]] <- exp(latentField[[COLUMN]])
+      }
+    }
+    
+  } else if (modelDefinition$family[1] == 'binomial'){
+    for( COLUMN in names(latentField)[grepl('modeled',names(latentField))]){
+      if (grepl('sd',COLUMN)){
+        # TODO: transform marginals
+        tmp <- exp(latentField$modeled_intensity_mean + rnorm(1e5,sd=latentField$modeled_intensity_sd))
+        tmp <- tmp/(1+tmp)
+        latentField$modeled_intensity_sd<-sd(tmp) 
+        
+      } else if (grepl('mean',COLUMN)){
+        # TODO: transform marginals
+        tmp <- exp(latentField$modeled_intensity_mean + rnorm(1e5,sd=latentField$modeled_intensity_sd))
+        tmp <- tmp/(1+tmp)
+        latentField$modeled_intensity_mean<-mean(tmp)
+        
+      } else {
+        latentField[[COLUMN]] <- exp(latentField[[COLUMN]])/(1+latentField[[COLUMN]])
+      }
+    }
+    
+  } 
+  
   
   # pretty order 
   columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(latentField)]
