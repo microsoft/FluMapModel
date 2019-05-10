@@ -15,8 +15,10 @@ def set_marshmallow(app):
 
 def get_model_id(query):
     if type(query) is dict:
+        pathogen = query['pathogen'] if 'pathogen' in query else ["all"]
         query_json = dict(model_type=query['model_type'],
-                          observed=sorted(query['observed'], key=str.lower))
+                          observed=sorted(query['observed'], key=str.lower),
+                          pathogen=pathogen)
         json_str = json.dumps(query_json, sort_keys=True, separators=(',', ':'))
     else:
         json_str = query
