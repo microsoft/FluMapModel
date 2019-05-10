@@ -8,14 +8,14 @@ returnModel(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   c("site_type", "residence_census_tract")), WHERE = list(COLUMN =
   "site_type", IN = c("kiosk")), GROUP_BY = list(COLUMN = c("site_type",
   "residence_census_tract")), SUMMARIZE = list(COLUMN = "site_type", IN =
-  c("kiosk")))), type = "smooth", version = "latest",
+  c("kiosk")))), type = "observed", version = "latest",
   cloudDir = Sys.getenv("MODEL_STORE",
   "/home/rstudio/seattle_flu/test_model_store"))
 }
 \arguments{
 \item{queryIn}{JSON query to dbViewR that defines model}
 
-\item{type}{= "smooth" (default), "latent_field", "effects", "inla"}
+\item{type}{= "inla_observed" (default), "inla_latent", "inla"}
 
 \item{version}{= "latest" (default) or ISO date and time created (UTC, like "2019-04-19 22:49:19Z")}
 

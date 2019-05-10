@@ -5,15 +5,14 @@
 \title{getModelQueryObjectFromModel: return query object from a model.
 This is the object we use to generate our unique ids.}
 \usage{
-getModelQueryObjectFromModel(model, model_type = "inla",
-  latent = FALSE)
+getModelQueryObjectFromModel(model, latent = FALSE)
 }
 \arguments{
 \item{model}{= Model object to get query object for}
 
-\item{model_type}{= Model Type string. Default to inla}
-
 \item{latent}{= Bool determing if we are saving a latent model or a smooth model}
+
+\item{model_type}{= Model Type string: 'inla_observed' (default) or 'inla_latent'}
 }
 \value{
 An object containing the observed and the model_type fields

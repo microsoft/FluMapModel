@@ -5,8 +5,8 @@
 #' @return Unique String representing model in human readable format
 #' @export
 #'
-getHumanReadableModelIdFromModel <- function(model) {
-  return (getHumanReadableModelIdFromQuery(getModelQueryObjectFromModel(model)))
+getHumanReadableModelIdFromModel <- function(model, latent = FALSE) {
+  return (getHumanReadableModelIdFromQuery(getModelQueryObjectFromModel(model, latent)))
 }
 
 #' getHumanReadableModelIdFromQuery: return human readable verion of model from query
@@ -36,7 +36,7 @@ getHumanReadableModelIdFromQuery <- function(query) {
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
-getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', latent = FALSE) {
+getModelQueryObjectFromModel<- function(model, latent = FALSE) {
 
   result <- newEmptyObject()
   if (latent) {
@@ -44,7 +44,7 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', lat
     validColumnNames <- sort(colnames(model$modelDefinition$latentFieldData))
     
   } else {
-    result$model_type <- jsonlite::unbox(model_type)
+    result$model_type <- jsonlite::unbox('inla_observed')
     validColumnNames <- sort(colnames(model$modelDefinition$observedData))
   }
     
@@ -70,7 +70,7 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', lat
   }
   
   # grab spatial_domain from modelDefinition
-  result$spatial_domain <- model$modelDefinition$spatial_domain
+  result$spatial_domain <- model$modelDefinition$spatialDomain[1]
   
   logdebug("Result: ", result)
   return(result)
@@ -197,7 +197,7 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   if (model$modelDefinition$type == 'latent_field') {
     modelQuery <- getModelQueryObjectFromModel(model, latent = TRUE)
     modelId <- getModelIdFromQuery(modelQuery)
-    name <- getHumanReadableModelIdFromModel(model)
+    name <- getHumanReadableModelIdFromModel(model, latent = TRUE)
     filename <-modelId
     newRow <- data.frame(
       filename = filename,

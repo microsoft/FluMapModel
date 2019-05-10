@@ -4,7 +4,7 @@
 \alias{getHumanReadableModelIdFromModel}
 \title{getHumanReadableModelIdFromModel: return human readable verion of model from query}
 \usage{
-getHumanReadableModelIdFromModel(model)
+getHumanReadableModelIdFromModel(model, latent = FALSE)
 }
 \arguments{
 \item{model}{INLA model object that will generatie id from}
