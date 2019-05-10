@@ -1,4 +1,7 @@
 #' getHumanReadableModelIdFromModel: return human readable verion of model from query
+library(logging)
+
+
 #'
 #' @param model INLA model object that will generatie id from
 #'
@@ -55,14 +58,14 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FAL
 #' @param query query object container the observed and the model_type attributes
 #'
 #' @import logging
-#' 
+#'
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
 getModelQueryObjectFromQuery <- function(query) {
   basicConfig()
   setLevel("FINEST")
-  
+
   logdebug("getModelQueryObjectFromQuery Src:", str(query))
   logdebug("$observed", attr(query, "observed"))
   result <- newEmptyObject()
@@ -95,7 +98,7 @@ getModelIdFromModel <- function(model) {
 getModelIdFromQuery <- function(query) {
   basicConfig()
   setLevel("FINEST")
-  
+
   #props <- getModelQueryObjectFromQuery(query)
   modelId <- as.character(jsonlite::toJSON(query, simplifyDataFrame=))
   logdebug("Model ID JSON:", jsonlite::toJSON(query, simplifyDataFrame=))
@@ -111,6 +114,8 @@ getModelIdFromQuery <- function(query) {
 #' @export
 #'
 saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')) {
+  basicConfig()
+  setLevel("FINEST")
   ts <- Sys.time()
   attr(ts, "tzone") <- 'UTC'
   ts <- paste0(as.character(ts), 'Z')
@@ -139,13 +144,13 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     created = ts
   )
 
-  print("Saving RDS")
+  loginfo("Saving RDS")
   outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
   saveRDS(model,file = outfile)
   close(outfile)
   
 
-  print("Saving smooth model")
+  loginfo("Saving smooth model")
   # all models output smooth
   newRow$latent <- FALSE
   write.csv(

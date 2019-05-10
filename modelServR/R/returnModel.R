@@ -1,3 +1,5 @@
+library(logging)
+
 #' loadModelFileById function for getting modeled data
 #'
 #' This function will load a model from the model_store_dir by Id
@@ -52,7 +54,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
                             cloudDir = Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')){
 
   basicConfig()
-  
+
   if(class(queryIn)== 'list'){
     queryList <- queryIn
     queryIn <- jsonlite::toJSON(queryIn)

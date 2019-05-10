@@ -1,42 +1,25 @@
 version: '3'
 
-
 services:
-  redis:
-    # We use management so we can have a nice gui
-    # Default login is guest/guest
-    image: redis
-    ports:
-      - "6379:6379"
-  # Our queue container
-  rabbit:
-    # We use management so we can have a nice gui
-    # Default login is guest/guest
-    image: rabbitmq:3.7-management
-    ports:
-    - "5672:5672"
-    - "8081:15672"
-  workers:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: idm-docker-production.packages.idmod.org/sfim
-    command: python3 seattle_flu/app.py workers start
+  db:
+    image: postgres
+    restart: always
     environment:
-      - "DRAMATIQ_USE_PROD=True"
+      POSTGRES_USER: seattle_flu
+      POSTGRES_PASSWORD: seattle_flu
+      
   service:
     build:
       context: .
       dockerfile: Dockerfile
     image: idm-docker-production.packages.idmod.org/sfim
     ports:
-      - 5000:5000
+      - 5000:80
     volumes:
-      - "/model_store:/model_store"
+      - "./test_model_store:/model_store"
     environment:
-    - "DEBUG=1"
-    - "FLASK_ENV=development"
-    - "DRAMATIQ_USE_PROD=True"
+    - "CREATE_DB=1"
+    - "SQLALCHEMY_URI=postgres+psycopg2://seattle_flu:@db"
 
 
 
