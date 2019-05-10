@@ -52,10 +52,9 @@ appendCatchmentModel <- function(db,shp = NULL, source='simulated_data', na.rm=T
   catchmentModel <- modelTrainR(catchmentModelDefinition)
   
   # append catchment as intercept covariate
-  db$observedData <- db$observedData %>% left_join(catchmentModel$modeledData %>% select(site_type, geo, modeled_count_0_5quant))
-  names(db$observedData)[names(db$observedData) %in% 'modeled_count_0_5quant'] <- 'catchment'
+  db$observedData <- db$observedData %>% left_join(catchmentModel$modeledData %>% select(site_type, geo, modeled_count_median))
+  names(db$observedData)[names(db$observedData) %in% 'modeled_count_median'] <- 'catchment'
   db$observedData$catchment <- log(db$observedData$catchment) - mean(log(db$observedData$catchment))
-  # db$observedData$catchment <- db$observedData$catchment/sd(db$observedData$catchment)
   
   return(db)
 }
