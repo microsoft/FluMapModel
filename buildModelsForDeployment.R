@@ -8,21 +8,22 @@ library(modelTestR)
 library(dplyr)
 library(ggplot2)
 
+SRC <- 'production'
+# SRC <- 'simulated_data'
 
-## factors and levels to be modeled ##
 
 #####################
 ### REAL DATA #######
 #####################
 
-db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = 'production')
+db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = SRC)
 
 pathogens <- c('all', unique(db$observedData$pathogen))
 factors   <- c('site_type','sex','flu_shot')
 
-geoLevels <- list( seattle_geojson = c('residence_puma','residence_neighborhood_district_name','residence_cra_name','residence_census_tract'),
+geoLevels <- list( seattle_geojson = c('residence_neighborhood_district_name','residence_cra_name'),
                    wa_geojson = c('residence_puma'), # census tract impossible due to memory limits
-                   king_county_geojson = c('residence_puma','residence_census_tract')
+                   king_county_geojson = c('residence_census_tract')
                  )
 
 ##############################
@@ -44,7 +45,7 @@ for (SOURCE in names(geoLevels)){
 
         shp <- masterSpatialDB(shape_level = gsub('residence_','',GEO), source = SOURCE)
 
-        db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ), shp=shp )
+        db <- expandDB( selectFromDB(  queryIn, source=SRC, na.rm=TRUE ), shp=shp )
         
         modelDefinition <- smoothModel(db=db, shp=shp)
         
@@ -82,14 +83,14 @@ for (PATHOGEN in pathogens){
     queryIn <- list(
       SELECT   =list(COLUMN=c('pathogen',FACTOR,'age_range_fine_lower')),
       WHERE    =list(COLUMN='pathogen', IN= PATHOGEN),
-      GROUP_BY =list(COLUMN=c('pathogen',FACTOR,'age_range_fine_lower')),
+      GROUP_BY =list(COLUMN=c(FACTOR,'age_range_fine_lower')),
       SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
     )
     
-    db<- selectFromDB(  queryIn, source='production', na.rm=TRUE  ) 
+    db<- selectFromDB(  queryIn, source=SRC, na.rm=TRUE  ) 
 
     # get all ages denominator. I'm not sure how to implement this as single query..
-    tmp <- selectFromDB(  queryIn[c('SELECT','GROUP_BY','SUMMARIZE')], source='production', na.rm=TRUE  )$observedData %>% 
+    tmp <- selectFromDB(  queryIn[c('SELECT','GROUP_BY','SUMMARIZE')], source=SRC, na.rm=TRUE  )$observedData %>% 
               group_by_(.dots=c(FACTOR,'age_range_fine_lower')) %>% summarize(n=sum(n))
     db$observedData <- db$observedData %>% select(-n) %>% left_join(tmp)
     
@@ -107,6 +108,7 @@ for (PATHOGEN in pathogens){
       facet_wrap(FACTOR) +
       ylim(c(0,2*max(model$modeledData$modeled_count_mode)))
     
+    dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
     fname <- paste('/home/rstudio/seattle_flu/plots/',paste(PATHOGEN,FACTOR,'age_range_fine',sep='-'),'.png',sep='')
     png(filename = fname,width = 6, height = 5, units = "in", res = 300)
     print(p1)
@@ -127,20 +129,19 @@ for (SOURCE in names(geoLevels)){
       queryIn <- list(
         SELECT   =list(COLUMN=c('pathogen', factors, GEO,'encountered_week')),
         WHERE    =list(COLUMN='pathogen', IN=PATHOGEN),
-        GROUP_BY =list(COLUMN=c('pathogen',factors,GEO,"encountered_week")),
+        GROUP_BY =list(COLUMN=c(factors,GEO,"encountered_week")),
         SUMMARIZE=list(COLUMN='pathogen', IN= PATHOGEN)
       )
       
       shp <- masterSpatialDB(shape_level = gsub('residence_','',GEO), source = SOURCE)
       
-      db <- expandDB( selectFromDB(  queryIn, source='production', na.rm=TRUE ), shp=shp )
+      db <- expandDB( selectFromDB(  queryIn, source=SRC, na.rm=TRUE ), shp=shp )
       
       # training occassionaly segfaults on but it does not appear to be deterministic...
       tryCatch(
                 {
-                  model <- modelTrainR(modelDefinition)
-              
-                  db <- appendCatchmentModel(db,shp=shp, source='production', na.rm=TRUE  )
+                  
+                  db <- appendCatchmentModel(db,shp=shp, source=SRC, na.rm=TRUE  )
                 
                   modelDefinition <- latentFieldModel(db=db, shp=shp)
                   model <- modelTrainR(modelDefinition)
@@ -148,9 +149,11 @@ for (SOURCE in names(geoLevels)){
                   print(summary(model$inla))
                   
                   saveModel(model)
+                  
+                  dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
                   fname <- paste('/home/rstudio/seattle_flu/plots/',paste(PATHOGEN,SOURCE,paste(factors,collapse='-'),GEO,'encountered_week',sep='-'),'.png',sep='')
                   png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-                  print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) )
+                  print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) + guides(color=FALSE) )
                   dev.off()
                 
               }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
