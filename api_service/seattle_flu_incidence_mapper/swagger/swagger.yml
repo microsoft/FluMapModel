@@ -336,5 +336,5 @@ definitions:
       message:
         type: "string"
 externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+  description: "The Seattle Flu Study Model Output API"
+  url: "https://github.com/seattleflu/incidence-mappe"
