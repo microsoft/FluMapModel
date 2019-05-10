@@ -153,7 +153,10 @@ for (SOURCE in names(geoLevels)){
                   dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
                   fname <- paste('/home/rstudio/seattle_flu/plots/',paste(PATHOGEN,SOURCE,paste(factors,collapse='-'),GEO,'encountered_week',sep='-'),'.png',sep='')
                   png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-                  print(ggplot(model$latentField) + geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) + guides(color=FALSE) )
+                  print(ggplot(model$latentField) + 
+                          geom_line(aes_string(x='encountered_week',y="modeled_intensity_mode", color=GEO,group =GEO)) + 
+                          # geom_ribbon(aes_string(x='encountered_week',ymin="modeled_intensity_lower_95_CI", ymax="modeled_intensity_upper_95_CI", fill=GEO,group =GEO),alpha=0.1) + 
+                          guides(color=FALSE) )
                   dev.off()
                 
               }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")}
