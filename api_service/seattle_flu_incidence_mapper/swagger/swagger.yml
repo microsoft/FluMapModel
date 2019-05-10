@@ -12,10 +12,15 @@ info:
 basePath: "/v1"
 tags:
 - name: "pathogen_model"
-  description: "Everything about your PathogenModels"
+  description: "Stores our different models"
   externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
+    description: "Github"
+    url: "https://github.com/seattleflu/incidence-mapper"
+- name: "query_model"
+  description: "Queries our model"
+  externalDocs:
+    description: "Github"
+    url: "https://github.com/seattleflu/incidence-mapper"
 schemes:
 - "https"
 - "http"
@@ -25,7 +30,10 @@ paths:
       tags:
       - "query_model"
       summary: "Query a model"
-      description: "Query a model for a result set"
+      description: "Query a model for a result set. This API supports output in both CSV and JSON format.
+
+      The incoming query must container a model_type and observed field. Pathogen field is recommended. If not provided
+      then we will use the value <b>['all']</b> as the default"
       operationId: "seattle_flu_incidence_mapper.query_model.query"
       produces:
         - "application/json"
@@ -37,16 +45,7 @@ paths:
           required: true
           schema:
             type: object
-            additionalProperties: true
-            example: 
-              model_type: inla
-              observed:
-              - encountered_week
-              - flu_shot
-              - PUMA5CE
-              - sampling_location
-              pathogen:
-              - vic
+            $ref: '#/definitions/QueryModel'
       responses:
         200:
           description: "successful operation"
@@ -75,7 +74,7 @@ paths:
       tags:
       - "pathogen_model"
       summary: "Add a new pathogen model to the model store"
-      description: ""
+      description: "This is the api we use to upload models. These make models created by researchers available through the api. To register a model it should include its model_type, name, and query"
       operationId: "seattle_flu_incidence_mapper.pathogen_models.create"
       consumes:
       - multipart/form-data
@@ -275,6 +274,33 @@ definitions:
       created:
         type: "string"
         format: "date-time"
+  QueryModel:
+    type: "object"
+    required:
+      - "model_type"
+      - "observed"
+    properties:
+      model_type:
+        type: "string"
+        example: "inla"
+        description: "The model type. Currently we support inla and inla_latent models"
+        enum: [inla, inla_latent]
+      observed:
+        type: "array"
+        description: "List of observed fields"
+        items:
+          type: "string"
+        example:
+          - encountered_week
+          - flu_shot
+          - PUMA5CE
+          - sampling_location
+      pathogen:
+        type: array
+        items:
+          type: "string"
+        default:
+          - "all"
   ApiResponse:
     type: "object"
     properties:
