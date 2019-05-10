@@ -4,7 +4,7 @@
 \alias{getModelIdFromModel}
 \title{getModelIdFromModel: function to get model id from a model objejct}
 \usage{
-getModelIdFromModel(mode, model_type = "inla", latent = FALSEl)
+getModelIdFromModel(mode, model_type = "inla", latent = FALSE)
 }
 \arguments{
 \item{model_type}{String of model type}

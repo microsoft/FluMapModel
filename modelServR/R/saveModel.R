@@ -141,7 +141,7 @@ getModelIdFromQuery <- function(query) {
 #'
 #' @export
 #'
-saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store')) {
+saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/rstudio/seattle_flu/test_model_store'), storeRDS = TRUE) {
   basicConfig()
   setLevel("FINEST")
   ts <- Sys.time()
@@ -172,10 +172,12 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     created = ts
   )
 
-  loginfo("Saving RDS")
-  outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
-  saveRDS(model,file = outfile)
-  close(outfile)
+  if (storeRDS) {
+    loginfo("Saving RDS")
+    outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
+    saveRDS(model,file = outfile)
+    close(outfile)
+  }
   
 
   loginfo("Saving smooth model")
