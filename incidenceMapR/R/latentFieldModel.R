@@ -268,7 +268,7 @@ latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
 
     
   # get original values for linear combination categories
-  lc.colIdx <- (names(inputData) %in% db$queryList$GROUP_BY$COLUMN) & !(names(inputData) %in% validFactorNames)
+  lc.colIdx <- (names(inputData) %in% c('pathogen',db$queryList$GROUP_BY$COLUMN)) & !(names(inputData) %in% validFactorNames)
   lc.data <- inputData[lc.rowIdx,lc.colIdx]
     
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
