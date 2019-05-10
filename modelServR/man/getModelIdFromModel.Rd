@@ -4,9 +4,13 @@
 \alias{getModelIdFromModel}
 \title{getModelIdFromModel: function to get model id from a model objejct}
 \usage{
-getModelIdFromModel(model)
+getModelIdFromModel(mode, model_type = "inla", latent = FALSEl)
 }
 \arguments{
+\item{model_type}{String of model type}
+
+\item{latent}{bool for if is latent model}
+
 \item{model}{INLA object}
 }
 \description{
