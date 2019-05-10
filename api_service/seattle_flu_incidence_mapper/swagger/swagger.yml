@@ -1,14 +1,13 @@
 swagger: "2.0"
 info:
-  description: "This is a sample server PathogenModelstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to tests the authorization     filters."
+  description: "Seattle Flu Incidence Mapper API service. This includes a model store and a model querying API"
   version: "1.0.0"
   title: "Seattle Flu Incidence Mapper API"
-  termsOfService: "http://swagger.io/terms/"
   contact:
-    email: "apiteam@swagger.io"
+    email: "ccollins@idmod.org"
   license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    name: "MIT"
+    url: "https://raw.githubusercontent.com/seattleflu/incidence-mapper/master/LICENSE"
 basePath: "/v1"
 tags:
 - name: "pathogen_model"
