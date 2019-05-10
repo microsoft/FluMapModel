@@ -41,15 +41,10 @@ paths:
             example: 
               model_type: inla
               observed:
-              - catchment
               - encountered_week
               - flu_shot
-              - n
-              - pathogen
-              - positive
               - PUMA5CE
               - sampling_location
-              - time_row
               pathogen:
               - vic
       responses:

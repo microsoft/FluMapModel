@@ -50,7 +50,7 @@ setup(
         'flask_marshmallow',
         'marshmallow-sqlalchemy',
         "docker",
-        'psycopg2',
+        'psycopg2-binary',
         ''
     ],
 
