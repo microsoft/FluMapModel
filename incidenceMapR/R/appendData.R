@@ -88,9 +88,15 @@ appendLatentFieldData <- function(model,modelDefinition){
     for( COLUMN in names(latentField)[grepl('modeled',names(latentField))]){
       if (grepl('sd',COLUMN)){
         # TODO: transform marginals
+        tmp <- exp(latentField$modeled_intensity_mean + rnorm(1e5,sd=latentField$modeled_intensity_sd))
+        tmp <- tmp/(1+tmp)
+        latentField$modeled_intensity_sd<-sd(tmp) 
         
       } else if (grepl('mean',COLUMN)){
         # TODO: transform marginals
+        tmp <- exp(latentField$modeled_intensity_mean + rnorm(1e5,sd=latentField$modeled_intensity_sd))
+        tmp <- tmp/(1+tmp)
+        latentField$modeled_intensity_mean<-mean(tmp)
         
       } else {
         latentField[[COLUMN]] <- exp(latentField[[COLUMN]])/(1+latentField[[COLUMN]])
