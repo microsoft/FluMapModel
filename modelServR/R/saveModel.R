@@ -106,7 +106,7 @@ getModelQueryObjectFromQuery <- function(query) {
 #'
 #' @export
 #'
-getModelIdFromModel <- function(mode, model_type = 'inla', latent = FALSEl) {
+getModelIdFromModel <- function(mode, model_type = 'inla', latent = FALSE) {
   return(getModelIdFromQuery(getModelQueryObjectFromModel(model, model_type, latent)))
 }
 
@@ -193,7 +193,7 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   
   # If we have a latent_field type, write out that csv
   if (model$modelDefinition$type == 'latent_field') {
-    modelQuery <- getModelQueryObjectFromModel(model, TRUE)
+    modelQuery <- getModelQueryObjectFromModel(model, latent=TRUE)
     modelId <- getModelIdFromQuery(modelQuery)
     name <- getHumanReadableModelIdFromModel(model)
     filename <-modelId
