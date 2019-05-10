@@ -337,4 +337,4 @@ definitions:
         type: "string"
 externalDocs:
   description: "The Seattle Flu Study Model Output API"
-  url: "https://github.com/seattleflu/incidence-mappe"
+  url: "https://github.com/seattleflu/incidence-mapper"
