@@ -194,7 +194,8 @@ smoothModel <- function(db, shp, family = NULL, neighborGraph = NULL){
   modelDefinition <- list(type='smooth', family = family, formula = formula, lincomb = c(),
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper,
                           queryList = db$queryList, 
-                          observedData = db$observedData)
+                          observedData = db$observedData,
+                          spatialDomain = shp$domain)
   
   return(modelDefinition)
 }
