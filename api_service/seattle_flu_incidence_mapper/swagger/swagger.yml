@@ -33,7 +33,13 @@ paths:
       description: "Query a model for a result set. This API supports output in both CSV and JSON format.
 
       The incoming query must container a model_type and observed field. Pathogen field is recommended. If not provided
-      then we will use the value <b>['all']</b> as the default"
+      then we will use the value <b>['all']</b> as the default
+
+
+      The format of the output varies based on the model and the requested content-type. Generally speaking, the output
+      will be a collection of rows containing all the observed fields from the query. The result could also include
+      additional fields that are not part of the query but are inherit properties our outputs of the model such a
+      catchment, positive results, n, etc."
       operationId: "seattle_flu_incidence_mapper.query_model.query"
       produces:
         - "application/json"
@@ -41,14 +47,15 @@ paths:
       parameters:
         - in: body
           name: query_json
-          description: "JSON Query Object"
+          description: "Model Query. This will be resolved into a model id"
           required: true
           schema:
             type: object
             $ref: '#/definitions/QueryModel'
       responses:
         200:
-          description: "successful operation"
+          description: "successful operation. This will contain wll the observed fields of the models(included some
+          fields not explicit part of the query depending on the model"
           schema:
             type: "array"
             items:
