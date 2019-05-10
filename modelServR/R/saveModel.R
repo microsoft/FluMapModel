@@ -33,6 +33,7 @@ getHumanReadableModelIdFromQuery <- function(query) {
 #' @param model = Model object to get query object for
 #' @param model_type = Model Type string. Default to inla
 #' @param latent = Bool determing if we are saving a latent model or a smooth model
+#' @import logging
 #'
 #' @return An object containing the observed and the model_type fields
 #' @export
@@ -49,7 +50,19 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla', latent = FAL
     result$model_type <- jsonlite::unbox(model_type)
     result$observed <- sort(colnames(model$modelDefinition$observedData))
   }
-
+  # grab the pathogen from the where clause
+  if ("WHERE" %in% names(model$modelDefinition$queryList) && 
+      "COLUMN" %in% names(model$modelDefinition$queryList$WHERE) &&
+      model$modelDefinition$queryList$WHERE$COLUMN == "pathogen" && 
+      "IN" %in% names(model$modelDefinition$queryList$WHERE)
+      )
+  {
+    logdebug("Pathogen from Query Src:", str(model$modelDefinition$queryList$WHERE$IN))
+    result$pathogen <- model$modelDefinition$queryList$WHERE$IN
+  } else {
+    result$pathogen <- "all"
+  }
+  logdebug("Result: ", result)
   return(result)
 }
 #' getModelQueryObjectFromQuery: Reformate a query object to ensure it is in proper order
@@ -78,11 +91,13 @@ getModelQueryObjectFromQuery <- function(query) {
 #' getModelIdFromModel: function to get model id from a model objejct
 #'
 #' @param model INLA object
+#' @param model_type String of model type
+#' @param latent bool for if is latent model
 #'
 #' @export
 #'
-getModelIdFromModel <- function(model) {
-  return(getModelIdFromQuery(getModelQueryObjectFromModel(model)))
+getModelIdFromModel <- function(mode, model_type = 'inla', latent = FALSEl) {
+  return(getModelIdFromQuery(getModelQueryObjectFromModel(model, model_type, latent)))
 }
 
 #' getModelIdFromQuery: function to save models and register them in modelDB.csv
