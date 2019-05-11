@@ -96,7 +96,7 @@ getModelQueryObjectFromQuery <- function(query) {
   result$observed <- sort(query$observed)
   result$model_type <- query$model_type
   result$pathogen <- query$pathogen
-  result$spatial_domain <- query$spatial_domain
+  result$spatial_domain <- query$spatialDomain
   
   logdebug("getModelQueryObjectFromQuery result:", str(result))
   return(result)
