@@ -22,8 +22,8 @@ pathogens <- c('all', unique(db$observedData$pathogen))
 factors   <- c('site_type','sex','flu_shot')
 
 geoLevels <- list( seattle_geojson = c('residence_puma','residence_neighborhood_district_name','residence_cra_name','residence_census_tract'),
-                   wa_geojson = c('residence_puma'), # census tract impossible due to memory limits
-                   king_county_geojson = c('residen#ce_census_tract')
+                   wa_geojson = c('residence_puma')#, # census tract impossible due to memory limits
+                   #king_county_geojson = c('residence_census_tract')
                  )
 
 

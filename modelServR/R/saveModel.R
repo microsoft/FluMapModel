@@ -128,8 +128,8 @@ getModelIdFromQuery <- function(query) {
   setLevel("FINEST")
 
   #props <- getModelQueryObjectFromQuery(query)
-  modelId <- as.character(jsonlite::toJSON(query, simplifyDataFrame=))
-  logdebug("Model ID JSON:", jsonlite::toJSON(query, simplifyDataFrame=))
+  modelId <- as.character(jsonlite::toJSON(query))
+  logdebug("Model ID JSON:", jsonlite::toJSON(query))
   modelId <- digest::digest(modelId, serialize=FALSE)
   logdebug("Model ID Hash:", modelId)
   return(modelId)
