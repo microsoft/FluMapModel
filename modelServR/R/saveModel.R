@@ -18,7 +18,7 @@ getHumanReadableModelIdFromModel <- function(model, latent = FALSE) {
 #'
 getHumanReadableModelIdFromQuery <- function(query) {
   props <- getModelQueryObjectFromQuery(query)
-  result <- tolower(sprintf("%s-%s-%s",
+  result <- tolower(sprintf("%s-%s-%s-%s",
                             paste(props$model_type,collapse = "."),
                             paste(props$pathogen, collapse = "."),
                             paste(props$observed, collapse = "."),
