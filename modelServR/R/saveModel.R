@@ -22,7 +22,7 @@ getHumanReadableModelIdFromQuery <- function(query) {
                             paste(props$model_type,collapse = "."),
                             paste(props$pathogen, collapse = "."),
                             paste(props$observed, collapse = "."),
-                            paste(props$spatial_domain, collapse = ".")))
+                            paste(props$spatial_domain, collapse = ".")))  # paste(paste()) would be easier to maintain, but I'm leaving this for now
   return(result)
 }
 
