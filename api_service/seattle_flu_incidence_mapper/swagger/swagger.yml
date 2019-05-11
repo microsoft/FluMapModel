@@ -1,21 +1,25 @@
 swagger: "2.0"
 info:
-  description: "This is a sample server PathogenModelstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to tests the authorization     filters."
+  description: "Seattle Flu Incidence Mapper API service. This includes a model store and a model querying API"
   version: "1.0.0"
   title: "Seattle Flu Incidence Mapper API"
-  termsOfService: "http://swagger.io/terms/"
   contact:
-    email: "apiteam@swagger.io"
+    email: "ccollins@idmod.org"
   license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    name: "MIT"
+    url: "https://raw.githubusercontent.com/seattleflu/incidence-mapper/master/LICENSE"
 basePath: "/v1"
 tags:
 - name: "pathogen_model"
-  description: "Everything about your PathogenModels"
+  description: "Stores our different models"
   externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
+    description: "Github"
+    url: "https://github.com/seattleflu/incidence-mapper"
+- name: "query_model"
+  description: "Queries our model"
+  externalDocs:
+    description: "Github"
+    url: "https://github.com/seattleflu/incidence-mapper"
 schemes:
 - "https"
 - "http"
@@ -25,7 +29,16 @@ paths:
       tags:
       - "query_model"
       summary: "Query a model"
-      description: "Query a model for a result set"
+      description: "Query a model for a result set. This API supports output in both CSV and JSON format.
+
+      The incoming query must container a model_type and observed field. Pathogen field is recommended. If not provided
+      then we will use the value <b>['all']</b> as the default
+
+
+      The format of the output varies based on the model and the requested content-type. Generally speaking, the output
+      will be a collection of rows containing all the observed fields from the query. The result could also include
+      additional fields that are not part of the query but are inherit properties our outputs of the model such a
+      catchment, positive results, n, etc."
       operationId: "seattle_flu_incidence_mapper.query_model.query"
       produces:
         - "application/json"
@@ -33,32 +46,29 @@ paths:
       parameters:
         - in: body
           name: query_json
-          description: "JSON Query Object"
+          description: "Model Query. This will be resolved into a model id"
           required: true
           schema:
             type: object
-            additionalProperties: true
-            example: 
-              model_type: inla
-              observed:
-              - catchment
-              - encountered_week
-              - flu_shot
-              - n
-              - pathogen
-              - positive
-              - PUMA5CE
-              - sampling_location
-              - time_row
-              pathogen:
-              - vic
+            $ref: '#/definitions/QueryModel'
       responses:
         200:
-          description: "successful operation"
+          description: "successful operation. This will contain wll the observed fields of the models(included some
+          fields not explicit part of the query depending on the model"
           schema:
             type: "array"
             items:
               type: "object"
+        404:
+          description: "Could not find a model matching the specified query"
+          schema:
+            type: "object"
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: "Model execution error"
+          schema:
+            type: "object"
+            $ref: '#/definitions/ErrorResponse'
 
   /pathogen_models:
     get:
@@ -80,7 +90,7 @@ paths:
       tags:
       - "pathogen_model"
       summary: "Add a new pathogen model to the model store"
-      description: ""
+      description: "This is the api we use to upload models. These make models created by researchers available through the api. To register a model it should include its model_type, name, and query"
       operationId: "seattle_flu_incidence_mapper.pathogen_models.create"
       consumes:
       - multipart/form-data
@@ -280,6 +290,41 @@ definitions:
       created:
         type: "string"
         format: "date-time"
+  QueryModel:
+    type: "object"
+    required:
+      - "model_type"
+      - "observed"
+    properties:
+      model_type:
+        type: "string"
+        example: "inla"
+        description: "The model type. Currently we support inla and inla_latent models"
+        enum: [inla, inla_latent]
+      observed:
+        type: "array"
+        description: "List of observed fields"
+        items:
+          type: "string"
+        example:
+          - encountered_week
+          - flu_shot
+          - PUMA5CE
+          - sampling_location
+      pathogen:
+        type: array
+        items:
+          type: "string"
+        default:
+          - "all"
+  ErrorResponse:
+    type: "object"
+    required:
+      - "error"
+    properties:
+      error:
+        type: "string"
+        example: "Could not find the specified id"
   ApiResponse:
     type: "object"
     properties:
@@ -291,5 +336,5 @@ definitions:
       message:
         type: "string"
 externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+  description: "The Seattle Flu Study Model Output API"
+  url: "https://github.com/seattleflu/incidence-mapper"

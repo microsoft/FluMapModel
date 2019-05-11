@@ -4,6 +4,9 @@ DEPOLY_USERNAME ?= useradmin
 
 .PHONY= get_version build-r-env build-r-package build-api
 
+clean:
+	find . -iname *.tar.gz -exec rm {} \;
+
 get_version:
 	$(eval version=$(git rev-parse --short HEAD))
 
@@ -17,7 +20,7 @@ publish-r-env: build-r-env ## Publish our R Environment
 pull-r-env: # Pull our R Build environment
 	docker pull $(BUILD_CONTAINER_NAME)
 
-build-r-package: pull-r-env ## Build the r package as tar ball
+build-r-package: clean pull-r-env ## Build the r package as tar ball
     # as we add more models we can just build them all here
 	# We have to run this with the build user's ids
 	# otherwise we end up with files we cannot modify
