@@ -164,27 +164,23 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   #ensure our model store directory exists
   dir.create(modelStoreDir, showWarnings = FALSE)
   
-  # all models output inla
+  loginfo("Saving smooth model")
+  # all models output smooth
+  modelQuery <- getModelQueryObjectFromModel(model, latent = FALSE)
+  modelId <- getModelIdFromQuery(modelQuery)
+  name <- getHumanReadableModelIdFromModel(model, latent = FALSE)
+  filename <-modelId
   newRow <- data.frame(
     filename = filename,
     name = name,
     queryJSON = as.character(jsonlite::toJSON(modelQuery)),
-    type = 'inla',
+    type = 'inla_observed',
     created = ts
   )
-
-  if (storeRDS) {
-    loginfo("Saving RDS")
-    outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
-    saveRDS(model,file = outfile)
-    close(outfile)
-  }
-  
-
-  loginfo("Saving smooth model")
-  # all models output smooth
-  newRow$type <- 'inla_observed'
   newRow$latent <- FALSE
+  
+  print("Saving observed model")
+  
   write.csv(
     model$modeledData,
     paste(modelStoreDir, '/', filename, '.csv', sep = ''),
@@ -196,6 +192,7 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     quote = FALSE, append = file.exists(modelDBfilename)
   )
   
+
   # If we have a latent_field type, write out that csv
   if (model$modelDefinition$type == 'latent_field') {
     modelQuery <- getModelQueryObjectFromModel(model, latent = TRUE)
@@ -226,6 +223,15 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
       quote = FALSE, append = file.exists(modelDBfilename)
     )
   }
+  
+  # all models output inla objects of smooth/observed or latent types
+  if (storeRDS) {
+    loginfo("Saving RDS")
+    outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
+    saveRDS(model,file = outfile)
+    close(outfile)
+  }
+  
 }
 
 
