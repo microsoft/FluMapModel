@@ -21,7 +21,8 @@ getHumanReadableModelIdFromQuery <- function(query) {
   result <- tolower(sprintf("%s-%s-%s",
                             paste(props$model_type,collapse = "."),
                             paste(props$pathogen, collapse = "."),
-                            paste(props$observed, collapse = ".")))
+                            paste(props$observed, collapse = "."),
+                            paste(props$spatial_domain, collapse = ".")))
   return(result)
 }
 
