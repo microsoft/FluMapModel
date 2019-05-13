@@ -32,15 +32,27 @@
             
   <h1>Source code for seattle_flu_incidence_mapper.apikey_auth</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">connexion.exceptions</span> <span class="k">import</span> <span class="n">OAuthProblem</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 
-<span class="n">TOKEN_DB</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;asdf1234567890&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;uid&#39;</span><span class="p">:</span> <span class="mi">100</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<span class="n">DEFAULT_TOKEN_DB_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;API_TOKEN_DB&quot;</span><span class="p">,</span> <span class="s2">&quot;/model_tokens&quot;</span><span class="p">)</span>
+<span class="n">true_values</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="get_token_db"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.apikey_auth.get_token_db">[docs]</a><span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_token_db</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load our token db from json file</span>
+
+<span class="sd">    we cache this function with lru_cache an no arguments so effectively it is a singleton</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">true_values</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DEBUG_TOKENS&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">true_values</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span> <span class="s1">&#39;sample_token&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;abc&#39;</span><span class="p">,</span> <span class="s1">&#39;role&#39;</span><span class="p">:</span><span class="s1">&#39;admin&#39;</span><span class="p">}}</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DEFAULT_TOKEN_DB_PATH</span><span class="p">,</span> <span class="s2">&quot;tokens.json&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">))</span></div>
+
 
 <div class="viewcode-block" id="apikey_auth"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.apikey_auth.apikey_auth">[docs]</a><span class="k">def</span> <span class="nf">apikey_auth</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">required_scopes</span><span class="p">):</span>
-    <span class="n">info</span> <span class="o">=</span> <span class="n">TOKEN_DB</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">get_token_db</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">info</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">OAuthProblem</span><span class="p">(</span><span class="s1">&#39;Invalid token&#39;</span><span class="p">)</span>
