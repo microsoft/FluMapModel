@@ -30,6 +30,8 @@ def get_model_id(query):
         query_json = dict(model_type=query['model_type'],
                           observed=sorted(observed, key=str.lower),
                           pathogen=pathogen)
+        if 'spatial_domain' in query:
+            query_json['spatial_domain'] = query['spatial_domain']
         json_str = json.dumps(query_json, sort_keys=True, separators=(',', ':'))
     else:
         json_str = query

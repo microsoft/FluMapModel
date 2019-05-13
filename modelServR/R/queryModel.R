@@ -52,6 +52,9 @@ queryLoadedModel <-
       # at moment we do NO filtering just return the full model
     }
     
+    # create lock file so server knows we are fetching model
+    lock_file = file.path(outputDir, paste(outputFile,'.lock', sep=""))
+    file.create(lock_file)
     #the write our result
     if (format == "csv") {
       write.csv(
@@ -64,5 +67,6 @@ queryLoadedModel <-
       
       jsonlite::write_json(model, file.path(outputDir, outputFile))
     }
+    file.remove(lock_file)
     return(TRUE)
   }

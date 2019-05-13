@@ -69,8 +69,10 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', lat
     result$pathogen <- "all"
   }
   
-  # grab spatial_domain from modelDefinition
-  result$spatial_domain <- model$modelDefinition$spatial_domain
+  if ('spatial_domain' %in% model$modelDefinition) {
+    # grab spatial_domain from modelDefinition
+    result$spatial_domain <- jsonlite::unbox(model$modelDefinition$spatial_domain)
+  }
   
   logdebug("Result: ", result)
   return(result)
@@ -159,6 +161,8 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   # extract json in sorted order
   # with only fields that matter
   filename <-modelId
+  rdsFilename <- if (storeRDS) paste(modelStoreDir, '/', filename, '.RDS', sep = '') else ''
+
 
   #ensure our model store directory exists
   dir.create(modelStoreDir, showWarnings = FALSE)
@@ -168,17 +172,10 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     filename = filename,
     name = name,
     queryJSON = as.character(jsonlite::toJSON(modelQuery)),
-    type = 'inla',
-    created = ts
+    type = 'inla_observed',
+    created = ts,
+    rds = rdsFilename
   )
-
-  if (storeRDS) {
-    loginfo("Saving RDS")
-    outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
-    saveRDS(model,file = outfile)
-    close(outfile)
-  }
-  
 
   loginfo("Saving smooth model")
   # all models output smooth
@@ -188,7 +185,7 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     model$modeledData,
     paste(modelStoreDir, '/', filename, '.csv', sep = ''),
     row.names = FALSE,
-    quote = FALSE
+    quote = FALSE,
   )
   write.table(
     newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
@@ -200,13 +197,15 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     modelQuery <- getModelQueryObjectFromModel(model, latent = TRUE)
     modelId <- getModelIdFromQuery(modelQuery)
     name <- getHumanReadableModelIdFromModel(model)
+    
     filename <-modelId
     newRow <- data.frame(
       filename = filename,
       name = name,
       queryJSON = as.character(jsonlite::toJSON(modelQuery)),
       type = 'inla_latent',
-      created = ts
+      created = ts,
+      rds = rdsFilename
     )
     newRow$latent <- TRUE
     
@@ -224,6 +223,14 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
       newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
       quote = FALSE, append = file.exists(modelDBfilename)
     )
+    
+    if (storeRDS) {
+      loginfo("Saving RDS")
+      outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
+      newRow$rds = paste(filename, '.RDS')
+      saveRDS(model,file = outfile)
+      close(outfile)
+    }
   }
 }
 
