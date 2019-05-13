@@ -17,7 +17,7 @@ app = connex_app.app
 app.config['WORKER_IMAGE'] = os.environ.get('WORKER_IMAGE', 'idm-docker-production.packages.idmod.org/sfim-worker:latest')
 app.config['MODEL_STORE'] = os.environ.get('MODEL_STORE', os.path.abspath(os.path.join(os.getcwd(), "../../test_model_store")))
 app.config['MODEL_HOST_PATH'] = os.environ.get('MODEL_HOST_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_model_store")))
-app.config['WORKER_JOB_HOST_PATH'] = os.environ.get('WORKER_JOB_DIR_HOST_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_jobs")))
+app.config['WORKER_JOB_HOST_PATH'] = os.environ.get('WORKER_JOB_HOST_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_jobs")))
 app.config['MODEL_JOB_PATH'] = os.environ.get('MODEL_JOB_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_jobs")))
 
 db = setup_db(basedir, app)
