@@ -39,6 +39,6 @@ ADD docker_scripts/entrypoint.sh docker_scripts/wsgi.ini ./
 ADD seattle_flu_incidence_mapper ./seattle_flu_incidence_mapper
 
 EXPOSE 80
-VOLUME [/model_store]
+#VOLUME [/model_store]
 
 CMD /app/entrypoint.sh

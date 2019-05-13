@@ -273,7 +273,7 @@ definitions:
     properties:
       model_type:
         type: "string"
-        example: "inla"
+        example: "inla_observed"
         description: "The model type. Currently we support inla and inla_latent models"
         enum: [inla_observed, inla_latent]
       observed:
@@ -282,10 +282,11 @@ definitions:
         items:
           type: "string"
         example:
-          - encountered_week
+          - residence_census_tract
+          - site_type
           - flu_shot
-          - PUMA5CE
-          - sampling_location
+          - sex
+          - encountered_week
       pathogen:
         type: array
         items:

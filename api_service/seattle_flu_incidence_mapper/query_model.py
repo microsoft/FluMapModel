@@ -53,6 +53,9 @@ def query(query_json):
             as_attachment=False,
             mimetype='application/json' if file_format == 'json' else 'text/csv'
         )
+    # Rethrow error for 404s
+    except NoResultFound as e:
+        raise e
     except Exception as e:
         current_app.logger.exception(e)
         if created and container:
