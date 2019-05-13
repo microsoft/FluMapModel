@@ -44,10 +44,10 @@ loadModelFileById <- function (filename, model_store_dir = Sys.getenv('MODEL_STO
 #'
 returnModel <- function(queryIn = jsonlite::toJSON(
                               list(
-                                SELECT   =list(COLUMN=c('site_type','residence_census_tract')),
-                                WHERE   =list(COLUMN='site_type', IN = c('kiosk')),
+                                SELECT   =list(COLUMN=c('pathogen','site_type','residence_census_tract')),
+                                WHERE   =list(COLUMN='pathogen', IN = 'all'),
                                 GROUP_BY =list(COLUMN=c('site_type','residence_census_tract')),
-                                SUMMARIZE=list(COLUMN='site_type', IN= c('kiosk'))
+                                SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
                                   )),
                             type = 'observed',
                             version = 'latest',
