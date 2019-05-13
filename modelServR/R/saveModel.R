@@ -5,8 +5,8 @@
 #' @return Unique String representing model in human readable format
 #' @export
 #'
-getHumanReadableModelIdFromModel <- function(model) {
-  return (getHumanReadableModelIdFromQuery(getModelQueryObjectFromModel(model)))
+getHumanReadableModelIdFromModel <- function(model, latent = FALSE) {
+  return (getHumanReadableModelIdFromQuery(getModelQueryObjectFromModel(model, latent)))
 }
 
 #' getHumanReadableModelIdFromQuery: return human readable verion of model from query
@@ -18,10 +18,11 @@ getHumanReadableModelIdFromModel <- function(model) {
 #'
 getHumanReadableModelIdFromQuery <- function(query) {
   props <- getModelQueryObjectFromQuery(query)
-  result <- tolower(sprintf("%s-%s-%s",
+  result <- tolower(sprintf("%s-%s-%s-%s",
                             paste(props$model_type,collapse = "."),
                             paste(props$pathogen, collapse = "."),
-                            paste(props$observed, collapse = ".")))
+                            paste(props$observed, collapse = "."),
+                            paste(props$spatial_domain, collapse = ".")))  # paste(paste()) would be easier to maintain, but I'm leaving this for now
   return(result)
 }
 
@@ -36,7 +37,7 @@ getHumanReadableModelIdFromQuery <- function(query) {
 #' @return An object containing the observed and the model_type fields
 #' @export
 #'
-getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', latent = FALSE) {
+getModelQueryObjectFromModel<- function(model, latent = FALSE) {
 
   result <- newEmptyObject()
   if (latent) {
@@ -44,7 +45,7 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', lat
     validColumnNames <- sort(colnames(model$modelDefinition$latentFieldData))
     
   } else {
-    result$model_type <- jsonlite::unbox(model_type)
+    result$model_type <- jsonlite::unbox('inla_observed')
     validColumnNames <- sort(colnames(model$modelDefinition$observedData))
   }
     
@@ -70,7 +71,7 @@ getModelQueryObjectFromModel<- function(model, model_type = 'inla_observed', lat
   }
   
   # grab spatial_domain from modelDefinition
-  result$spatial_domain <- model$modelDefinition$spatial_domain
+  result$spatial_domain <- model$modelDefinition$spatialDomain[1]
   
   logdebug("Result: ", result)
   return(result)
@@ -128,8 +129,8 @@ getModelIdFromQuery <- function(query) {
   setLevel("FINEST")
 
   #props <- getModelQueryObjectFromQuery(query)
-  modelId <- as.character(jsonlite::toJSON(query, simplifyDataFrame=))
-  logdebug("Model ID JSON:", jsonlite::toJSON(query, simplifyDataFrame=))
+  modelId <- as.character(jsonlite::toJSON(query))
+  logdebug("Model ID JSON:", jsonlite::toJSON(query))
   modelId <- digest::digest(modelId, serialize=FALSE)
   logdebug("Model ID Hash:", modelId)
   return(modelId)
@@ -163,27 +164,23 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   #ensure our model store directory exists
   dir.create(modelStoreDir, showWarnings = FALSE)
   
-  # all models output inla
+  loginfo("Saving smooth model")
+  # all models output smooth
+  modelQuery <- getModelQueryObjectFromModel(model, latent = FALSE)
+  modelId <- getModelIdFromQuery(modelQuery)
+  name <- getHumanReadableModelIdFromModel(model, latent = FALSE)
+  filename <-modelId
   newRow <- data.frame(
     filename = filename,
     name = name,
     queryJSON = as.character(jsonlite::toJSON(modelQuery)),
-    type = 'inla',
+    type = 'inla_observed',
     created = ts
   )
-
-  if (storeRDS) {
-    loginfo("Saving RDS")
-    outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
-    saveRDS(model,file = outfile)
-    close(outfile)
-  }
-  
-
-  loginfo("Saving smooth model")
-  # all models output smooth
-  newRow$type <- 'inla_observed'
   newRow$latent <- FALSE
+  
+  print("Saving observed model")
+  
   write.csv(
     model$modeledData,
     paste(modelStoreDir, '/', filename, '.csv', sep = ''),
@@ -195,11 +192,12 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
     quote = FALSE, append = file.exists(modelDBfilename)
   )
   
+
   # If we have a latent_field type, write out that csv
   if (model$modelDefinition$type == 'latent_field') {
     modelQuery <- getModelQueryObjectFromModel(model, latent = TRUE)
     modelId <- getModelIdFromQuery(modelQuery)
-    name <- getHumanReadableModelIdFromModel(model)
+    name <- getHumanReadableModelIdFromModel(model, latent = TRUE)
     filename <-modelId
     newRow <- data.frame(
       filename = filename,
@@ -225,6 +223,15 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
       quote = FALSE, append = file.exists(modelDBfilename)
     )
   }
+  
+  # all models output inla objects of smooth/observed or latent types
+  if (storeRDS) {
+    loginfo("Saving RDS")
+    outfile <- xzfile(paste(modelStoreDir, '/', filename, '.RDS', sep = ''), 'wb', compress=9, encoding = 'utf8')
+    saveRDS(model,file = outfile)
+    close(outfile)
+  }
+  
 }
 
 

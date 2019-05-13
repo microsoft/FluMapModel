@@ -19,3 +19,4 @@ modelDB.tsv
 test_model_store/*
 plots/*
 .idea/
+plots/*

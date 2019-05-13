@@ -5,7 +5,7 @@
 \title{saveModel: function to save models and register them in modelDB.csv}
 \usage{
 saveModel(model, modelStoreDir = Sys.getenv("MODEL_STORE",
-  "/home/rstudio/seattle_flu/test_model_store"))
+  "/home/rstudio/seattle_flu/test_model_store"), storeRDS = TRUE)
 }
 \arguments{
 \item{model}{INLA object}
