@@ -43,9 +43,10 @@ def query(query_json):
             execute_model_query(socket, file_format, outfile)
 
         lock_path = full_outpath + ".lock"
+        time.sleep(0.1)
         x = 0
         while os.path.exists(lock_path) and x < 10:
-            time.sleep(0.05)
+            time.sleep(0.1)
             x += 1
         return send_file(
             full_outpath,
