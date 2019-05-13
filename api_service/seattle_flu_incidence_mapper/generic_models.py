@@ -1,6 +1,8 @@
 # API Methods for the /pathogen_models calls
+import hashlib
+
 from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file, create_id_from_query_str
-from seattle_flu_incidence_mapper.models.pathogen_model import PathogenModel, PathogenModelSchema
+from seattle_flu_incidence_mapper.models.generic_model import GenericModel, GenericModelSchema
 from seattle_flu_incidence_mapper.config import db
 from flask import abort, request,  make_response, send_file
 
@@ -16,10 +18,10 @@ def read_all():
     # Create the list of pathogen_models from our data
 
     # Create the list of pathogen_models from our data
-    pathogen_models = PathogenModel.query.order_by(PathogenModel.created.desc()).all()
+    pathogen_models = GenericModel.query.order_by(GenericModel.created.desc()).all()
 
     # Serialize the data for the response
-    pathogen_model_schema = PathogenModelSchema(many=True)
+    pathogen_model_schema = GenericModelSchema(many=True)
     data = pathogen_model_schema.dump(pathogen_models).data
     return data
 
@@ -28,17 +30,17 @@ def read(model_id):
     """
     This function responds to a request for /api/pathogen_models/{pathogen_model_id}
     with one matching pathogen_model from pathogen_models
-    :param pathogen_model_id:   Id of pathogen_model to find
+    :param model_id:   Id of pathogen_model to find
     :return:            pathogen_model matching id
     """
     # Get the pathogen_model requested
-    pathogen_model = PathogenModel.query.filter(PathogenModel.id == model_id).one_or_none()
+    pathogen_model = GenericModel.query.filter(GenericModel.id == model_id).one_or_none()
 
     # Did we find a pathogen_model?
     if pathogen_model is not None:
 
         # Serialize the data for the response
-        pathogen_model_schema = PathogenModelSchema()
+        pathogen_model_schema = GenericModelSchema()
         data = pathogen_model_schema.dump(pathogen_model).data
         return data
 
@@ -54,27 +56,33 @@ def create():
     """
     This function creates a new pathogen_model in the pathogen_models structure
     based on the passed in pathogen_model data
-    :param pathogen_model:  pathogen_model to create in pathogen_models structure
     :return:        201 on success, 406 on pathogen_model exists
     """
 
+    rds_key=None
+    if 'rds' in request.files:
+        rds_key = hashlib.md5(request.files['rds'].read()).hexdigest()
 
     #build our pathogenmodel object first
-    pathogen_model = dict(id=get_model_id(request.form['query_str']),
+    model = dict(id=get_model_id(request.form['query_str']),
                           name=request.form['name'],
                           query_str=request.form['query_str'],
+                          #rds_key=None,
                           model_type=request.form['model_type'])
 
-    schema = PathogenModelSchema()
-    new_pathogen_model = schema.load(pathogen_model, session=db.session).data
+    schema = GenericModelSchema()
+    new_model = schema.load(model, session=db.session).data
     # Add the pathogen_model to the database
-    db.session.add(new_pathogen_model)
+    db.session.add(new_model)
     db.session.commit()
 
     # save the files to our config directory
-    save_model_file(request.files['model'], f'{new_pathogen_model.id}.csv')
+    save_model_file(request.files['model'], f'{new_model.id}.csv')
+
+    if 'rds' in request.files:
+        save_model_file(request.files['model'], f'{rds_key}.RDS')
     # Serialize and return the newly created pathogen_model in the response
-    data = schema.dump(new_pathogen_model).data
+    data = schema.dump(new_model).data
 
     return data, 201
 
@@ -87,15 +95,15 @@ def update(pathogen_model_id, pathogen_model):
     :return:            updated pathogen_model structure
     """
     # Get the pathogen_model requested from the db into session
-    update_pathogen_model = PathogenModel.query.filter(
-        PathogenModel.id == pathogen_model_id
+    update_pathogen_model = GenericModel.query.filter(
+        GenericModel.id == pathogen_model_id
     ).one_or_none()
 
     # Did we find a pathogen_model?
     if update_pathogen_model is not None:
 
         # turn the passed in pathogen_model into a db object
-        schema = PathogenModelSchema()
+        schema = GenericModelSchema()
         updated = schema.load(pathogen_model, session=db.session).data
 
         # Set the id to the pathogen_model we want to update
@@ -125,7 +133,7 @@ def delete(pathogen_model_id):
     :return:            200 on successful delete, 404 if not found
     """
     # Get the pathogen_model requested
-    pathogen_model = PathogenModel.query.filter(PathogenModel.id == pathogen_model_id).one_or_none()
+    pathogen_model = GenericModel.query.filter(GenericModel.id == pathogen_model_id).one_or_none()
 
     # Did we find a pathogen_model?
     if pathogen_model is not None:
@@ -150,36 +158,14 @@ def model_file(modelId):
     :return:
     """
     # Get the pathogen_model requested from the db into session
-    pathogen_model = PathogenModel.query.filter(
-        PathogenModel.id == modelId
-    ).order_by(PathogenModel.created.desc()).first()
+    pathogen_model = GenericModel.query.filter(
+        GenericModel.id == modelId
+    ).order_by(GenericModel.created.desc()).first()
 
     # Did we find a pathogen_model?
     if pathogen_model is not None:
         is_latent = request.args.get("latent", "0").lower() in ('1', 'y', 'yes', 't', 'true', True, 1)
-        send_file(get_model_file(modelId,latent=is_latent))
-    # Otherwise, nope, didn't find that pathogen_model
-    else:
-        abort(
-            404,
-            "Pathogen Model not found for Id: {pathogen_model_id}".format(pathogen_model_id=modelId),
-        )
-
-
-def model_rds(modelId):
-    """
-        Returns the model file to the user
-        :param pathogen_model_id:
-        :return:
-        """
-    # Get the pathogen_model requested from the db into session
-    pathogen_model = PathogenModel.query.filter(
-        PathogenModel.id == modelId
-    ).one_or_none()
-
-    # Did we find a pathogen_model?
-    if pathogen_model is not None:
-        send_file(get_model_file(modelId, rds=True))
+        return send_file(get_model_file(modelId))
     # Otherwise, nope, didn't find that pathogen_model
     else:
         abort(

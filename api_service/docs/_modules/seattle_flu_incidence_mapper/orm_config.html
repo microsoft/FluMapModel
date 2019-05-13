@@ -40,12 +40,13 @@
 <div class="viewcode-block" id="get_db"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.orm_config.get_db">[docs]</a><span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">db</span></div>
 
+
 <div class="viewcode-block" id="setup_db"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.orm_config.setup_db">[docs]</a><span class="k">def</span> <span class="nf">setup_db</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
     <span class="k">global</span>  <span class="n">db</span>
 
     <span class="c1"># Configure the SQLAlchemy part of the app instance</span>
     <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SQLALCHEMY_ECHO&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SQLALCHEMY_DATABASE_URI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sqlite:////&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s1">&#39;models.db&#39;</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SQLALCHEMY_DATABASE_URI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SQLALCHEMY_DATABASE_URI&#39;</span><span class="p">,</span><span class="s1">&#39;sqlite:////&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s1">&#39;models.db&#39;</span><span class="p">))</span>
     <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SQLALCHEMY_TRACK_MODIFICATIONS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
 

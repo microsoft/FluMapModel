@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Contributing &#8212; seattle_flu 1.0.0 documentation</title>
+    <meta charset="utf-8" />
+    <title>Contributing &#8212; seattle_flu_incidence_mapper 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -17,7 +15,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Credits" href="authors.html" />
-    <link rel="prev" title="seattle_flu.tasks package" href="seattle_flu.tasks.html" />
+    <link rel="prev" title="seattle_flu_incidence_mapper.models package" href="seattle_flu_incidence_mapper.models.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -36,7 +34,113 @@
             
   <div class="section" id="contributing">
 <h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
-<p>. include:: ../CONTRIBUTING.rst</p>
+<div class="section" id="id1">
+<h2>Contributing<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Contributions are welcome, and they are greatly appreciated! Every little bit
+helps, and credit will always be given.</p>
+<p>You can contribute in many ways:</p>
+<div class="section" id="types-of-contributions">
+<h3>Types of Contributions<a class="headerlink" href="#types-of-contributions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="report-bugs">
+<h4>Report Bugs<a class="headerlink" href="#report-bugs" title="Permalink to this headline">¶</a></h4>
+<p>Report bugs at <a class="reference external" href="https://github.com/InstituteforDiseaseModeling/Seattle-Flu-Incidence-Mapper/issues">https://github.com/InstituteforDiseaseModeling/Seattle-Flu-Incidence-Mapper/issues</a>.</p>
+<p>If you are reporting a bug, please include:</p>
+<ul class="simple">
+<li><p>Your operating system name and version.</p></li>
+<li><p>Any details about your local setup that might be helpful in troubleshooting.</p></li>
+<li><p>Detailed steps to reproduce the bug.</p></li>
+</ul>
+</div>
+<div class="section" id="fix-bugs">
+<h4>Fix Bugs<a class="headerlink" href="#fix-bugs" title="Permalink to this headline">¶</a></h4>
+<p>Look through the GitHub issues for bugs. Anything tagged with “bug” and “help
+wanted” is open to whoever wants to implement it.</p>
+</div>
+<div class="section" id="implement-features">
+<h4>Implement Features<a class="headerlink" href="#implement-features" title="Permalink to this headline">¶</a></h4>
+<p>Look through the GitHub issues for features. Anything tagged with “enhancement”
+and “help wanted” is open to whoever wants to implement it.</p>
+</div>
+<div class="section" id="write-documentation">
+<h4>Write Documentation<a class="headerlink" href="#write-documentation" title="Permalink to this headline">¶</a></h4>
+<p>Seattle Flu Incidence Mapper could always use more documentation, whether as part of the
+official Seattle Flu Incidence Mapper docs, in docstrings, or even on the web in blog posts,
+articles, and such.</p>
+</div>
+<div class="section" id="submit-feedback">
+<h4>Submit Feedback<a class="headerlink" href="#submit-feedback" title="Permalink to this headline">¶</a></h4>
+<p>The best way to send feedback is to file an issue at <a class="reference external" href="https://github.com/InstituteforDiseaseModeling/Seattle-Flu-Incidence-Mapper/issues">https://github.com/InstituteforDiseaseModeling/Seattle-Flu-Incidence-Mapper/issues</a>.</p>
+<p>If you are proposing a feature:</p>
+<ul class="simple">
+<li><p>Explain in detail how it would work.</p></li>
+<li><p>Keep the scope as narrow as possible, to make it easier to implement.</p></li>
+<li><p>Remember that this is a volunteer-driven project, and that contributions
+are welcome :)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="get-started">
+<h3>Get Started!<a class="headerlink" href="#get-started" title="Permalink to this headline">¶</a></h3>
+<p>Ready to contribute? Here’s how to set up <cite>Seattle-Flu-Incidence-Mapper</cite> for local development.</p>
+<ol class="arabic">
+<li><p>Fork the <cite>Seattle-Flu-Incidence-Mapper</cite> repo on GitHub.</p></li>
+<li><p>Clone your fork locally:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ git clone git@github.com:your_name_here/Seattle-Flu-Incidence-Mapper.git
+</pre></div>
+</div>
+</li>
+<li><p>Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ mkvirtualenv Seattle-Flu-Incidence-Mapper
+$ <span class="nb">cd</span> Seattle-Flu-Incidence-Mapper/
+$ python setup.py develop
+</pre></div>
+</div>
+</li>
+<li><p>Create a branch for local development:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ git checkout -b name-of-your-bugfix-or-feature
+</pre></div>
+</div>
+<p>Now you can make your changes locally.</p>
+</li>
+<li><p>When you’re done making changes, check that your changes pass flake8 and the
+tests, including testing other Python versions with tox:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ flake8 Seattle-Flu-Incidence-Mapper tests
+$ python setup.py <span class="nb">test</span> or py.test
+$ tox
+</pre></div>
+</div>
+<p>To get flake8 and tox, just pip install them into your virtualenv.</p>
+</li>
+<li><p>Commit your changes and push your branch to GitHub:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ git add .
+$ git commit -m <span class="s2">&quot;Your detailed description of your changes.&quot;</span>
+$ git push origin name-of-your-bugfix-or-feature
+</pre></div>
+</div>
+</li>
+<li><p>Submit a pull request through the GitHub website.</p></li>
+</ol>
+</div>
+<div class="section" id="tips">
+<h3>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h3>
+<p>To run a subset of tests:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ py.test tests.test_Seattle-Flu-Incidence-Mapper
+</pre></div>
+</div>
+</div>
+<div class="section" id="deploying">
+<h3>Deploying<a class="headerlink" href="#deploying" title="Permalink to this headline">¶</a></h3>
+<p>A reminder for the maintainers on how to deploy.
+Make sure all your changes are committed (including an entry in HISTORY.rst).
+Then run:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ bumpversion patch <span class="c1"># possible: major / minor / patch</span>
+$ git push
+$ git push --tags
+</pre></div>
+</div>
+<p>Travis will then deploy to PyPI if tests pass.</p>
+</div>
+</div>
 </div>
 
 
@@ -46,7 +150,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">seattle_flu</a></h1>
+<h1 class="logo"><a href="index.html">seattle_flu_incidence_mapper</a></h1>
 
 
 
@@ -61,8 +165,11 @@
 <li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">seattle_flu</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">seattle_flu_incidence_mapper</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Contributing</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html#id1">0.0.1</a></li>
@@ -72,7 +179,7 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="seattle_flu.tasks.html" title="previous chapter">seattle_flu.tasks package</a></li>
+      <li>Previous: <a href="seattle_flu_incidence_mapper.models.html" title="previous chapter">seattle_flu_incidence_mapper.models package</a></li>
       <li>Next: <a href="authors.html" title="next chapter">Credits</a></li>
   </ul></li>
 </ul>
@@ -83,8 +190,6 @@
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -105,7 +210,7 @@
       &copy;.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

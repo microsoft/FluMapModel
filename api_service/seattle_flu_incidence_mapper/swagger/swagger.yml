@@ -10,7 +10,7 @@ info:
     url: "https://raw.githubusercontent.com/seattleflu/incidence-mapper/master/LICENSE"
 basePath: "/v1"
 tags:
-- name: "pathogen_model"
+- name: "generic_model"
   description: "Stores our different models"
   externalDocs:
     description: "Github"
@@ -70,13 +70,13 @@ paths:
             type: "object"
             $ref: '#/definitions/ErrorResponse'
 
-  /pathogen_models:
+  /generic_models:
     get:
       tags:
-      - "pathogen_model"
+      - "generic_model"
       summary: "List available models"
       description: "List available pathogen models"
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.read_all"
+      operationId: "seattle_flu_incidence_mapper.generic_models.read_all"
       produces:
       - "application/json"
       responses:
@@ -88,10 +88,10 @@ paths:
               $ref: "#/definitions/PathogenModel"
     post:
       tags:
-      - "pathogen_model"
+      - "generic_model"
       summary: "Add a new pathogen model to the model store"
       description: "This is the api we use to upload models. These make models created by researchers available through the api. To register a model it should include its model_type, name, and query"
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.create"
+      operationId: "seattle_flu_incidence_mapper.generic_models.create"
       consumes:
       - multipart/form-data
       produces:
@@ -122,13 +122,13 @@ paths:
           description: "Invalid input"
       security:
       - api_key: []
-  /pathogen_models/{modelId}:
+  /generic_models/{modelId}:
     get:
       tags:
-      - "pathogen_model"
+      - "generic_model"
       summary: "Find pathogen model by ID"
       description: "Returns a single pathogen model"
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.read"
+      operationId: "seattle_flu_incidence_mapper.generic_models.read"
       produces:
       - "application/json"
       parameters:
@@ -149,10 +149,10 @@ paths:
           description: "PathogenModel not found"
     delete:
       tags:
-      - "pathogen_model"
+      - "generic_model"
       summary: "Deletes a pathogen model"
       description: ""
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.delete"
+      operationId: "seattle_flu_incidence_mapper.generic_models.delete"
       produces:
       - "application/json"
       parameters:
@@ -175,10 +175,10 @@ paths:
       - api_key: []
     put:
       tags:
-      - "pathogen_model"
+      - "generic_model"
       summary: "Update an existing model"
       description: ""
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.update"
+      operationId: "seattle_flu_incidence_mapper.generic_models.update"
       consumes:
       - "application/json"
       produces:
@@ -209,13 +209,13 @@ paths:
           description: "Validation exception"
       security:
       - api_key: []
-  /pathogen_models/{modelId}/model:
+  /generic_models/{modelId}/model:
     get:
       tags:
-      - "pathogen_model"
+      - "generic_model"
       summary: "Find pathogen model file by ID"
       description: "Returns a single pathogen model file"
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.model_file"
+      operationId: "seattle_flu_incidence_mapper.generic_models.model_file"
       produces:
       - "application/octet-stream"
       parameters:
@@ -230,31 +230,6 @@ paths:
         required: false
         type: "boolean"
         default: false
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: file
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "PathogenModel not found"
-  /pathogen_models/{modelId}/rds:
-    get:
-      tags:
-      - "pathogen_model"
-      summary: "Find pathogen model RDS file by ID"
-      description: "Returns a single pathogen model RDS file"
-      operationId: "seattle_flu_incidence_mapper.pathogen_models.model_rds"
-      produces:
-      - "application/octet-stream"
-      parameters:
-      - name: "modelId"
-        in: "path"
-        description: "ID of Pathogen Model to return"
-        required: true
-        type: "integer"
-        format: "int64"
       responses:
         200:
           description: "successful operation"
@@ -300,7 +275,7 @@ definitions:
         type: "string"
         example: "inla"
         description: "The model type. Currently we support inla and inla_latent models"
-        enum: [inla, inla_latent]
+        enum: [inla_observed, inla_latent]
       observed:
         type: "array"
         description: "List of observed fields"
@@ -317,6 +292,9 @@ definitions:
           type: "string"
         default:
           - "all"
+      spatial_domain:
+        type: string
+        example: seattle_geojson_census_tract
   ErrorResponse:
     type: "object"
     required:
@@ -338,3 +316,4 @@ definitions:
 externalDocs:
   description: "The Seattle Flu Study Model Output API"
   url: "https://github.com/seattleflu/incidence-mapper"
+  

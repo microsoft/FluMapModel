@@ -35,7 +35,7 @@
 
 <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">current_app</span>
 
-<span class="kn">from</span> <span class="nn">seattle_flu_incidence_mapper.models.pathogen_model</span> <span class="k">import</span> <span class="n">PathogenModel</span>
+<span class="kn">from</span> <span class="nn">seattle_flu_incidence_mapper.models.generic_model</span> <span class="k">import</span> <span class="n">GenericModel</span>
 
 
 <div class="viewcode-block" id="create_id_from_query_str"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.model_store.create_id_from_query_str">[docs]</a><span class="k">def</span> <span class="nf">create_id_from_query_str</span><span class="p">(</span><span class="n">query_str</span><span class="p">):</span>
@@ -45,18 +45,13 @@
 <div class="viewcode-block" id="get_model_id_from_query_str"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.model_store.get_model_id_from_query_str">[docs]</a><span class="k">def</span> <span class="nf">get_model_id_from_query_str</span><span class="p">(</span><span class="n">query_str</span><span class="p">):</span>
     <span class="c1"># do query string cleanup here</span>
     <span class="c1"># TODO</span>
-    <span class="n">pathogen_model</span> <span class="o">=</span> <span class="n">PathogenModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">PathogenModel</span><span class="o">.</span><span class="n">query_str</span> <span class="o">==</span> <span class="n">query_str</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">pathogen_model</span></div>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">GenericModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">GenericModel</span><span class="o">.</span><span class="n">query_str</span> <span class="o">==</span> <span class="n">query_str</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">model</span></div>
 
 
-<div class="viewcode-block" id="get_model_file"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.model_store.get_model_file">[docs]</a><span class="k">def</span> <span class="nf">get_model_file</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">rds</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">latent</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="get_model_file"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.model_store.get_model_file">[docs]</a><span class="k">def</span> <span class="nf">get_model_file</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
     <span class="n">basedir</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MODEL_STORE&#39;</span><span class="p">,</span> <span class="s1">&#39;/model_store&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">rds</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.RDS&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">latent</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.latent_field.cvs&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.csv&quot;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.csv&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="save_model_file"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.model_store.save_model_file">[docs]</a><span class="k">def</span> <span class="nf">save_model_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
