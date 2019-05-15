@@ -39,7 +39,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Uploads trained SF Models to production')
     parser.add_argument("--db-file", default=os.path.join(default_model_store_path, "modelDB.tsv"), help="Where the modelDB.tsv produced during training is stored")
     parser.add_argument("--model-store", default=default_model_store_path)
-    parser.add_argument("--api-url", default="http://40.112.165.255/v1/pathogen_models", help="URL for Seattle FLU API Incidence Mapper Model Server API")
+    parser.add_argument("--api-url", default="http://40.112.165.255/v1/generic_models",
+                        help="URL for Seattle FLU API Incidence Mapper Model Server API")
     parser.add_argument("--api-key", help="API-KEY Allowing uploads")
     
     args = parser.parse_args()
