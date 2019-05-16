@@ -68,12 +68,6 @@ def create():
         model_key = hashlib.md5(request.files['model'].read()).hexdigest()
 
     model_id = get_model_id(request.form['query_str'])
-    # check for existing models
-    existing_model = GenericModel.query.filter(and_(GenericModel.model_key == model_key, GenericModel.id == model_id)).one_or_none()
-    if existing_model:
-        return Response(response=json.dumps({'error': f'Model with the id {model_id} and model_data '
-                                                      f'with checksum {model_key} already exists'}),
-                        status=409, mimetype="application/json")
 
     #build our pathogenmodel object first
     model = dict(id=model_id,
