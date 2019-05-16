@@ -170,7 +170,16 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
   # drop rows with NA since incidenceMapR (INLA) will ignore them anyway
     if(na.rm){
+      
+      # fixes #Error in charToDate(x): character string is not in a standard unambiguous format
+      dateIdx<- (sapply(db,class)=="Date")
+      db[,dateIdx] <- as.character(db[,dateIdx])
+      
       db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
+      
+      # restore type
+      db[,dateIdx] <- as.Date(db[,dateIdx])
+    
     }
     
   summarizedData <- list(observedData = db,queryList = c(queryList))
