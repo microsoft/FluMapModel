@@ -151,7 +151,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       }
   
       # "pathogen" column is required for incidenceMapR model definitions
-        if(!('pathogn' %in% queryList$GROUP_BY$COLUMN)){
+        if(!('pathogen' %in% queryList$GROUP_BY$COLUMN)){
           if( 'pathogen' %in% queryList$WHERE$COLUMN){
             db$pathogen <- queryList$WHERE$IN['pathogen' %in% queryList$WHERE$COLUMN]
           } else {
