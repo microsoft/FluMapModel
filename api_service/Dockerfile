@@ -35,6 +35,8 @@ VOLUME /model_data
 # Finish the setup
 ADD docker_scripts/nginx.conf /etc/nginx/nginx.conf
 ADD docker_scripts/entrypoint.sh docker_scripts/wsgi.ini ./
+# Add migrations
+ADD migrations ./migrations
 # Add the rest of our library here
 ADD seattle_flu_incidence_mapper ./seattle_flu_incidence_mapper
 

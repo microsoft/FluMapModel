@@ -51,7 +51,7 @@ setup(
         'marshmallow-sqlalchemy',
         "docker",
         'psycopg2-binary',
-        ''
+        'Flask-Migrate'
     ],
 
     extras_require={
