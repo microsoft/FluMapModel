@@ -13,7 +13,7 @@
 modelTrainR <- function(modelDefinition){
   
   # run model
-  model <- inla(formula = modelDefinition$formula,
+  model <- INLA::inla(formula = modelDefinition$formula,
                 family = modelDefinition$family, 
                 data = modelDefinition$inputData, 
                 lincomb = modelDefinition$lincomb,
@@ -38,6 +38,14 @@ modelTrainR <- function(modelDefinition){
     return(list(modeledData = modeledDataList$modeledData, latentField = modeledDataList$latentField,
                 inla = model, modelDefinition = modelDefinition))
     
+  } else if (modelDefinition$type == 'vaccine_efficacy'){
+    
+    modeledDataList <- appendFluVaxEfficacyData(model,modelDefinition)
+    
+    # return output data
+    return(list(modeledData = modeledDataList$modeledData, vaxEfficacyData = modeledDataList$vaxEfficacyData,
+                inla = model, modelDefinition = modelDefinition))
+  
   } else if (modelDefinition$type == 'effects'){
     
   }
