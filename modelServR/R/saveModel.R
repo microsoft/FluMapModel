@@ -70,7 +70,7 @@ getModelQueryObjectFromModel<- function(model, latent = FALSE) {
     result$pathogen <- "all"
   }
   
-  if ('spatial_domain' %in% model$modelDefinition) {
+  if ( !is.null(model$modelDefinition$spatial_domain)) {
     # grab spatial_domain from modelDefinition
     result$spatial_domain <- jsonlite::unbox(model$modelDefinition$spatial_domain)
   }
