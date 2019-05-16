@@ -178,7 +178,9 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       db <- db %>% replace(.=='NA', NA) %>% tidyr::drop_na()
       
       # restore type
-      db[,dateIdx] <- as.Date(db[,dateIdx])
+      if (any(dateIdx)){
+        db[,dateIdx] <- as.Date(db[,dateIdx])
+      }
     
     }
     
