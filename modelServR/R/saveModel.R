@@ -158,48 +158,15 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
   #ensure our model store directory exists
   dir.create(modelStoreDir, showWarnings = FALSE)
 
-  loginfo("Saving smooth model")
-  # all models output smooth
-  # extract json in sorted order
-  modelQuery <- getModelQueryObjectFromModel(model, latent = FALSE)
-  # create an id that is predictable based on the query the produced the model
-  modelId <- getModelIdFromQuery(modelQuery)
-  name <- getHumanReadableModelIdFromModel(model, latent = FALSE)
-
-  filename <-modelId
-  # We store rds with smooth model name and we then can load that from either latent or smooth later id needed
-  # This is only used when Store RDS is True
-  rdsFilename <- if (storeRDS) paste(modelStoreDir, '/', filename, '.RDS', sep = '') else ''
-
-  newRow <- data.frame(
-    filename = filename,
-    name = name,
-    queryJSON = as.character(jsonlite::toJSON(modelQuery)),
-    type = 'inla_observed',
-    created = ts,
-    rds = rdsFilename,
-      latent = FALSE
-  )
-
-  loginfo("Saving observed model")
-
-  write.csv(
-    model$modeledData,
-    paste(modelStoreDir, '/', filename, '.csv', sep = ''),
-    row.names = FALSE,
-    quote = FALSE,
-  )
-  write.table(
-    newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
-    quote = FALSE, append = file.exists(modelDBfilename)
-  )
-  
-  # If we have a latent_field type, write out that csv
+  # If we have a latent_field type, use that as base model and write out that csv
   if (model$modelDefinition$type == 'latent_field') {
     modelQuery <- getModelQueryObjectFromModel(model, latent = TRUE)
     modelId <- getModelIdFromQuery(modelQuery)
     name <- getHumanReadableModelIdFromModel(model, latent = TRUE)
+    
     filename <-modelId
+    rdsFilename <- if (storeRDS){ paste(modelStoreDir, '/', filename, '.RDS', sep = '')} else {''}
+    
     newRow <- data.frame(
       filename = filename,
       name = name,
@@ -224,13 +191,48 @@ saveModel <- function(model, modelStoreDir =  Sys.getenv('MODEL_STORE', '/home/r
       newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
       quote = FALSE, append = file.exists(modelDBfilename)
     )
-
-    if (storeRDS) {
-      loginfo("Saving RDS")
-      outfile <- xzfile(rdsFilename, 'wb', compress=9, encoding = 'utf8')
-      saveRDS(model,file = outfile)
-      close(outfile)
-    }
+  }
+  
+  # all models output smooth
+  loginfo("Saving smooth model")
+  modelQuery <- getModelQueryObjectFromModel(model, latent = FALSE)
+  modelId <- getModelIdFromQuery(modelQuery)
+  name <- getHumanReadableModelIdFromModel(model, latent = FALSE)
+  
+  filename <-modelId
+  
+  # We store rds with smooth model name and we then can load that from either latent or smooth later id needed
+  # This is only used when Store RDS is True
+  if (storeRDS & !exists('rdsFilename')){ rdsFilename <- paste(modelStoreDir, '/', filename, '.RDS', sep = '')}
+  
+  newRow <- data.frame(
+    filename = filename,
+    name = name,
+    queryJSON = as.character(jsonlite::toJSON(modelQuery)),
+    type = 'inla_observed',
+    created = ts,
+    rds = rdsFilename,
+    latent = FALSE
+  )
+  
+  loginfo("Saving observed model")
+  
+  write.csv(
+    model$modeledData,
+    paste(modelStoreDir, '/', filename, '.csv', sep = ''),
+    row.names = FALSE,
+    quote = FALSE
+  )
+  write.table(
+    newRow, file = modelDBfilename, sep = '\t', row.names = FALSE, col.names = !file.exists(modelDBfilename),
+    quote = FALSE, append = file.exists(modelDBfilename)
+  )
+  
+  if (storeRDS) {
+    loginfo("Saving RDS")
+    outfile <- xzfile(rdsFilename, 'wb', compress=9, encoding = 'utf8')
+    saveRDS(model,file = outfile)
+    close(outfile)
   }
 }
 
