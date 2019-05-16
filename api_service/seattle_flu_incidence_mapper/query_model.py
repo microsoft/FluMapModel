@@ -39,7 +39,8 @@ def query(query_json):
                                               file_format=file_format)).encode('ascii')).hexdigest()
         full_outpath = os.path.join(job_path, outfile)
         if not os.path.exists(full_outpath):
-            os.makedirs(job_path)
+            if not os.path.exists(job_path):
+                os.makedirs(job_path)
             # new request or a updated model.
             # We have our model, lets check to see if we alread have a worker container
             container, socket, created = get_or_create_model_container(job_path, host_job_path, model_id)
@@ -48,16 +49,19 @@ def query(query_json):
         lock_path = full_outpath + ".lock"
         time.sleep(0.1)
         x = 0
-        while os.path.exists(lock_path) and x < 10:
-            time.sleep(0.05)
+        while not(os.path.exists(full_outpath)) and x < 50:
+            time.sleep(0.1)
             x += 1
+        #if not os.path.exists(full_outpath):
+        #    raise FileNotFoundError
         return send_file(
             full_outpath,
             as_attachment=False,
             mimetype='application/json' if file_format == 'json' else 'text/csv'
         )
     # Rethrow error for 404s
-    except NoResultFound as e:
+    except (NoResultFound, FileNotFoundError) as e:
+        current_app.logger.exception(e)
         raise e
     except Exception as e:
         current_app.logger.exception(e)
@@ -77,7 +81,9 @@ def execute_model_query(socket, file_format, outfile):
     :return:
     """
     # Run our query against the model(should already be loaded)
+
     command = f'queryLoadedModel(model, "{outfile}", format="{file_format}")\n'
+    current_app.logger.debug('Executing R Command: %s', command)
     socket._sock.send(command.encode('utf-8'))
     socket.close()
     time.sleep(0.05)
@@ -113,6 +119,7 @@ def get_or_create_model_container(local_job_path, host_job_path, model_id):
         }
         container_env = dict(MODEL_STORE="/worker_model_store",
                              WORKER_DIR=f"/jobs/{model_id}")
+        current_app.logger.debug('Starting worker container for model %s', model_id)
         container = client.containers.run(image,
                                           name=f"sfim-{model_id}",
                                           tty=True, detach=True,
@@ -126,6 +133,7 @@ def get_or_create_model_container(local_job_path, host_job_path, model_id):
         time.sleep(0.1)
     # if we need to connect to an existing container, do do now
     if socket is None:
+        current_app.logger.debug('Attaching to socket for %s', model_id)
         socket = container.attach_socket(params={'stdin': 1, 'stream': 1})
     return container, socket, created
 

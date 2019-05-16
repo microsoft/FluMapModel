@@ -1,12 +1,10 @@
 # API Methods for the /pathogen_models calls
 import hashlib
-import json
 
-from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file, create_id_from_query_str
+from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file
 from seattle_flu_incidence_mapper.models.generic_model import GenericModel, GenericModelSchema
 from seattle_flu_incidence_mapper.config import db
-from flask import abort, request, make_response, send_file, Response
-from sqlalchemy import and_
+from flask import abort, request, make_response, send_file
 from seattle_flu_incidence_mapper.utils import get_model_id
 
 def read_all():

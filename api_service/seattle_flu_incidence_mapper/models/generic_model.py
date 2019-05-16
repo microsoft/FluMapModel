@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlalchemy import String, Column, DateTime
-from seattle_flu_incidence_mapper.orm_config import get_session, get_declarative_base
-from seattle_flu_incidence_mapper.utils import ma
+from seattle_flu_incidence_mapper.orm_config import get_session, get_declarative_base, ma
 
 base = get_declarative_base()
 
@@ -20,4 +19,4 @@ class GenericModel(base):
 class GenericModelSchema(ma.ModelSchema):
     class Meta:
         model = GenericModel
-        sqla_session = get_session
+        sqla_session = get_session()
