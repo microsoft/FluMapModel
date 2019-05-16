@@ -1,13 +1,13 @@
 # API Methods for the /pathogen_models calls
 import hashlib
+import json
 
 from seattle_flu_incidence_mapper.model_store import save_model_file, get_model_file, create_id_from_query_str
 from seattle_flu_incidence_mapper.models.generic_model import GenericModel, GenericModelSchema
 from seattle_flu_incidence_mapper.config import db
-from flask import abort, request,  make_response, send_file
-
+from flask import abort, request, make_response, send_file, Response
+from sqlalchemy import and_
 from seattle_flu_incidence_mapper.utils import get_model_id
-
 
 def read_all():
     """
@@ -59,16 +59,29 @@ def create():
     :return:        201 on success, 406 on pathogen_model exists
     """
 
-    rds_key=None
+    rds_key = None
+    model_key = None
     if 'rds' in request.files:
         rds_key = hashlib.md5(request.files['rds'].read()).hexdigest()
 
+    if 'model' in request.files:
+        model_key = hashlib.md5(request.files['model'].read()).hexdigest()
+
+    model_id = get_model_id(request.form['query_str'])
+    # check for existing models
+    existing_model = GenericModel.query.filter(and_(GenericModel.model_key == model_key, GenericModel.id == model_id)).one_or_none()
+    if existing_model:
+        return Response(response=json.dumps({'error': f'Model with the id {model_id} and model_data '
+                                                      f'with checksum {model_key} already exists'}),
+                        status=409, mimetype="application/json")
+
     #build our pathogenmodel object first
-    model = dict(id=get_model_id(request.form['query_str']),
+    model = dict(id=model_id,
                           name=request.form['name'],
                           query_str=request.form['query_str'],
-                          #rds_key=None,
-                          model_type=request.form['model_type'])
+                          rds_key=rds_key,
+                          model_type=request.form['model_type'],
+                          model_key=model_key)
 
     schema = GenericModelSchema()
     new_model = schema.load(model, session=db.session).data
