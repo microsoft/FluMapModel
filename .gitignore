@@ -3,6 +3,8 @@
 .RData
 .Ruserdata
 */.idea/*
+# Let's allow shared run configurations
+!api_service/.idea/runConfigurations/
 *.pyc
 *.egg-info
 *__pycache__*
@@ -18,6 +20,4 @@ incidenceMapR_*.tar.gz
 modelDB.tsv
 test_model_store/*
 plots/*
-.idea/
 test_jobs/*
-plots/*
