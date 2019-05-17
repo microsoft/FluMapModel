@@ -61,9 +61,68 @@ for (PATHOGEN in fluPathogens){
       model <- modelTrainR(modelDefinition)
       print(summary(model$inla))
       
-      print(ggplot(model$vaxEfficacyData) + geom_line(aes(x=age_range_fine_lower,y=modeled_vaccine_efficacy_mean)) +
-        geom_ribbon(aes(x=age_range_fine_lower,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI),alpha=0.3))
       
+      dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
+      fname <- paste('/home/rstudio/seattle_flu/plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'age_range_fine_lower',sep='-'),'.png',sep='')
+      png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+      
+      print(
+        ggplot(model$vaxEfficacyData) + geom_line(aes(x=age_range_fine_lower,y=modeled_vaccine_efficacy_mean)) +
+          geom_ribbon(aes(x=age_range_fine_lower,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI),alpha=0.3) 
+        )
+      dev.off()
+     
+    }
+  }
+}
+
+
+
+###########################
+### efficacy by time #######
+###########################
+
+for (PATHOGEN in fluPathogens){
+  for(STRATUM in names(strata)){
+    for(LEVEL in strata[[STRATUM]]){
+      
+      queryIn <- list(
+        SELECT   =list(COLUMN=c('pathogen','flu_shot','encountered_week',STRATUM)),
+        WHERE    =list(COLUMN='pathogen', IN= PATHOGEN),
+        WHERE    =list(COLUMN=STRATUM, IN = LEVEL),
+        GROUP_BY =list(COLUMN=c('pathogen','flu_shot','encountered_week',STRATUM)),
+        SUMMARIZE=list(COLUMN='pathogen', IN= PATHOGEN)
+      )
+      
+      db<- selectFromDB(  queryIn, source=SRC, na.rm=TRUE  ) 
+      db <- expandDB(db)
+      
+      # get all non-flu pathogens denominator.
+      tmpQuery <- list(
+        SELECT   =list(COLUMN=c('pathogen','flu_shot','encountered_week',STRATUM)),
+        WHERE    =list(COLUMN='pathogen', IN= c(PATHOGEN,referencePathogens)),
+        WHERE    =list(COLUMN=STRATUM, IN= LEVEL),
+        GROUP_BY =list(COLUMN=c('pathogen','flu_shot','encountered_week',STRATUM)),
+        SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
+      )
+      tmp <- selectFromDB( tmpQuery, source=SRC, na.rm=TRUE  )$observedData %>% 
+        group_by_(.dots=c('flu_shot','encountered_week',STRATUM)) %>% summarize(n=sum(n))
+      
+      db$observedData <- db$observedData %>% select(-n) %>% left_join(tmp) %>% select(-site_type)
+      
+      modelDefinition <- fluVaxEfficacyModel(db=db)
+      model <- modelTrainR(modelDefinition)
+      print(summary(model$inla))
+      
+      dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
+      fname <- paste('/home/rstudio/seattle_flu/plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'encountered_week',sep='-'),'.png',sep='')
+      png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+      
+      print(ggplot(model$vaxEfficacyData) + geom_line(aes(x=encountered_week,y=modeled_vaccine_efficacy_mean, group=pathogen)) +
+              geom_ribbon(aes(x=encountered_week,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI, group=pathogen),alpha=0.3) +
+              theme(axis.text.x = element_text(angle = 90, hjust = 1))
+            )
+      dev.off()
     }
   }
 }

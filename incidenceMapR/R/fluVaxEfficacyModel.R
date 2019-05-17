@@ -207,6 +207,12 @@ fluVaxEfficacyModel <- function(db , shp=NULL, neighborGraph = NULL){
     }
   }
   
+  # I'm modeling flu_shot as a fixed effect with a replicate by age for each level, and so the contrasts have no covariance.
+  # Thus, I'm calcuting the odds ratio contrasts from summary.linear.predictor in appendFluVaxEfficacyModel after running modelTrainR
+  # instead of figuring out how to code the linear combinations here.  But we should revisit this, as it might make sense to model
+  # the interaction itself between flu_shot levels as random effects aswell to be coherent across covariates.
+  
+  # Strata data 
   lc.colIdx <- (names(inputData) %in% c('pathogen',db$queryList$GROUP_BY$COLUMN)) & !(names(inputData) %in% validFactorNames) & !(names(inputData) %in% 'flu_shot')
   lc.data<-inputData %>% distinct_(.dots=names(inputData)[lc.colIdx])
   rownames(lc.data)<-c()
