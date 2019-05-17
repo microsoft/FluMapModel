@@ -41,15 +41,23 @@ fluVaxEfficacyModel <- function(db , shp=NULL, neighborGraph = NULL){
   
 
 
-  # construct factors for latent field replicates
   validFluVaxEfficacyColumns <- c('pathogen','flu_shot')
-
-  # combine replicate strata for independent intercepts
-  if(all( validFluVaxEfficacyColumns %in% names(db$observedData))){
-    inputData$levelIntercept <- db$observedData %>% select(validFluVaxEfficacyColumns) %>% interaction
-  } else {
+  if(!all(validFluVaxEfficacyColumns %in% names(inputData))) {
     return('error! fluVaxEfficacyModel requires pathogen and flu_shot columns.')
   }
+  
+  # construct factors for latent field replicates
+  validFactorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('pathogen','n','positive')) | 
+                                                   grepl('row',names(db$observedData)) |
+                                                   grepl('age',names(db$observedData)) | 
+                                                   grepl('residence_',names(db$observedData)) | 
+                                                   grepl('work_',names(db$observedData)) |
+                                                   grepl('encounter',names(db$observedData))  )]
+  
+  factorIdx <- validFactorNames %in% names(db$observedData) 
+  
+  # combine factors for independent intercepts
+  inputData$levelIntercept <- db$observedData %>% select(validFactorNames[factorIdx]) %>% interaction
   levelSet       <- levels(inputData$levelIntercept)
   numLevels      <- length(levelSet)
   
@@ -75,23 +83,7 @@ fluVaxEfficacyModel <- function(db , shp=NULL, neighborGraph = NULL){
     return('error!  fluVaxEfficacy requres at least two levels for comparison.')
   }
   
-  
-  
-  
-  # additional factors as fixed effects, assuming no interaction terms
-  validFactorNames <- names(db$observedData)[ !( (names(db$observedData) %in% c('flu_shot','pathogen','n','positive')) | 
-                                                                grepl('row',names(db$observedData)) |
-                                                                grepl('age',names(db$observedData)) | 
-                                                                grepl('residence_',names(db$observedData)) | 
-                                                                grepl('work_',names(db$observedData)) |
-                                                                grepl('encounter',names(db$observedData))  )]
-  
-  factorIdx <- names(db$observedData) %in% validFactorNames
-  for(COLUMN in names(db$observedData)[factorIdx]){
-    formula <- as.formula(paste(as.character(formula)[2],'~',paste(as.character(formula)[3],COLUMN,sep='+')))
-  }
-  
-  
+
   # latent fields
   for(COLUMN in names(inputData)[!(names(inputData) %in% c('positive','n'))]){
     
@@ -213,7 +205,8 @@ fluVaxEfficacyModel <- function(db , shp=NULL, neighborGraph = NULL){
   # the interaction itself between flu_shot levels as random effects aswell to be coherent across covariates.
   
   # Strata data 
-  lc.colIdx <- (names(inputData) %in% c('pathogen',db$queryList$GROUP_BY$COLUMN)) & !(names(inputData) %in% validFactorNames) & !(names(inputData) %in% 'flu_shot')
+  lc.colIdx <- (names(inputData) %in% c('pathogen',db$queryList$GROUP_BY$COLUMN)) | (names(inputData) %in% validFactorNames) & !(names(inputData) %in% 'flu_shot')
+  lc.colIdx <- lc.colIdx & !(names(inputData) %in% 'flu_shot')
   lc.data<-inputData %>% distinct_(.dots=names(inputData)[lc.colIdx])
   rownames(lc.data)<-c()
   

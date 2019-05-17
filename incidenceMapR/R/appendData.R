@@ -145,10 +145,10 @@ appendFluVaxEfficacyData <- function(model,modelDefinition){
   summary.contrasts$`0.975quant` <- 1-qlnorm(0.025,mean=OR_mean,sd=OR_sd)
   summary.contrasts$mode <- 1-qlnorm(0.5,mean=OR_mean,sd=OR_sd)
   
+  summary.contrasts<-as.data.frame(summary.contrasts)
   
-  
-  vaxEfficacyData[,nCol+1:ncol(model$summary.fitted.values)] <- summary.contrasts
-  names(vaxEfficacyData)[nCol+1:ncol(model$summary.fitted.values)]<-paste(outputColName,names(summary.contrasts),sep='.')
+  vaxEfficacyData[,nCol+1:ncol(summary.contrasts)] <- summary.contrasts
+  names(vaxEfficacyData)[nCol+1:ncol(summary.contrasts)]<-paste(outputColName,names(summary.contrasts),sep='.')
   
   rownames(vaxEfficacyData)<-c()
   
