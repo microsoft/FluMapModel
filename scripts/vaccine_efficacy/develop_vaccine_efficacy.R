@@ -6,8 +6,8 @@ library(incidenceMapR)
 library(dplyr)
 library(ggplot2)
 
-# SRC <- 'production'
-SRC <- 'simulated_data'
+SRC <- 'production'
+# SRC <- 'simulated_data'
 
 db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = SRC)
 
@@ -70,7 +70,7 @@ for (PATHOGEN in fluPathogens){
             
             print(
               ggplot(model$vaxEfficacyData) + geom_line(aes(x=age_range_fine_lower,y=modeled_vaccine_efficacy_mean)) +
-                geom_ribbon(aes(x=age_range_fine_lower,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI),alpha=0.3) 
+                geom_ribbon(aes(x=age_range_fine_lower,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI),alpha=0.3)
               )
             dev.off()
      

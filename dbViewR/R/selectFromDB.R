@@ -71,7 +71,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # defined by the environment variables above.
     rawData <- DBI::dbConnect(RPostgres::Postgres(), service = "seattleflu-production")
 
-    db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;")
+    db <- DBI::dbGetQuery(rawData, "select distinct * from shipping.incidence_model_observation_v1;")
     
     # fake pathogen field until db is ready
     # if (!('pathogen' %in% names(db))){
