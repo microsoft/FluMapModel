@@ -98,7 +98,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       tidyr::nest() 
 
       for (k in which(db3$number_pathogens_found==0)){
-        db3$data[[k]] <- tibble(pathogen='unknown',present=TRUE)
+        db3$data[[k]] <- tibble(pathogen='undetected',present=TRUE)
       }
     
     names(db3)[names(db3) == 'data'] <- 'pathogens_found'    
