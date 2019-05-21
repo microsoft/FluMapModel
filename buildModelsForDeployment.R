@@ -6,6 +6,7 @@ library(incidenceMapR)
 library(modelServR)
 library(modelTestR)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 
 SRC <- 'production'
@@ -13,13 +14,17 @@ SRC <- 'production'
 
 db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = SRC)
 
-pathogens <- c('all', unique(db$observedData$pathogen))
+pathogens <- db$observedData %>% group_by(pathogen) %>% summarize(n = n()) %>% arrange(desc(n))
+pathogens <- c('all',pathogens$pathogen[pathogens$n >= 50 | grepl('Flu',pathogens$pathogen)])
+
 factors   <- c('site_type','sex','flu_shot')
 
-geoLevels <- list( seattle_geojson = c('residence_puma','residence_neighborhood_district_name','residence_cra_name','residence_census_tract'),
-                   wa_geojson = c('residence_puma')#, # census tract impossible due to memory limits
-                   #king_county_geojson = c('residence_census_tract')
-                 )
+# geoLevels <- list( seattle_geojson = c('residence_puma','residence_neighborhood_district_name','residence_cra_name','residence_census_tract'),
+#                    wa_geojson = c('residence_puma')#, # census tract impossible due to memory limits
+#                    #king_county_geojson = c('residence_census_tract')
+#                  )
+
+geoLevels <- list( seattle_geojson = 'residence_neighborhood_district_name')
 
 
 ##############################
@@ -216,13 +221,13 @@ for (PATHOGEN in pathogens){
     if (model$modelDefinition$family[1]=='poisson'){
       p1<-ggplot(model$modeledData) + geom_line(aes(x=age_range_fine_lower ,y=modeled_count_mode, group=pathogen)) + 
         geom_point(aes(x=age_range_fine_lower, y=positive, group=pathogen)) + 
-        geom_ribbon(aes(x=age_range_fine_lower ,ymin=modeled_count_lower_95_CI, ymax=modeled_count_upper_95_CI  , group=pathogen)) + 
+        geom_ribbon(aes(x=age_range_fine_lower ,ymin=modeled_count_lower_95_CI, ymax=modeled_count_upper_95_CI  , group=pathogen), alpha=0.3) + 
         facet_wrap(FACTOR) +
         ylim(c(0,2*max(model$modeledData$modeled_count_mode)))
     } else if (model$modelDefinition$family[1]=='binomial'){
       p1<-ggplot(model$modeledData) + geom_line(aes(x=age_range_fine_lower ,y=modeled_fraction_mode, group=pathogen)) + 
         geom_point(aes(x=age_range_fine_lower, y=positive/n, group=pathogen)) + 
-        geom_ribbon(aes(x=age_range_fine_lower ,ymin=modeled_fraction_lower_95_CI, ymax=modeled_fraction_upper_95_CI  , group=pathogen)) + 
+        geom_ribbon(aes(x=age_range_fine_lower ,ymin=modeled_fraction_lower_95_CI, ymax=modeled_fraction_upper_95_CI  , group=pathogen), alpha=0.3) + 
         facet_wrap(FACTOR) +
         ylim(c(0,1))
     }

@@ -34,7 +34,7 @@ p<-mapSettings + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 # p<-mapSettingsTight + geom_sf(data=shp,size=0.1,aes(fill=NaN))
 
 colorLimits<-c(min(c(plotDat$positive,plotDat$modeled_count_mode),na.rm=TRUE),max(c(plotDat$positive,plotDat$modeled_count_mode),na.rm=TRUE))
-colorBreaks<-round(seq(min(colorLimits),sqrt(max(colorLimits)), length.out = 6)^2)
+colorBreaks<-round(seq(sqrt(min(colorLimits)),sqrt(max(colorLimits)), length.out = 6)^2)
 
 p1 <- p + geom_sf(data=plotDat,size=0, aes(fill=positive))  +
   guides(fill=guide_legend(title="observed")) +
