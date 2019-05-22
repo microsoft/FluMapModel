@@ -4,7 +4,7 @@
 \alias{ggplotSmoothMap}
 \title{ggplotSmoothMap: function for plotting data and smoothed model next to each other on map}
 \usage{
-ggplotSmoothMap(model, shp, title = "",
+ggplotSmoothMap(model, shp, censusdb = NULL, title = "",
   shape_level = "residence_census_tract")
 }
 \arguments{
