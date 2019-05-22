@@ -14,29 +14,39 @@ SRC <- 'production'
 
 db <- selectFromDB(queryIn= list(SELECT  =c("*")), source = SRC) 
 
-dim(db$observedData %>% nest(-encounter))
-dim(db$observedData %>% nest(-encounter))[1]-sum(db$observedData$number_pathogens_tested==0)
+dim(db$observedData %>% nest(-encounter))[1]
+
+dim(db$observedData)[1]-sum(is.na(db$observedData$residence_census_tract))
+
+db$observedData <- db$observedData[!is.na(db$observedData$residence_census_tract),]
+dim(db$observedData)
+
+tmp<-db$observedData %>% nest(-encounter)
+dim(tmp)
+dim(tmp)[1]-sum((tmp %>% unnest())$number_pathogens_tested==0)
 
 pathogens <- db$observedData %>% group_by(pathogen) %>% summarize(n = n()) %>% arrange(desc(n))
 pathogens$pathogen
 pathogens$n
+sum(pathogens$n[pathogens$pathogen != 'not_yet_tested'])
 pathogens <- c('all',pathogens$pathogen[pathogens$n >= 50 | grepl('Flu',pathogens$pathogen)])
 
+pathogens<-c('all','Flu_A_H1','Flu_A_H3')
+
 fluVax <- db$observedData %>% group_by(flu_shot) %>% summarize(n=n())
-1-fluVax$n[1]/sum(fluVax$n,na.rm=T)
-
-factors   <- c('all','site_type','sex','flu_shot')
-
-geoLevels <- list( seattle_geojson = c('residence_neighborhood_district_name','residence_census_tract'),
-                   king_county_geojson = c('residence_puma'),
-                   wa_geojson = c('residence_puma') # census tract impossible due to memory limits
-                 )
+1-fluVax$n[1]/sum(fluVax$n[c(1:2)])
 
 
 
 ##############################
 ## time-independent maps #####
 ##############################
+factors   <- c('all','site_type')
+
+geoLevels <- list( seattle_geojson = c('residence_neighborhood_district_name','residence_census_tract'),
+                   king_county_geojson = c('residence_puma'),
+                   wa_geojson = c('residence_puma') # census tract impossible due to memory limits
+)
 
 # catchments: number of subjects with pathogen and factor at residence location 
 for (SOURCE in names(geoLevels)){
@@ -73,14 +83,13 @@ for (SOURCE in names(geoLevels)){
             
             print(summary(model$inla))
             
-            #saveModel(model)
+            saveModel(model)
             
             if(FACTOR == 'all'){
-              tmp<-model
               dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
               fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_observed',PATHOGEN,SOURCE,GEO,sep='-'),'.png',sep='')
               png(filename = fname,width = 6, height = 5, units = "in", res = 300)
-              ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO)
+              ggplotSmoothMap(model,shp,title=FACTOR,shape_level = GEO)
               dev.off()
             }else {
               for(k in unique(model$modeledData[[FACTOR]])){
@@ -143,7 +152,7 @@ for (SOURCE in names(geoLevels)){
             
             print(summary(model$inla))
             
-            #saveModel(model)
+            saveModel(model)
             
             dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
             fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_latent',PATHOGEN,SOURCE,GEO,'encountered_week',sep='-'),'.png',sep='')
@@ -204,7 +213,7 @@ for (SOURCE in names(geoLevels)){
             
             print(summary(model$inla))
             
-            #saveModel(model)
+            saveModel(model)
             
             dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
             fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_observed',PATHOGEN,SOURCE,GEO,'encountered_week',sep='-'),'.png',sep='')
@@ -254,7 +263,7 @@ for (PATHOGEN in pathogens){
     model <- modelTrainR(modelDefinition)
     print(summary(model$inla))
     
-    #saveModel(model)
+    saveModel(model)
     
     if (model$modelDefinition$family[1]=='poisson'){
       p1<-ggplot(model$modeledData) + geom_line(aes(x=age_range_fine_lower ,y=modeled_count_mode, group=pathogen)) + 

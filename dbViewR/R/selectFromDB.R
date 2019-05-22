@@ -114,6 +114,10 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
 
     db <- db %>% tidyr::unnest()  # nice flat file like simulated data, but with repeated encounters for multiple positives
     
+    ## wacky thing in census tract
+    db$residence_census_tract <- sub('\\.0','',db$residence_census_tract)
+    db$work_census_tract <- sub('\\.0','',db$work_census_tract)
+    
     DBI::dbDisconnect(rawData)
 
 

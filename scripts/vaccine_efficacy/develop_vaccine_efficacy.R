@@ -64,8 +64,8 @@ for (PATHOGEN in fluPathogens){
             print(summary(model$inla))
             
             
-            dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
-            fname <- paste('/home/rstudio/seattle_flu/plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'age_range_fine_lower',sep='-'),'.png',sep='')
+            dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
+            fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'age_range_fine_lower',sep='-'),'.png',sep='')
             png(filename = fname,width = 6, height = 5, units = "in", res = 300)
             
             print(
@@ -128,9 +128,9 @@ for (PATHOGEN in fluPathogens){
             model <- modelTrainR(modelDefinition)
             print(summary(model$inla))
             
-            dir.create('/home/rstudio/seattle_flu/plots/', showWarnings = FALSE)
-            fname <- paste('/home/rstudio/seattle_flu/plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'encountered_week',sep='-'),'.png',sep='')
-            png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+            dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
+            fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'encountered_week',sep='-'),'.png',sep='')
+            png(filename = fname,width = 5, height = 3.1, units = "in", res = 300)
             
             print(ggplot(model$vaxEfficacyData) + geom_line(aes(x=encountered_week,y=modeled_vaccine_efficacy_mean, group=pathogen)) +
                     geom_ribbon(aes(x=encountered_week,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI, group=pathogen),alpha=0.3) +
