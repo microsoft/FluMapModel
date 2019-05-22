@@ -29,9 +29,9 @@ pathogens <- db$observedData %>% group_by(pathogen) %>% summarize(n = n()) %>% a
 pathogens$pathogen
 pathogens$n
 sum(pathogens$n[pathogens$pathogen != 'not_yet_tested'])
-pathogens <- c('all',pathogens$pathogen[pathogens$n >= 50 | grepl('Flu',pathogens$pathogen)])
+pathogens <- c('all',pathogens$pathogen[pathogens$n >= 100 | grepl('Flu',pathogens$pathogen)])
 
-pathogens<-c('all','Flu_A_H1','Flu_A_H3')
+# pathogens<-c('all','Flu_A_H1','Flu_A_H3')
 
 fluVax <- db$observedData %>% group_by(flu_shot) %>% summarize(n=n())
 1-fluVax$n[1]/sum(fluVax$n[c(1:2)])
@@ -113,6 +113,8 @@ for (SOURCE in names(geoLevels)){
 #####################################
 ###### timeseries latent field models ############
 #####################################
+
+# pathogens<-c('all','Flu_A_H1','Flu_A_H3')
 
 factors   <- c('site_type','sex','flu_shot')
 

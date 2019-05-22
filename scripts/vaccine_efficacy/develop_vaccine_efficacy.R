@@ -66,7 +66,7 @@ for (PATHOGEN in fluPathogens){
             
             dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
             fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'age_range_fine_lower',sep='-'),'.png',sep='')
-            png(filename = fname,width = 6, height = 5, units = "in", res = 300)
+            png(filename = fname,width = 5, height = 3.1, units = "in", res = 300)
             
             print(
               ggplot(model$vaxEfficacyData) + geom_line(aes(x=age_range_fine_lower,y=modeled_vaccine_efficacy_mean)) +
