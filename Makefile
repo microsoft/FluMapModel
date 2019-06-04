@@ -2,7 +2,10 @@ BUILD_CONTAINER_NAME ?= idm-docker-staging.packages.idmod.org/sfim-build-env:lat
 DEPLOY_SERVER ?= 40.112.165.255
 DEPOLY_USERNAME ?= useradmin
 
-.PHONY= get_version build-r-env build-r-package build-api
+.PHONY= get_version build-r-env build-r-package build-api help
+
+help: ## This help.
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 clean:
 	find . -iname *.tar.gz -exec rm {} \;
