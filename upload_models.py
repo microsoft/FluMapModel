@@ -3,11 +3,19 @@ import csv
 import requests
 import os
 from tqdm import tqdm
+from requests_toolbelt import MultipartEncoder
+
+
+def zip_upload(data, files):
+    fields = data
+    fields.update(files)
+    return MultipartEncoder(fields=fields)
 
 
 def upload_model(model, api_url, models_path, api_key):
     headers = {'X-Auth': api_key}
     model_path = os.path.join(models_path, f"{model['filename']}.csv")
+    rds_path = os.path.join(models_path, os.path.basename(model['rds']))
     model_data = {
         "id": model['filename'],
         "name": model['name'],
@@ -17,7 +25,8 @@ def upload_model(model, api_url, models_path, api_key):
 
     }
     files = {
-        'model': open(model_path, 'rb')
+        'model': (os.path.basename(model_path), open(model_path, 'rb'), 'text/plain'),
+        'rds':  (os.path.basename(rds_path), open(rds_path, 'rb'), 'application/octet-stream')
     }
 
     r = requests.post(api_url, data=model_data, headers=headers, files=files)
