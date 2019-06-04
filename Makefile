@@ -1,6 +1,4 @@
 BUILD_CONTAINER_NAME ?= idm-docker-staging.packages.idmod.org/sfim-build-env:latest
-DEPLOY_SERVER ?= 40.112.165.255
-DEPOLY_USERNAME ?= useradmin
 
 .PHONY= get_version build-r-env build-r-package build-api help
 
@@ -40,10 +38,4 @@ build-production: build-r-package get_version ## Builds the api
 
 publish-production: build-production ## Publishes the API
 	docker-compose -f docker-compose.production.yml push
-
-deploy-api: ## Deploys over ssh to prod server. Requires setup of ssh before hand
-	# setup should just be ssh-copy-id $(DEPOLY_USERNAME)@$(DEPLOY_SERVER)
-	export DOCKER_HOST=ssh://$(DEPOLY_USERNAME)@$(DEPLOY_SERVER) && \
-		docker-compose -f docker-compose.production.yml pull && \
-		docker-compose -f docker-compose.production.yml up -d
 
