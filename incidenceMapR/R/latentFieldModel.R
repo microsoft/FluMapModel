@@ -273,12 +273,18 @@ latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
     
   df <- data.frame(outcome = outcome, inputData, replicateIdx)
   
+  if(any(grepl('residence', names(inputData)) | grepl('work', names(inputData)))){
+    spatial_domain<-shp$domain[1]
+  } else {
+    spatial_domain <- NULL
+  }
+  
   modelDefinition <- list(type='latent_field', family = family, formula = formula, lincomb = lc.latentField,
                           inputData = df, neighborGraph=neighborGraph, hyper=hyper, 
                           latentFieldData = lc.data,  
                           observedData = db$observedData,
                           queryList = db$queryList,
-                          spatialDomain = shp$domain)
+                          spatial_domain = spatial_domain)
 
   return(modelDefinition)
 }
