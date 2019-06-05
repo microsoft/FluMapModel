@@ -23,7 +23,7 @@ class TestUploadModel(BaseApiTest):
                           "5MSwiZXhwIjoxNTkxMTQ0MzkxLCJzdWIiOiJ0ZXN0cyJ9.OL0NyX3iPm2zByCudPBB7yu0v1CO2wblsgW4BcgX7UY")
         test_data = {
             "name": 'test_model',
-            "query_str": 'test',
+            "query_str": '{"observed":"x", "model_type": "smooth"}',
             "model": read_file_and_format_for_upload('{}.csv'.format(test_filehash)),
             "model_type": "smooth",
             "modelRDS": read_file_and_format_for_upload('{}.csv'.format(test_filehash)),

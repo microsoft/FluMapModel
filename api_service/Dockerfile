@@ -22,7 +22,6 @@ ADD docker_scripts/pip.conf /etc/pip.conf
 ENV PYTHONPATH=/app:${PYTHONPATH}
 ENV PATH=/app:${PATH}
 ENV FLASK_APP=seattle_flu_incidence_mapper.app:app
-
 WORKDIR /app
 
 ENV MODEL_STORE=/model_store

@@ -33,7 +33,6 @@ connex_app = connexion.App("seattle_flu_incidence_mapper.config", specification_
 # Get the underlying Flask app instance
 app = connex_app.app
 
-
 app.config['WORKER_IMAGE'] = os.environ.get('WORKER_IMAGE', 'idm-docker-production.packages.idmod.org/sfim-worker:latest')
 app.config['MODEL_STORE'] = os.environ.get('MODEL_STORE', os.path.abspath(os.path.join(os.getcwd(), "../../test_model_store")))
 app.config['MODEL_HOST_PATH'] = os.environ.get('MODEL_HOST_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_model_store")))
@@ -46,6 +45,7 @@ app.config['JWT_ALGORITHM'] = os.environ.get('JWT_ALGORITHM',  'HS256')
 
 db = setup_db(basedir, app)
 migrate = Migrate(app, db)
+
 
 # DO NOT MOVE this line. The order matters here
 # we need to init our db before loading our models
