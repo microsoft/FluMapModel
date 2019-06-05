@@ -21,20 +21,28 @@ def model_exec_error_handler(exception):
     return Response(response=json.dumps({'error': ' '.join(exception.title)}),
                     status=500, mimetype="application/json")
 
+
 def file_not_found_handler(exception):
     return Response(response=json.dumps({'error': 'Error fetching the result'}),
                     status=400, mimetype="application/json")
+
 
 # Create the Connexion application instance
 connex_app = connexion.App("seattle_flu_incidence_mapper.config", specification_dir=os.path.join(basedir, 'swagger'))
 
 # Get the underlying Flask app instance
 app = connex_app.app
+
+
 app.config['WORKER_IMAGE'] = os.environ.get('WORKER_IMAGE', 'idm-docker-production.packages.idmod.org/sfim-worker:latest')
 app.config['MODEL_STORE'] = os.environ.get('MODEL_STORE', os.path.abspath(os.path.join(os.getcwd(), "../../test_model_store")))
 app.config['MODEL_HOST_PATH'] = os.environ.get('MODEL_HOST_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_model_store")))
 app.config['WORKER_JOB_HOST_PATH'] = os.environ.get('WORKER_JOB_HOST_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_jobs")))
 app.config['MODEL_JOB_PATH'] = os.environ.get('MODEL_JOB_PATH',  os.path.abspath(os.path.join(os.getcwd(), "../../test_jobs")))
+app.config['JWT_ISSUER'] = 'seattle_flu_study'
+app.config['JWT_SECRET'] = os.environ.get('JWT_SECRET',  'development')
+app.config['JWT_LIFETIME_SECONDS'] = 600
+app.config['JWT_ALGORITHM'] = os.environ.get('JWT_ALGORITHM',  'HS256')
 
 db = setup_db(basedir, app)
 migrate = Migrate(app, db)

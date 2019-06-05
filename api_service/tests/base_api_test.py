@@ -37,6 +37,6 @@ class TestClient(FlaskClient):
 
 class BaseApiTest(unittest.TestCase):
     def setUp(self):
-        app.app.testing = True
-        app.app.test_client_class = TestClient
-        self.app = app.app.test_client()
+        app.testing = True
+        app.test_client_class = TestClient
+        self.app = app.test_client()

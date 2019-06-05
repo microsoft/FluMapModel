@@ -51,7 +51,8 @@ setup(
         'marshmallow-sqlalchemy',
         "docker",
         'psycopg2-binary',
-        'Flask-Migrate'
+        'Flask-Migrate',
+        'python-jose[cryptography]'
     ],
 
     extras_require={
