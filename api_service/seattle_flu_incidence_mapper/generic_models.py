@@ -57,39 +57,47 @@ def create():
     :return:        201 on success, 406 on pathogen_model exists
     """
 
-    rds_key = None
-    model_key = None
-    if 'rds' in request.files:
-        rds_key = hashlib.md5(request.files['rds'].read()).hexdigest()
-
-    if 'model' in request.files:
-        model_key = hashlib.md5(request.files['model'].read()).hexdigest()
-
-    model_id = get_model_id(request.form['query_str'])
-
-    #build our pathogenmodel object first
-    model = dict(id=model_id,
-                          name=request.form['name'],
-                          query_str=request.form['query_str'],
-                          rds_key=rds_key,
-                          model_type=request.form['model_type'],
-                          model_key=model_key)
-
-    schema = GenericModelSchema()
-    new_model = schema.load(model, session=db.session).data
-    # Add the pathogen_model to the database
-    db.session.add(new_model)
+    # if the item comes in as a single, let's [
+    if type(request.form['name']) is str:
+        new_model, schema = insert_one_model(form=request.form, files=request.files)
+    else:
+        for i in range(len(request.form['name'])):
+            new_model, schema = insert_one_model(form={k: request.form[k][i] for k in request.keys()},
+                                                          files={k: request.form[k][i] for k in request.files.keys()})
     db.session.commit()
 
-    # save the files to our config directory
-    save_model_file(request.files['model'], f'{new_model.id}.csv')
-
-    if 'rds' in request.files:
-        save_model_file(request.files['model'], f'{rds_key}.RDS')
     # Serialize and return the newly created pathogen_model in the response
     data = schema.dump(new_model).data
 
     return data, 201
+
+
+def insert_one_model(form, files):
+    rds_key = None
+    model_key = None
+    if 'rds' in request.files:
+        rds_key = hashlib.md5(files['rds'].read()).hexdigest()
+    if 'model' in request.files:
+        model_key = hashlib.md5(files['model'].read()).hexdigest()
+    model_id = get_model_id(form['query_str'])
+    # build our pathogenmodel object first
+    model = dict(id=model_id,
+                 name=form['name'],
+                 query_str=form['query_str'],
+                 rds_key=rds_key,
+                 model_type=form['model_type'],
+                 model_key=model_key)
+    schema = GenericModelSchema()
+    new_model = schema.load(model, session=db.session).data
+    # Add the pathogen_model to the database
+    db.session.add(new_model)
+
+    # save the files to our config directory
+    save_model_file(files['model'], f'{new_model.id}.csv')
+
+    if 'rds' in files:
+        save_model_file(files['model'], f'{rds_key}.RDS')
+    return new_model, schema
 
 
 def update(pathogen_model_id, pathogen_model):

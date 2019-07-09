@@ -117,16 +117,24 @@ paths:
               - query_str
               properties:
                 name:
-                  type: string
+                  type: array
+                  items:
+                    type: string
                   description: Name of pathogen model
                 query_str:
-                  type: string
+                  type: array
+                  items:
+                    type: string
                   description: Query of pathogen model
                 model_type:
-                  type: string
+                  type: array
+                  items:
+                    type: string
                   description: Type of model
                 model:
-                  type: string
+                  type: array
+                  items:
+                    type: string
                   description: Model File.
                   format: binary
         required: true
