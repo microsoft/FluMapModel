@@ -8,8 +8,6 @@ import functools
 from werkzeug.exceptions import Unauthorized
 from flask import current_app
 from jose import JWTError, jwt
-from werkzeug.test import EnvironBuilder
-
 from seattle_flu_incidence_mapper.config import app
 
 DEFAULT_TOKEN_DB_PATH = os.environ.get("API_TOKEN_DB", "/model_tokens")
@@ -38,7 +36,7 @@ def generate_token(user_id):
     }
 
     return jwt.encode(payload, current_app.config['JWT_SECRET'], algorithm=current_app.config['JWT_ALGORITHM'])
-EnvironBuilder
+
 
 @app.cli.command('generate-token')
 @click.argument('user_id')
