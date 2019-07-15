@@ -17,7 +17,6 @@ RUN apt update && apt install nginx \
     # Make project directory
 RUN mkdir -p /app/seattle_flu_incidence_mapper \
         /model_store
-ADD docker_scripts/pip.conf /etc/pip.conf
 
 ENV PYTHONPATH=/app:${PYTHONPATH}
 ENV PATH=/app:${PATH}
@@ -26,8 +25,8 @@ WORKDIR /app
 
 ENV MODEL_STORE=/model_store
 
-ADD setup.py README.rst /app/seattle_flu/
-RUN cd seattle_flu && \
+ADD setup.py README.rst /app/seattle_flu_incidence_mapper/
+RUN cd seattle_flu_incidence_mapper && \
     pip3 install -e .[production]
 
 # Define we will have a model data folder

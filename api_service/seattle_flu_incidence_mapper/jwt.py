@@ -44,7 +44,7 @@ def generate_token(user_id):
 def generate_token_cli(user_id, lifetime):
     current_app.config['JWT_LIFETIME_SECONDS'] = lifetime
     token = generate_token(user_id)
-    print(f"User {user_id}'s token is {token}")
+    print(f"{token}")
 
 
 def decode_token(token):

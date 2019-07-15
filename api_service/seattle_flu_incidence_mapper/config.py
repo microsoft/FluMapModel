@@ -3,6 +3,7 @@ import os
 import connexion
 from flask import Response
 from flask_migrate import Migrate
+from flask_cors import CORS
 from sqlalchemy.orm.exc import NoResultFound
 
 from seattle_flu_incidence_mapper.orm_config import setup_db
@@ -46,7 +47,7 @@ app.config['JWT_ALGORITHM'] = os.environ.get('JWT_ALGORITHM',  'HS256')
 db = setup_db(basedir, app)
 migrate = Migrate(app, db)
 
-
+cors = CORS(app, resources={r"/v1/*": {"origins": "*"}})
 # DO NOT MOVE this line. The order matters here
 # we need to init our db before loading our models
 from seattle_flu_incidence_mapper.models import *
