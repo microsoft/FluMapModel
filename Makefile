@@ -19,7 +19,11 @@ publish-r-env: build-r-env ## Publish our R Environment
 	docker push $(BUILD_CONTAINER_NAME)
 
 pull-r-env: # Pull our R Build environment
+ifndef SKIP_PULL
 	docker pull $(BUILD_CONTAINER_NAME)
+else
+	@echo Skipping pull
+endif
 
 build-r-package: clean pull-r-env ## Build the r package as tar ball
     # as we add more models we can just build them all here
