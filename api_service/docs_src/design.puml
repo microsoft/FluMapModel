@@ -1,25 +1,27 @@
 @startuml
 
-() "Docker"
-() HTTP
+() "Docker" <<Host docker socket>>
+() HTTP <<user facing HTTP service>>
 
-file "QueryJobCache" {
+file "Cache" <<Host Ramdisk based cache>> {
    [QueryCache]
    [ResultCache]
 }
 
-file "Model Store"
+file "Model Store" <<Model binaries>>
 
 
-node "Model Worker" {
+node "Model Worker" <<Keeps model in memory and handles queries>>{
     [Model] <--> [Model Store] : Load Model \nfrom store\ninto memory
-    [QueryCache] --> [Model]
-    [Model] --> [ResultCache]
+    [QueryCache] <-- [Model] : Model reads \nthe user query
+    [Model] --> [ResultCache] : Result of user query
 
 }
 
 
-node "Docker API Service" {
+node "Docker API Service" <<Hosts HTTP API and manages Worker Containers>> {
+    [ModelController] <<Handles request for \nediting/uploading models>>
+    [QueryController] <<Handles user queries of models>>
     HTTP ..> [ModelController] : Upload \nor edit models
     HTTP ..> [QueryController] : Query a model
     [QueryController] ==> [Docker] : Create/Ensure\nWorker exists
@@ -30,7 +32,7 @@ node "Docker API Service" {
     [ModelController] --> [Model Database] : Create/Update models
 }
 
-database "Model Database" {
+database "Model Database" <<Store Model location and Metadata>> {
     [Table] --> [Model Store]
 }
 @enduml
