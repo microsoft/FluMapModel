@@ -19,13 +19,6 @@ Production Environment File:
    ```
 #.
 
-Migrations
-==========
-
-
-
-#. Run
-
 Setup
 =====
 

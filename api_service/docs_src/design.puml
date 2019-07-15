@@ -1,17 +1,36 @@
-package "API Server" {
-    HTTP - [ModelController]
+@startuml
+
+() "Docker"
+() HTTP
+
+file "QueryJobCache" {
+   [QueryCache]
+   [ResultCache]
 }
 
-package "API Workers" {
-    INTERNAL_HTTP - [Model Worker]
-    [Model Worker 2]
-    [Model Worker ....]
-    [ModelController] -> INTERNAL_HTTP
-    [Model Worker ....] -> [Model Database]
+file "Model Store"
+
+
+node "Model Worker" {
+    [Model] <--> [Model Store] : Load Model \nfrom store\ninto memory
+    [QueryCache] --> [Model]
+    [Model] --> [ResultCache]
+
+}
+
+
+node "Docker API Service" {
+    HTTP ..> [ModelController] : Upload \nor edit models
+    HTTP ..> [QueryController] : Query a model
+    [QueryController] ==> [Docker] : Create/Ensure\nWorker exists
+    [QueryController] --> [QueryCache] : Write Query to \ncache
+    [QueryController] --> [Model] : Pass query\nfilepath
+    [QueryController] <-- [ResultCache] : Read model \nresult
+    [ModelController] ---> [Model Store] : Write out the model\n binaries(CSV and RDS)
+    [ModelController] --> [Model Database] : Create/Update models
 }
 
 database "Model Database" {
-    folder "Model Binaries" {
-	    [Model Binary]
-  }
+    [Table] --> [Model Store]
 }
+@enduml
