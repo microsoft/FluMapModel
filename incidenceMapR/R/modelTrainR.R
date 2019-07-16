@@ -39,6 +39,12 @@ modelTrainR <- function(modelDefinition){
                 inla = model, modelDefinition = modelDefinition))
     
   } else if (modelDefinition$type == 'effects'){
+    #same as smooth data for now?
+    
+    modeledData <- appendSmoothData(model,modelDefinition)
+    
+    # return output data
+    return(list(modeledData = modeledData, inla = model, modelDefinition = modelDefinition))
     
   }
   

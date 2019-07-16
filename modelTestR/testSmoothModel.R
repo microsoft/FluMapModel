@@ -28,8 +28,49 @@ db <- expandDB( selectFromDB(  queryIn ) )
 
 modelDefinition <- smoothModel(db=db, shp=shp)
 model <- modelTrainR(modelDefinition)
-
 ggplotSmoothMap(model,shp)
+
+#OR plot as fraction of census population in each tract
+censusdb <- addCensusData(db = db, source = "decennial", variable = c("B01003_001", "B09001_001", "P005004"), year = 2010, credentials_path = 'C:/Users/grhuynh')
+ggplotSmoothMap(model,shp, censusdb = censusdb)
+
+
+
+
+## simulated data with bing query search data, run fixed effects model
+queryIn <- list(
+  SELECT   =list(COLUMN=c('site_type','residence_census_tract')),
+  WHERE    =list(COLUMN='site_type', IN = c('kiosk')),
+  GROUP_BY =list(COLUMN=c('site_type','residence_census_tract')),
+  SUMMARIZE=list(COLUMN='site_type', IN= c('kiosk'))
+)
+db <- expandDB( selectFromDB(  queryIn ) )
+modelDefinition <- smoothModel(db=db, shp=shp)
+model <- modelTrainR(modelDefinition)
+
+
+#ADD bing query search data and run fixed effects model
+searchdb <- db
+searchdb$observedData$site_type <- NULL #this messes up the fixed effects model because it has only 1 level
+
+#add bing queries as random numbers from 0 to max positives
+#searchdb$observedData$query_weight <- runif(nrow(searchdb$observedData), min = 0, max = max(searchdb$observedData$positive)) #add random numbers between 0 and max #of positives as the bing weights 
+
+#add bing queries as the same values as positive 
+searchdb$observedData$query_weight <- searchdb$observedData$positive 
+
+#run the model
+modelDefinition <- effectsModel(db=searchdb, shp=shp)
+model_search <- modelTrainR(modelDefinition)
+
+#compare values just for looking at the table
+temp_search <- select(model_search$modeledData, residence_census_tract, query_weight, positive, modeled_count_mode)
+temp_smooth <- select(model$modeledData, residence_census_tract, positive, modeled_count_mode)
+joined_smoothsame <- left_join(temp_smooth, temp_search, by = "residence_census_tract")
+
+ggplotSmoothEffects(model, model_search,shp)
+
+
 
 
 # simulated data at_home catchment map
@@ -43,7 +84,6 @@ db <- expandDB( selectFromDB(  queryIn ) )
 
 modelDefinition <- smoothModel(db=db, shp=shp)
 model <- modelTrainR(modelDefinition)
-
 ggplotSmoothMap(model,shp)
 
 
