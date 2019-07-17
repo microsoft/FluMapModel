@@ -19,5 +19,32 @@ container will then check is a copy of the selected model is already loaded into
 container will create a new worker container using the sflu-worker image and then pass the request on to the model.
 
 
+Development
+===========
+
+You will first need to build the docker image. To do this, ensure docker is installed. Then run the following commands
+```
+docker-compose build
+```
+
+You can now run the server using
+```
+docker-compose up
+```
+
+You should should always stop the containers completely and remove for proper development environment behaviour using
+```
+docker-compose down
+```
 
 
+Known Issues
+------------
+The container currently will create some root folders in development mode. This will be resolved in the next release
+
+Performing Migrations
+---------------------
+
+docker-compose run service flask migrate
+
+SQLALCHEMY_DATABASE_URI=postgres+psycopg2://seattle_flu:seattle_flu@db MODEL_STORE=/home/clinton/development/work/incidence-mapper/api_service/dbconversion/model_store FLASK_APP=seattle_flu_incidence_mapper.app:app flask db --help
