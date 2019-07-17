@@ -10,15 +10,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
-    image: idm-docker-production.packages.idmod.org/sfim-worker:${version:-latest}
+    image: ${REGISTRY:-idm-docker-production.packages.idmod.org}/sfim-worker:${version:-latest}
     command: touch t
   service:
       build:
         context: api_service
         dockerfile: Dockerfile
-      image: idm-docker-production.packages.idmod.org/sfim-api:${version:-latest}
-      volumes:
-       - db-data:/var/lib/mysql/data
+      image: ${REGISTRY:-idm-docker-production.packages.idmod.org}/sfim-api:${version:-latest}
       volumes:
         - /model_store:/model_store
         # pass docker so we can execute other containers

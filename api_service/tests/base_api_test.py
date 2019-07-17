@@ -5,7 +5,7 @@ from flask.testing import FlaskClient
 from werkzeug.utils import cached_property
 from werkzeug.wrappers import BaseResponse
 os.environ['DEBUG']='1'
-from seattle_flu_incidence_mapper.server import app
+from seattle_flu_incidence_mapper.app import app
 
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fixtures'))
 
@@ -37,6 +37,6 @@ class TestClient(FlaskClient):
 
 class BaseApiTest(unittest.TestCase):
     def setUp(self):
-        app.app.testing = True
-        app.app.test_client_class = TestClient
-        self.app = app.app.test_client()
+        app.testing = True
+        app.test_client_class = TestClient
+        self.app = app.test_client()

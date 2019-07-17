@@ -14,7 +14,7 @@
     <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Seattle Flu Incidence Mapper" href="readme.html" />
+    <link rel="next" title="Seattle Flu Incidence Mapper API" href="readme.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -36,9 +36,8 @@
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="readme.html#features">Features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="readme.html#credits">Credits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#architecture">Architecture</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
@@ -47,6 +46,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#production-environment-file">Production Environment File:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#migrations">Migrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#setup">Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">seattle_flu_incidence_mapper</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="seattle_flu_incidence_mapper.html">seattle_flu_incidence_mapper package</a></li>
 </ul>
@@ -89,9 +91,12 @@
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#production-environment-file">Production Environment File:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#migrations">Migrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#setup">Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">seattle_flu_incidence_mapper</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
@@ -103,15 +108,15 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="readme.html" title="next chapter">Seattle Flu Incidence Mapper</a></li>
+      <li>Next: <a href="readme.html" title="next chapter">Seattle Flu Incidence Mapper API</a></li>
   </ul></li>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -133,7 +138,7 @@
       &copy;.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
