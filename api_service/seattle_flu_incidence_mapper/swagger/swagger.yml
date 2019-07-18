@@ -40,7 +40,7 @@ paths:
       requestBody:
         description: Model Query. This will be resolved into a model id
         content:
-          '*/*':
+          application/json:
             schema:
               $ref: '#/components/schemas/QueryModel'
         required: true

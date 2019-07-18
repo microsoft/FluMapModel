@@ -16,7 +16,8 @@ client = docker.DockerClient()
 api_client = docker.APIClient()
 
 
-def query(query_json):
+def query():
+    query_json = request.json
     file_format  ='csv' if 'csv' in request.headers.get('accept', 'json').lower() else 'json'
     created = False
     container = None
