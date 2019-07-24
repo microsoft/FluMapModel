@@ -84,9 +84,27 @@ ggplotLatentMap <- function(model, shp, title='', shape_level = 'residence_censu
     guides(fill=guide_legend(title="modeled_intensity")) +
     viridis::scale_fill_viridis(na.value="transparent",trans = "sqrt",breaks=colorBreaks,limits=colorLimits)
   
-  p2 <- p 
   
-  grid.arrange(p1,p1,nrow=1, top=textGrob(title))
+  
+  plotDat <- right_join(model$latentField %>% group_by_(.dots =shape_level) %>% summarise(modeled_intensity_peak = encountered_week[modeled_intensity_median == max(modeled_intensity_median)]),shp, by=shape_level)
+  colorLabels<-sort(unique(plotDat$modeled_intensity_peak))
+  
+  plotDat$modeled_intensity_peak<-factor(plotDat$modeled_intensity_peak, levels=colorLabels)
+  
+  plotDat$integer_peak <- as.integer(plotDat$modeled_intensity_peak)
+  
+  colorLimits<-c(min(plotDat$integer_peak,na.rm=TRUE),max(plotDat$integer_peak,na.rm=TRUE))
+  colorBreaks<-min(colorLimits):max(colorLimits)
+
+  p2 <- p + geom_sf(data=plotDat,size=0, aes(fill=integer_peak))  +
+    guides(fill=guide_legend(title="peak intensity")) +
+    viridis::scale_fill_viridis(na.value="transparent",breaks=colorBreaks,limits=colorLimits,
+                                labels=colorLabels)
+  
+  
+  
+  
+  grid.arrange(p1,p2,nrow=1, top=textGrob(title))
 }
 
 

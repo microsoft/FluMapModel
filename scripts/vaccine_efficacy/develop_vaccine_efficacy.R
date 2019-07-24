@@ -15,8 +15,8 @@ pathogens <- unique(db$observedData$pathogen)
 fluPathogens<- pathogens[( (pathogens %in% c('h1n1pdm','h3n2','vic','yam')) | grepl('flu',pathogens,ignore.case=TRUE) )]
 referencePathogens <- pathogens[!(pathogens %in% fluPathogens)]
 
-strata <- list(site_type='all')
-# strata <- list(site_type = unique(db$observedData$site_type))
+# strata <- list(site_type='all')
+strata <- list(site_type = c('all',unique(db$observedData$site_type)))
 
 
 ###########################
@@ -64,8 +64,8 @@ for (PATHOGEN in fluPathogens){
             print(summary(model$inla))
             
             
-            dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
-            fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'age_range_fine_lower',sep='-'),'.png',sep='')
+            dir.create('/home/rstudio/seattle_flu/july_22_plots/', showWarnings = FALSE)
+            fname <- paste('/home/rstudio/seattle_flu/july_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'age_range_fine_lower',sep='-'),'.png',sep='')
             png(filename = fname,width = 5, height = 3.1, units = "in", res = 300)
             
             print(
@@ -107,7 +107,7 @@ for (PATHOGEN in fluPathogens){
       # get all non-flu pathogens denominator.
       tmpQuery <- list(
         SELECT   =list(COLUMN=c('pathogen','flu_shot','encountered_week',STRATUM)),
-        WHERE    =list(COLUMN='pathogen', IN= c(PATHOGEN,referencePathogens)),
+        WHERE    =list(COLUMN='pathogen', IN= c(PATHOGEN,setdiff(referencePathogens,c(PATHOGEN, fluPathogens)))),
         WHERE    =list(COLUMN=STRATUM, IN= LEVEL),
         GROUP_BY =list(COLUMN=c('pathogen','flu_shot','encountered_week')),
         SUMMARIZE=list(COLUMN='pathogen', IN= 'all')
@@ -128,13 +128,14 @@ for (PATHOGEN in fluPathogens){
             model <- modelTrainR(modelDefinition)
             print(summary(model$inla))
             
-            dir.create('/home/rstudio/seattle_flu/may_22_plots/', showWarnings = FALSE)
-            fname <- paste('/home/rstudio/seattle_flu/may_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'encountered_week',sep='-'),'.png',sep='')
+            dir.create('/home/rstudio/seattle_flu/july_22_plots/', showWarnings = FALSE)
+            fname <- paste('/home/rstudio/seattle_flu/july_22_plots/',paste('inla_vaccine_efficacy',PATHOGEN,STRATUM,LEVEL,'encountered_week',sep='-'),'.png',sep='')
             png(filename = fname,width = 5, height = 3.1, units = "in", res = 300)
             
-            print(ggplot(model$vaxEfficacyData) + geom_line(aes(x=encountered_week,y=modeled_vaccine_efficacy_mean, group=pathogen)) +
+            print(
+              ggplot(model$vaxEfficacyData) + geom_line(aes(x=encountered_week,y=modeled_vaccine_efficacy_mean, group=pathogen)) +
                     geom_ribbon(aes(x=encountered_week,ymin=modeled_vaccine_efficacy_lower_95_CI,ymax=modeled_vaccine_efficacy_upper_95_CI, group=pathogen),alpha=0.3) +
-                    theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+                    theme(axis.text.x = element_text(angle = 90, hjust = 1)) #+ ylim(c(-2.3,1))
                   )
             dev.off()
             
