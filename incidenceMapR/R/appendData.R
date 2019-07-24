@@ -66,7 +66,6 @@ appendLatentFieldData <- function(model,modelDefinition){
   names(latentField) <- gsub('\\.','_',names(latentField))
   
   # filter out unwanted fields
-  latentField <- latentField
   latentField <- latentField[!(names(latentField) %in% c('modeled_intensity_ID','modeled_intensity_kld'))]
   
   # clean quantile names
@@ -111,4 +110,57 @@ appendLatentFieldData <- function(model,modelDefinition){
   latentField <- latentField %>% arrange_(.dots=columns)
   
   return(list(modeledData = modeledData, latentField = latentField))
+}
+
+
+#' appendFluVaxEfficacyData: internal function for adding model$summary.random to db$observedData from fluVaxEfficacyModel fit
+#'
+#' @param model inla model object
+#' @param db object from dbViewer with observedData tibble and query
+#' @return db with added modeledData tibble
+#' 
+appendFluVaxEfficacyData <- function(model,modelDefinition){
+  
+  # summary.fitted.values
+  modeledData <- appendSmoothData(model,modelDefinition)
+  
+  
+  vaxEfficacyData <- modelDefinition$vaxEfficacyData
+  outputColName <- 'modeled_vaccine_efficacy'
+  
+  nCol <- ncol(vaxEfficacyData)
+  
+  # should somehow do this with inla.make.lincomb within fluVaxEfficacyModel!
+  flu_shotIdx<-modelDefinition$inputData$flu_shot==TRUE
+  tmp <- model$summary.linear.predictor[names(model$summary.linear.predictor) != 'kld']
+  summary.contrasts <- list()
+
+  OR_mean <- tmp$mean[flu_shotIdx] - tmp$mean[!flu_shotIdx]
+  OR_sd <- sqrt(tmp$sd[flu_shotIdx]^2 + tmp$sd[!flu_shotIdx]^2)
+  
+  summary.contrasts$mean <- 1-exp(OR_mean)
+  summary.contrasts$sd <- apply(mapply(rlnorm,1e5,OR_mean,OR_sd),2,sd)
+  summary.contrasts$`0.025quant` <- 1-qlnorm(0.975,mean=OR_mean,sd=OR_sd)
+  summary.contrasts$`0.5quant` <- 1-qlnorm(0.5,mean=OR_mean,sd=OR_sd)
+  summary.contrasts$`0.975quant` <- 1-qlnorm(0.025,mean=OR_mean,sd=OR_sd)
+  summary.contrasts$mode <- 1-qlnorm(0.5,mean=OR_mean,sd=OR_sd)
+  
+  summary.contrasts<-as.data.frame(summary.contrasts)
+  
+  vaxEfficacyData[,nCol+1:ncol(summary.contrasts)] <- summary.contrasts
+  names(vaxEfficacyData)[nCol+1:ncol(summary.contrasts)]<-paste(outputColName,names(summary.contrasts),sep='.')
+  
+  rownames(vaxEfficacyData)<-c()
+  
+  # snake_case
+  names(vaxEfficacyData) <- gsub('\\.','_',names(vaxEfficacyData))
+  
+  # clean quantile names
+  names(vaxEfficacyData)[grepl('0_',names(vaxEfficacyData))]<-paste(outputColName,c('lower_95_CI','median','upper_95_CI'),sep='_')
+  
+  # pretty order 
+  columns <- modelDefinition$queryList$GROUP_BY$COLUMN[modelDefinition$queryList$GROUP_BY$COLUMN %in% names(vaxEfficacyData)]
+  vaxEfficacyData <- vaxEfficacyData %>% arrange_(.dots=columns)
+ 
+  return(list(modeledData = modeledData, vaxEfficacyData = vaxEfficacyData))
 }

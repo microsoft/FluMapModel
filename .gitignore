@@ -276,3 +276,6 @@ incidenceMapR_*.tar.gz
 test_model_store/*
 plots/*
 test_jobs/*
+plots/*
+july_22_plots/*
+may_22_plots/*

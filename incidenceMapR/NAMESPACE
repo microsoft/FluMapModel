@@ -3,6 +3,7 @@
 export(appendCatchmentModel)
 export(constructAdjacencyNetwork)
 export(effectsModel)
+export(fluVaxEfficacyModel)
 export(latentFieldModel)
 export(modelTrainR)
 export(smoothModel)

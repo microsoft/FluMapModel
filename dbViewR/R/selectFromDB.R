@@ -18,7 +18,7 @@
 #' @importFrom RCurl getURL
 #' @importFrom magrittr %>%
 #' @importFrom lazyeval interp
-#' @importFrom tidyr drop_na
+#' @import tidyr 
 #'
 #' @export
 #' @examples
@@ -71,13 +71,56 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # defined by the environment variables above.
     rawData <- DBI::dbConnect(RPostgres::Postgres(), service = "seattleflu-production")
 
-    db <- DBI::dbGetQuery(rawData, "select * from shipping.incidence_model_observation_v1;") # "shipping.incidence_model_observation_v1" seems like something that should be an option
-    DBI::dbDisconnect(rawData)
+    db <- DBI::dbGetQuery(rawData, "select distinct * from shipping.incidence_model_observation_v1;")
     
     # fake pathogen field until db is ready
-    if (!('pathogen' %in% names(db))){
-      db$pathogen <- 'unknown'
+    # if (!('pathogen' %in% names(db))){
+    #   db$pathogen <- 'unknown'
+    # }
+    
+    # db <- DBI::dbGetQuery(rawData, paste('select distinct * from shipping.incidence_model_observation_v1 encounter',
+    #                                      'left join shipping.presence_absence_result_v1 taq',
+    #                                      'on encounter.sample = taq.sample',
+    #                                      ';'),sep=' ') 
+    
+    # this logic should be substantially rethought, as I'm mixing sql and dplyr in confusing ways, but it will have to do for now!
+    
+    # get all samples and nest
+    db3 <- DBI::dbGetQuery(rawData, paste('select distinct * from shipping.presence_absence_result_v1',
+                                          ';'),sep=' ') 
+
+    names(db3)[names(db3)=='target'] <- 'pathogen'
+    
+    db3 <- db3 %>% group_by(sample) %>%
+      mutate(number_pathogens_found = sum(present), number_pathogens_tested = n()) %>% 
+      filter(present == TRUE | number_pathogens_found==0) %>%
+      group_by(sample,number_pathogens_found,number_pathogens_tested) %>% 
+      tidyr::nest() 
+
+      for (k in which(db3$number_pathogens_found==0)){
+        db3$data[[k]] <- tibble(pathogen='undetected',present=TRUE)
+      }
+    
+    names(db3)[names(db3) == 'data'] <- 'pathogens_found'    
+    
+    
+    # join with encounter list, using nice formatting
+    db <- db %>% left_join(db3)
+    idx<-is.na(db$number_pathogens_tested)
+    db$number_pathogens_tested[idx] <- 0
+    for (k in which(idx)){
+      db$pathogens_found[[k]] <- tibble(pathogen='not_yet_tested',present=TRUE)
     }
+
+    db <- db %>% tidyr::unnest()  # nice flat file like simulated data, but with repeated encounters for multiple positives
+    
+    ## wacky thing in census tract
+    db$residence_census_tract <- sub('\\.0','',db$residence_census_tract)
+    db$work_census_tract <- sub('\\.0','',db$work_census_tract)
+    
+    DBI::dbDisconnect(rawData)
+
+
 
   } else {
      print('unknown source database!')
@@ -87,6 +130,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
   # run query
   # this logic will probably move to sql queries in the database instead of dplyr after....
     if(queryList$SELECT !="*"){
+      
+      
 
       #(Needed hack until higher-level shape labels are in database)
         if ( any( grepl('residence',queryList$SELECT$COLUMN) | grepl('work',queryList$SELECT$COLUMN) ) ){
@@ -151,9 +196,9 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
       }
   
       # "pathogen" column is required for incidenceMapR model definitions
-        if(!('pathogn' %in% queryList$GROUP_BY$COLUMN)){
+        if(!('pathogen' %in% queryList$GROUP_BY$COLUMN)){
           if( 'pathogen' %in% queryList$WHERE$COLUMN){
-            db$pathogen <- queryList$WHERE$IN['pathogen' %in% queryList$WHERE$COLUMN]
+            db$pathogen <- paste(queryList$WHERE$IN['pathogen' %in% queryList$WHERE$COLUMN],collapse='-')
           } else {
             db$pathogen<-'all' 
           }
