@@ -8,15 +8,15 @@ seattle\_flu\_incidence\_mapper.models.generic\_model module
 ------------------------------------------------------------
 
 .. automodule:: seattle_flu_incidence_mapper.models.generic_model
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 
 Module contents
 ---------------
 
 .. automodule:: seattle_flu_incidence_mapper.models
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

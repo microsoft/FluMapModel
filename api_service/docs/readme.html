@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Seattle Flu Incidence Mapper &#8212; seattle_flu_incidence_mapper 1.0.0 documentation</title>
+    <title>Seattle Flu Incidence Mapper API &#8212; seattle_flu_incidence_mapper 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -32,20 +32,19 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="seattle-flu-incidence-mapper">
-<h1>Seattle Flu Incidence Mapper<a class="headerlink" href="#seattle-flu-incidence-mapper" title="Permalink to this headline">¶</a></h1>
-<p>Seattle Flu Incidence Mapper</p>
-<ul class="simple">
-<li><p>Documentation: <a class="reference external" href="https://institutefordiseasemodeling.github.io/Seattle-Flu-Incidence-Mapper">https://institutefordiseasemodeling.github.io/Seattle-Flu-Incidence-Mapper</a></p></li>
-</ul>
-<div class="section" id="features">
-<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>TODO</p></li>
-</ul>
-</div>
-<div class="section" id="credits">
-<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="seattle-flu-incidence-mapper-api">
+<h1>Seattle Flu Incidence Mapper API<a class="headerlink" href="#seattle-flu-incidence-mapper-api" title="Permalink to this headline">¶</a></h1>
+<p>Seattle Flu Incidence Mapper API service hosts and API that can be used to host models generated using the incidence_mapper
+R packages. These packages must best uploaded to the API server using the upload_models.py script</p>
+<div class="section" id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p>The API service is structured as 2 sets of docker images. The main image is the sflu-api which runs the API and
+orchestrates the worker packages. The worker container use the sfim-worker image. The sflu-api is used to create the
+service container.</p>
+<p>The API service store model meta-information using a Postgres Database.</p>
+<p>When a request is made to the /query API, the corresponding model is found in the database. If found, the service
+container will then check is a copy of the selected model is already loaded into a running container. If not, service
+container will create a new worker container using the sflu-worker image and then pass the request on to the model.</p>
 </div>
 </div>
 
@@ -68,13 +67,15 @@
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Seattle Flu Incidence Mapper</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#credits">Credits</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Seattle Flu Incidence Mapper API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#production-environment-file">Production Environment File:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#migrations">Migrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#setup">Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">seattle_flu_incidence_mapper</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
@@ -92,10 +93,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -117,7 +118,7 @@
       &copy;.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

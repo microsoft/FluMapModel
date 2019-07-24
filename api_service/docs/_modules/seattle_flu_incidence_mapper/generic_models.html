@@ -1,0 +1,298 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>seattle_flu_incidence_mapper.generic_models &#8212; seattle_flu_incidence_mapper 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for seattle_flu_incidence_mapper.generic_models</h1><div class="highlight"><pre>
+<span></span><span class="c1"># API Methods for the /pathogen_models calls</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+
+<span class="kn">from</span> <span class="nn">seattle_flu_incidence_mapper.model_store</span> <span class="k">import</span> <span class="n">save_model_file</span><span class="p">,</span> <span class="n">get_model_file</span>
+<span class="kn">from</span> <span class="nn">seattle_flu_incidence_mapper.models.generic_model</span> <span class="k">import</span> <span class="n">GenericModel</span><span class="p">,</span> <span class="n">GenericModelSchema</span>
+<span class="kn">from</span> <span class="nn">seattle_flu_incidence_mapper.config</span> <span class="k">import</span> <span class="n">db</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">abort</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">make_response</span><span class="p">,</span> <span class="n">send_file</span>
+<span class="kn">from</span> <span class="nn">seattle_flu_incidence_mapper.utils</span> <span class="k">import</span> <span class="n">get_model_id</span>
+
+<div class="viewcode-block" id="read_all"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.read_all">[docs]</a><span class="k">def</span> <span class="nf">read_all</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function responds to a request for /api/pathogen_models</span>
+<span class="sd">    with the complete lists of models</span>
+<span class="sd">    :return:        json string of list of models</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create the list of pathogen_models from our data</span>
+
+    <span class="c1"># Create the list of pathogen_models from our data</span>
+    <span class="n">pathogen_models</span> <span class="o">=</span> <span class="n">GenericModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">GenericModel</span><span class="o">.</span><span class="n">created</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="c1"># Serialize the data for the response</span>
+    <span class="n">pathogen_model_schema</span> <span class="o">=</span> <span class="n">GenericModelSchema</span><span class="p">(</span><span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pathogen_model_schema</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pathogen_models</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">model_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function responds to a request for /api/pathogen_models/{pathogen_model_id}</span>
+<span class="sd">    with one matching pathogen_model from pathogen_models</span>
+<span class="sd">    :param model_id:   Id of pathogen_model to find</span>
+<span class="sd">    :return:            pathogen_model matching id</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the pathogen_model requested</span>
+    <span class="n">pathogen_model</span> <span class="o">=</span> <span class="n">GenericModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">GenericModel</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">model_id</span><span class="p">)</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+
+    <span class="c1"># Did we find a pathogen_model?</span>
+    <span class="k">if</span> <span class="n">pathogen_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="c1"># Serialize the data for the response</span>
+        <span class="n">pathogen_model_schema</span> <span class="o">=</span> <span class="n">GenericModelSchema</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pathogen_model_schema</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pathogen_model</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="c1"># Otherwise, nope, didn&#39;t find that pathogen_model</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">abort</span><span class="p">(</span>
+            <span class="mi">404</span><span class="p">,</span>
+            <span class="s2">&quot;Pathogen Model not found for Id: </span><span class="si">{id}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">model_id</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.create">[docs]</a><span class="k">def</span> <span class="nf">create</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function creates a new pathogen_model in the pathogen_models structure</span>
+<span class="sd">    based on the passed in pathogen_model data</span>
+<span class="sd">    :return:        201 on success, 406 on pathogen_model exists</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if the item comes in as a single, let&#39;s [</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">new_model</span><span class="p">,</span> <span class="n">schema</span> <span class="o">=</span> <span class="n">insert_one_model</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])):</span>
+            <span class="n">new_model</span><span class="p">,</span> <span class="n">schema</span> <span class="o">=</span> <span class="n">insert_one_model</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">keys</span><span class="p">()},</span>
+                                                          <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">keys</span><span class="p">()})</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c1"># Serialize and return the newly created pathogen_model in the response</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">new_model</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="mi">201</span></div>
+
+
+<div class="viewcode-block" id="insert_one_model"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.insert_one_model">[docs]</a><span class="k">def</span> <span class="nf">insert_one_model</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+    <span class="n">rds_key</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">model_key</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s1">&#39;rds&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+        <span class="n">rds_key</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;rds&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;model&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+        <span class="n">model_key</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="n">model_id</span> <span class="o">=</span> <span class="n">get_model_id</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;query_str&#39;</span><span class="p">])</span>
+    <span class="c1"># build our pathogenmodel object first</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
+                 <span class="n">name</span><span class="o">=</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                 <span class="n">query_str</span><span class="o">=</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;query_str&#39;</span><span class="p">],</span>
+                 <span class="n">rds_key</span><span class="o">=</span><span class="n">rds_key</span><span class="p">,</span>
+                 <span class="n">model_type</span><span class="o">=</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;model_type&#39;</span><span class="p">],</span>
+                 <span class="n">model_key</span><span class="o">=</span><span class="n">model_key</span><span class="p">)</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">GenericModelSchema</span><span class="p">()</span>
+    <span class="n">new_model</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="c1"># Add the pathogen_model to the database</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_model</span><span class="p">)</span>
+
+    <span class="c1"># save the files to our config directory</span>
+    <span class="n">save_model_file</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">],</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{new_model.id}</span><span class="s1">.csv&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;rds&#39;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">save_model_file</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">],</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{rds_key}</span><span class="s1">.RDS&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_model</span><span class="p">,</span> <span class="n">schema</span></div>
+
+
+<div class="viewcode-block" id="update"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.update">[docs]</a><span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">pathogen_model_id</span><span class="p">,</span> <span class="n">pathogen_model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function updates an existing pathogen_model in the pathogen_models structure</span>
+<span class="sd">    :param pathogen_model_id:   Id of the pathogen_model to update in the pathogen_models structure</span>
+<span class="sd">    :param pathogen_model:      pathogen_model to update</span>
+<span class="sd">    :return:            updated pathogen_model structure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the pathogen_model requested from the db into session</span>
+    <span class="n">update_pathogen_model</span> <span class="o">=</span> <span class="n">GenericModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">GenericModel</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">pathogen_model_id</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+
+    <span class="c1"># Did we find a pathogen_model?</span>
+    <span class="k">if</span> <span class="n">update_pathogen_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="c1"># turn the passed in pathogen_model into a db object</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="n">GenericModelSchema</span><span class="p">()</span>
+        <span class="n">updated</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pathogen_model</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="c1"># Set the id to the pathogen_model we want to update</span>
+        <span class="n">updated</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">update_pathogen_model</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="c1"># merge the new object into the old and commit it to the db</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="c1"># return updated pathogen_model in the response</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">update_pathogen_model</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="c1"># Otherwise, nope, didn&#39;t find that pathogen_model</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">abort</span><span class="p">(</span>
+            <span class="mi">404</span><span class="p">,</span>
+            <span class="s2">&quot;Pathogen Model not found for Id: </span><span class="si">{pathogen_model_id}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pathogen_model_id</span><span class="o">=</span><span class="n">pathogen_model_id</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="delete"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.delete">[docs]</a><span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">pathogen_model_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function deletes a pathogen_model from the pathogen_models structure</span>
+<span class="sd">    :param pathogen_model_id:   Id of the pathogen_model to delete</span>
+<span class="sd">    :return:            200 on successful delete, 404 if not found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the pathogen_model requested</span>
+    <span class="n">pathogen_model</span> <span class="o">=</span> <span class="n">GenericModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">GenericModel</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">pathogen_model_id</span><span class="p">)</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+
+    <span class="c1"># Did we find a pathogen_model?</span>
+    <span class="k">if</span> <span class="n">pathogen_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">pathogen_model</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="s2">&quot;Pathogen Model </span><span class="si">{pathogen_model_id}</span><span class="s2"> deleted&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pathogen_model_id</span><span class="o">=</span><span class="n">pathogen_model_id</span><span class="p">),</span> <span class="mi">200</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Otherwise, nope, didn&#39;t find that pathogen_model</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">abort</span><span class="p">(</span>
+            <span class="mi">404</span><span class="p">,</span>
+            <span class="s2">&quot;Pathogen Model not found for Id: </span><span class="si">{pathogen_model_id}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pathogen_model_id</span><span class="o">=</span><span class="n">pathogen_model_id</span><span class="p">),</span>
+<span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="model_file"><a class="viewcode-back" href="../../seattle_flu_incidence_mapper.html#seattle_flu_incidence_mapper.generic_models.model_file">[docs]</a><span class="k">def</span> <span class="nf">model_file</span><span class="p">(</span><span class="n">modelId</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the model file to the user</span>
+<span class="sd">    :param pathogen_model_id:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the pathogen_model requested from the db into session</span>
+    <span class="n">pathogen_model</span> <span class="o">=</span> <span class="n">GenericModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">GenericModel</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">modelId</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">GenericModel</span><span class="o">.</span><span class="n">created</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+    <span class="c1"># Did we find a pathogen_model?</span>
+    <span class="k">if</span> <span class="n">pathogen_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">is_latent</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;latent&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">get_model_file</span><span class="p">(</span><span class="n">modelId</span><span class="p">))</span>
+    <span class="c1"># Otherwise, nope, didn&#39;t find that pathogen_model</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">abort</span><span class="p">(</span>
+            <span class="mi">404</span><span class="p">,</span>
+            <span class="s2">&quot;Pathogen Model not found for Id: </span><span class="si">{pathogen_model_id}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pathogen_model_id</span><span class="o">=</span><span class="n">modelId</span><span class="p">),</span>
+        <span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">seattle_flu_incidence_mapper</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Seattle Flu Incidence Mapper API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html#production-environment-file">Production Environment File:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html#migrations">Migrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html#setup">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">seattle_flu_incidence_mapper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Credits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html#id1">0.0.1</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

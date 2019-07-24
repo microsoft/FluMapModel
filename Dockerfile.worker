@@ -8,7 +8,7 @@ ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
 RUN apt-get update && apt-get install -y \
     # required by devtools and ggmap
-    libssl-dev libcurl4-gnutls-dev
+    libssl-dev libcurl4-gnutls-dev libxml2-dev
 
 # Set default make to parallel build
 ENV MAKE="make -j8"

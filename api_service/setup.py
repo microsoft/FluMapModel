@@ -20,21 +20,13 @@ setup(
     url='https://github.com/InstituteforDiseaseModeling/seattle_flu',
     author='Institute for Disease Modeling, Mike Famulare, Clinton Collins',
     author_email='mfamulare@idmod.org, ccollins@idmod.org',
-    # Classifiers help users find your project by categorizing it.
-    #
-    # For a list of valid classifiers, see https://pypi.org/classifiers/
     classifiers=[  # Optional
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
         'Development Status :: 4 - Beta',
-
-        # Indicate who your project is intended for
-        # https://pypi.org/pypi?%3Aaction=list_classifiers
         'Intended Audience :: Science/Research',
-
-        # Pick your license as you wish
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
     ],
@@ -45,13 +37,15 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'connexion[swagger-ui]',
-        'flask_sqlalchemy',
-        'flask_marshmallow',
-        'marshmallow-sqlalchemy',
-        "docker",
-        'psycopg2-binary',
-        ''
+        'connexion[swagger-ui]~=2.2',
+        'flask_sqlalchemy~=2.4',
+        'flask_marshmallow~=0.10',
+        'marshmallow-sqlalchemy~=0.16',
+        "docker~=3.7",
+        'psycopg2-binary~=2.8',
+        'Flask-Migrate~=2.4',
+        'python-jose[cryptography]~=3.0',
+        'flask_cors~=3.0'
     ],
 
     extras_require={

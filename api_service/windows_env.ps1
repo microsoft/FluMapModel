@@ -1,2 +1,2 @@
-docker build . -t rse_api.builder
-docker run --rm -it -v ${PWD}:/app -w /app rse_api.builder bash
+docker build . -t sflu.builder
+docker run --rm -it -v //var/docker/docker.sock::/var/run/docker.sock -v ${PWD}:/app -w /app sflu.builder bash

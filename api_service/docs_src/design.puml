@@ -1,17 +1,38 @@
-package "API Server" {
-    HTTP - [ModelController]
+@startuml
+
+() "Docker" <<Host docker socket>>
+() HTTP <<user facing HTTP service>>
+
+file "Cache" <<Host Ramdisk based cache>> {
+   [QueryCache]
+   [ResultCache]
 }
 
-package "API Workers" {
-    INTERNAL_HTTP - [Model Worker]
-    [Model Worker 2]
-    [Model Worker ....]
-    [ModelController] -> INTERNAL_HTTP
-    [Model Worker ....] -> [Model Database]
+file "Model Store" <<Model binaries>>
+
+
+node "Model Worker" <<Keeps model in memory and handles queries>>{
+    [Model] <--> [Model Store] : Load Model \nfrom store\ninto memory
+    [QueryCache] <-- [Model] : Model reads \nthe user query
+    [Model] --> [ResultCache] : Result of user query
+
 }
 
-database "Model Database" {
-    folder "Model Binaries" {
-	    [Model Binary]
-  }
+
+node "Docker API Service" <<Hosts HTTP API and manages Worker Containers>> {
+    [ModelController] <<Handles request for \nediting/uploading models>>
+    [QueryController] <<Handles user queries of models>>
+    HTTP ..> [ModelController] : Upload \nor edit models
+    HTTP ..> [QueryController] : Query a model
+    [QueryController] ==> [Docker] : Create/Ensure\nWorker exists
+    [QueryController] --> [QueryCache] : Write Query to \ncache
+    [QueryController] --> [Model] : Pass query\nfilepath
+    [QueryController] <-- [ResultCache] : Read model \nresult
+    [ModelController] ---> [Model Store] : Write out the model\n binaries(CSV and RDS)
+    [ModelController] --> [Model Database] : Create/Update models
 }
+
+database "Model Database" <<Store Model location and Metadata>> {
+    [Table] --> [Model Store]
+}
+@enduml

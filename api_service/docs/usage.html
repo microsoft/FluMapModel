@@ -34,7 +34,48 @@
             
   <div class="section" id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
-<p>Todo</p>
+</div>
+<div class="section" id="production-environment-file">
+<h1>Production Environment File:<a class="headerlink" href="#production-environment-file" title="Permalink to this headline">¶</a></h1>
+<ol class="arabic simple">
+<li><p>The following command will produce a production environment file for docker-compose containing a random
+password for postgres and random secret for JWT
+<cite>export DB_PASS=$(&lt;/dev/urandom tr -dc ‘A-Za-z0-9!”#%&amp;’‘’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~’ | head -c 32 ); printf “POSTGRES_PASS=%snJWT_SECRET=%snSQLALCHEMY_URI=postgres+psycopg2://seattle_flu:%s&#64;db” $DB_PASS $(&lt;/dev/urandom tr -dc ‘A-Za-z0-9!”#%&amp;’‘’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~’ | head -c 256 ) $DB_PASS &gt; production.env</cite></p></li>
+</ol>
+<dl class="simple">
+<dt># if you have a ramdsik, add that as the job_host_path</dt><dd><p>printf “MODEL_HOST_PATH=/model_storenWORKER_JOB_HOST_PATH=/mnt/ramdisknMODEL_JOB_PATH=/jobs” &gt;&gt; production.env</p>
+</dd>
+</dl>
+<ol class="arabic">
+<li><p>Run <cite>docker-compose -f docker-compose.production.yml run service flask db upgrade</cite></p></li>
+<li><p>Create users. Change user1, user2, etc below to list of users. Be sure to save the output
+<a href="#id1"><span class="problematic" id="id2">``</span></a>`
+for user in user1 user2
+do</p>
+<blockquote>
+<div><p>docker-compose -f docker-compose.production.yml run service flask generate-token $user</p>
+</div></blockquote>
+<p>done
+<a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+</li>
+<li></li>
+</ol>
+</div>
+<div class="section" id="migrations">
+<h1>Migrations<a class="headerlink" href="#migrations" title="Permalink to this headline">¶</a></h1>
+<ol class="arabic simple">
+<li><p>Run</p></li>
+</ol>
+</div>
+<div class="section" id="setup">
+<h1>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h1>
+<ol class="arabic simple">
+<li><p>Generate credentials for postgres</p></li>
+<li><p>Setup an environment file containing the following</p></li>
+<li><p>Run
+<cite>docker-compose -f docker-compose.production.yml service db init</cite></p></li>
+<li><p>Run</p></li>
+</ol>
 </div>
 
 
@@ -56,9 +97,12 @@
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#production-environment-file">Production Environment File:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#migrations">Migrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#setup">Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">seattle_flu_incidence_mapper</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
@@ -76,10 +120,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -101,7 +145,7 @@
       &copy;.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

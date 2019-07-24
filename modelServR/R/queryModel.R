@@ -65,7 +65,7 @@ queryLoadedModel <-
       )
     } else if (format == 'json') {
       
-      jsonlite::write_json(model, file.path(outputDir, outputFile))
+      jsonlite::write_json(model, file.path(outputDir, outputFile), na='string')
     }
     file.remove(lock_file)
     return(TRUE)

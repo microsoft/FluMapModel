@@ -1,20 +1,22 @@
 from datetime import datetime
+from sqlalchemy import String, Column, DateTime
+from seattle_flu_incidence_mapper.orm_config import get_session, get_declarative_base, ma
 
-from seattle_flu_incidence_mapper.orm_config import db
-from seattle_flu_incidence_mapper.utils import ma
+base = get_declarative_base()
 
 
-class GenericModel(db.Model):
-    __tablename__ = 'pathogen_model'
-    id = db.Column(db.String,  primary_key=True)
-    name = db.Column(db.String)
-    query_str = db.Column(db.String)
-    model_type = db.Column(db.String)
-    rds_key = db.Column(db.String)
-    created = db.Column(db.DateTime, primary_key=True, default=datetime.utcnow)
+class GenericModel(base):
+    __tablename__ = 'generic_model'
+    id = Column(String,  primary_key=True)
+    name = Column(String)
+    query_str = Column(String)
+    model_type = Column(String)
+    model_key = Column(String, primary_key=True)
+    rds_key = Column(String)
+    created = Column(DateTime, default=datetime.utcnow)
 
 
 class GenericModelSchema(ma.ModelSchema):
     class Meta:
         model = GenericModel
-        sqla_session = db.session
+        sqla_session = get_session()

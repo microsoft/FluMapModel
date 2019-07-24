@@ -108,7 +108,7 @@ returnModel <- function(queryIn = jsonlite::toJSON(
       # reformat for hierarchical JSON
       # dataOut$data <-db %>% dplyr::group_by_at(queryList$GROUP_BY$COLUMN) %>% tidyr::nest(names(db))
   
-      return(jsonlite::toJSON(dataOut,pretty = TRUE))
+      return(jsonlite::toJSON(dataOut,pretty = TRUE, na="string"))
     }
 
   } else if(format == 'inla'){

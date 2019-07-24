@@ -54,27 +54,35 @@
 <span id="seattle-flu-incidence-mapper-apikey-auth-module"></span><h2>seattle_flu_incidence_mapper.apikey_auth module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.apikey_auth" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.apikey_auth.apikey_auth">
-<code class="descclassname">seattle_flu_incidence_mapper.apikey_auth.</code><code class="descname">apikey_auth</code><span class="sig-paren">(</span><em>token</em>, <em>required_scopes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/apikey_auth.html#apikey_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.apikey_auth.apikey_auth" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.apikey_auth.</code><code class="sig-name descname">apikey_auth</code><span class="sig-paren">(</span><em class="sig-param">token</em>, <em class="sig-param">required_scopes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/apikey_auth.html#apikey_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.apikey_auth.apikey_auth" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="seattle_flu_incidence_mapper.apikey_auth.get_token_db">
-<code class="descclassname">seattle_flu_incidence_mapper.apikey_auth.</code><code class="descname">get_token_db</code><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/apikey_auth.html#get_token_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.apikey_auth.get_token_db" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.apikey_auth.</code><code class="sig-name descname">get_token_db</code><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/apikey_auth.html#get_token_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.apikey_auth.get_token_db" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load our token db from json file</p>
 <p>we cache this function with lru_cache an no arguments so effectively it is a singleton</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-seattle_flu_incidence_mapper.app">
+<span id="seattle-flu-incidence-mapper-app-module"></span><h2>seattle_flu_incidence_mapper.app module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.app" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-seattle_flu_incidence_mapper.config">
 <span id="seattle-flu-incidence-mapper-config-module"></span><h2>seattle_flu_incidence_mapper.config module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.config" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="seattle_flu_incidence_mapper.config.file_not_found_handler">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.config.</code><code class="sig-name descname">file_not_found_handler</code><span class="sig-paren">(</span><em class="sig-param">exception</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/config.html#file_not_found_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.config.file_not_found_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="seattle_flu_incidence_mapper.config.model_exec_error_handler">
-<code class="descclassname">seattle_flu_incidence_mapper.config.</code><code class="descname">model_exec_error_handler</code><span class="sig-paren">(</span><em>exception</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/config.html#model_exec_error_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.config.model_exec_error_handler" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.config.</code><code class="sig-name descname">model_exec_error_handler</code><span class="sig-paren">(</span><em class="sig-param">exception</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/config.html#model_exec_error_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.config.model_exec_error_handler" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.config.sqlalchemy_error_handler">
-<code class="descclassname">seattle_flu_incidence_mapper.config.</code><code class="descname">sqlalchemy_error_handler</code><span class="sig-paren">(</span><em>exception</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/config.html#sqlalchemy_error_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.config.sqlalchemy_error_handler" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.config.</code><code class="sig-name descname">sqlalchemy_error_handler</code><span class="sig-paren">(</span><em class="sig-param">exception</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/config.html#sqlalchemy_error_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.config.sqlalchemy_error_handler" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -82,7 +90,7 @@
 <span id="seattle-flu-incidence-mapper-generic-models-module"></span><h2>seattle_flu_incidence_mapper.generic_models module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.generic_models" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.generic_models.create">
-<code class="descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.create" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates a new pathogen_model in the pathogen_models structure
 based on the passed in pathogen_model data
 :return:        201 on success, 406 on pathogen_model exists</p>
@@ -90,15 +98,20 @@ based on the passed in pathogen_model data
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.generic_models.delete">
-<code class="descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="descname">delete</code><span class="sig-paren">(</span><em>pathogen_model_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.delete" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param">pathogen_model_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function deletes a pathogen_model from the pathogen_models structure
 :param pathogen_model_id:   Id of the pathogen_model to delete
 :return:            200 on successful delete, 404 if not found</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="seattle_flu_incidence_mapper.generic_models.insert_one_model">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">insert_one_model</code><span class="sig-paren">(</span><em class="sig-param">form</em>, <em class="sig-param">files</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#insert_one_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.insert_one_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="seattle_flu_incidence_mapper.generic_models.model_file">
-<code class="descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="descname">model_file</code><span class="sig-paren">(</span><em>modelId</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#model_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.model_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">model_file</code><span class="sig-paren">(</span><em class="sig-param">modelId</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#model_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.model_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the model file to the user
 :param pathogen_model_id:
 :return:</p>
@@ -106,7 +119,7 @@ based on the passed in pathogen_model data
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.generic_models.read">
-<code class="descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="descname">read</code><span class="sig-paren">(</span><em>model_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">model_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function responds to a request for /api/pathogen_models/{pathogen_model_id}
 with one matching pathogen_model from pathogen_models
 :param model_id:   Id of pathogen_model to find
@@ -115,7 +128,7 @@ with one matching pathogen_model from pathogen_models
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.generic_models.read_all">
-<code class="descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="descname">read_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#read_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.read_all" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">read_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#read_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.read_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function responds to a request for /api/pathogen_models
 with the complete lists of models
 :return:        json string of list of models</p>
@@ -123,7 +136,7 @@ with the complete lists of models
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.generic_models.update">
-<code class="descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="descname">update</code><span class="sig-paren">(</span><em>pathogen_model_id</em>, <em>pathogen_model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.update" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.generic_models.</code><code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">pathogen_model_id</em>, <em class="sig-param">pathogen_model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/generic_models.html#update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.generic_models.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function updates an existing pathogen_model in the pathogen_models structure
 :param pathogen_model_id:   Id of the pathogen_model to update in the pathogen_models structure
 :param pathogen_model:      pathogen_model to update
@@ -131,26 +144,46 @@ with the complete lists of models
 </dd></dl>
 
 </div>
+<div class="section" id="module-seattle_flu_incidence_mapper.jwt">
+<span id="seattle-flu-incidence-mapper-jwt-module"></span><h2>seattle_flu_incidence_mapper.jwt module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.jwt" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="seattle_flu_incidence_mapper.jwt.decode_token">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.jwt.</code><code class="sig-name descname">decode_token</code><span class="sig-paren">(</span><em class="sig-param">token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/jwt.html#decode_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.jwt.decode_token" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="seattle_flu_incidence_mapper.jwt.generate_token">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.jwt.</code><code class="sig-name descname">generate_token</code><span class="sig-paren">(</span><em class="sig-param">user_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/jwt.html#generate_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.jwt.generate_token" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="seattle_flu_incidence_mapper.jwt.get_token_db">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.jwt.</code><code class="sig-name descname">get_token_db</code><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/jwt.html#get_token_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.jwt.get_token_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load our token db from json file</p>
+<p>we cache this function with lru_cache an no arguments so effectively it is a singleton</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-seattle_flu_incidence_mapper.model_store">
 <span id="seattle-flu-incidence-mapper-model-store-module"></span><h2>seattle_flu_incidence_mapper.model_store module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.model_store" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.model_store.create_id_from_query_str">
-<code class="descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="descname">create_id_from_query_str</code><span class="sig-paren">(</span><em>query_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#create_id_from_query_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.create_id_from_query_str" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="sig-name descname">create_id_from_query_str</code><span class="sig-paren">(</span><em class="sig-param">query_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#create_id_from_query_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.create_id_from_query_str" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.model_store.get_model_file">
-<code class="descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="descname">get_model_file</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#get_model_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.get_model_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="sig-name descname">get_model_file</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#get_model_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.get_model_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.model_store.get_model_id_from_query_str">
-<code class="descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="descname">get_model_id_from_query_str</code><span class="sig-paren">(</span><em>query_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#get_model_id_from_query_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.get_model_id_from_query_str" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="sig-name descname">get_model_id_from_query_str</code><span class="sig-paren">(</span><em class="sig-param">query_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#get_model_id_from_query_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.get_model_id_from_query_str" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.model_store.save_model_file">
-<code class="descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="descname">save_model_file</code><span class="sig-paren">(</span><em>file</em>, <em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#save_model_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.save_model_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.model_store.</code><code class="sig-name descname">save_model_file</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/model_store.html#save_model_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.model_store.save_model_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -158,12 +191,32 @@ with the complete lists of models
 <span id="seattle-flu-incidence-mapper-orm-config-module"></span><h2>seattle_flu_incidence_mapper.orm_config module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.orm_config" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.orm_config.get_db">
-<code class="descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="descname">get_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#get_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.get_db" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="sig-name descname">get_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#get_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.get_db" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="seattle_flu_incidence_mapper.orm_config.get_declarative_base">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="sig-name descname">get_declarative_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#get_declarative_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.get_declarative_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="seattle_flu_incidence_mapper.orm_config.get_marshmallow">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="sig-name descname">get_marshmallow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#get_marshmallow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.get_marshmallow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="seattle_flu_incidence_mapper.orm_config.get_session">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="sig-name descname">get_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#get_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.get_session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="seattle_flu_incidence_mapper.orm_config.set_marshmallow">
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="sig-name descname">set_marshmallow</code><span class="sig-paren">(</span><em class="sig-param">app</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#set_marshmallow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.set_marshmallow" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.orm_config.setup_db">
-<code class="descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="descname">setup_db</code><span class="sig-paren">(</span><em>basedir</em>, <em>app</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#setup_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.setup_db" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.orm_config.</code><code class="sig-name descname">setup_db</code><span class="sig-paren">(</span><em class="sig-param">basedir</em>, <em class="sig-param">app</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/orm_config.html#setup_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.orm_config.setup_db" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -171,7 +224,7 @@ with the complete lists of models
 <span id="seattle-flu-incidence-mapper-query-model-module"></span><h2>seattle_flu_incidence_mapper.query_model module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.query_model" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.query_model.execute_model_query">
-<code class="descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="descname">execute_model_query</code><span class="sig-paren">(</span><em>socket</em>, <em>file_format</em>, <em>outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#execute_model_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.execute_model_query" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="sig-name descname">execute_model_query</code><span class="sig-paren">(</span><em class="sig-param">socket</em>, <em class="sig-param">file_format</em>, <em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#execute_model_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.execute_model_query" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -188,7 +241,7 @@ with the complete lists of models
 
 <dl class="function">
 <dt id="seattle_flu_incidence_mapper.query_model.get_or_create_model_container">
-<code class="descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="descname">get_or_create_model_container</code><span class="sig-paren">(</span><em>local_job_path</em>, <em>host_job_path</em>, <em>model_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#get_or_create_model_container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.get_or_create_model_container" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="sig-name descname">get_or_create_model_container</code><span class="sig-paren">(</span><em class="sig-param">local_job_path</em>, <em class="sig-param">host_job_path</em>, <em class="sig-param">model_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#get_or_create_model_container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.get_or_create_model_container" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -203,40 +256,22 @@ with the complete lists of models
 </dd></dl>
 
 <dl class="function">
-<dt id="seattle_flu_incidence_mapper.query_model.get_result">
-<code class="descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="descname">get_result</code><span class="sig-paren">(</span><em>container</em>, <em>model_id</em>, <em>outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#get_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.get_result" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="seattle_flu_incidence_mapper.query_model.query">
-<code class="descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="descname">query</code><span class="sig-paren">(</span><em>query_json</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.query" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.query_model.</code><code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param">query_json</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/query_model.html#query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.query_model.query" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-seattle_flu_incidence_mapper.server">
-<span id="seattle-flu-incidence-mapper-server-module"></span><h2>seattle_flu_incidence_mapper.server module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.server" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-seattle_flu_incidence_mapper.utils">
 <span id="seattle-flu-incidence-mapper-utils-module"></span><h2>seattle_flu_incidence_mapper.utils module<a class="headerlink" href="#module-seattle_flu_incidence_mapper.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="exception">
 <dt id="seattle_flu_incidence_mapper.utils.ModelExecutionException">
-<em class="property">exception </em><code class="descclassname">seattle_flu_incidence_mapper.utils.</code><code class="descname">ModelExecutionException</code><span class="sig-paren">(</span><em>title=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/utils.html#ModelExecutionException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.utils.ModelExecutionException" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="sig-prename descclassname">seattle_flu_incidence_mapper.utils.</code><code class="sig-name descname">ModelExecutionException</code><span class="sig-paren">(</span><em class="sig-param">title=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/utils.html#ModelExecutionException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.utils.ModelExecutionException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">connexion.exceptions.ProblemException</span></code></p>
 </dd></dl>
 
 <dl class="function">
-<dt id="seattle_flu_incidence_mapper.utils.get_marshmallow">
-<code class="descclassname">seattle_flu_incidence_mapper.utils.</code><code class="descname">get_marshmallow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/utils.html#get_marshmallow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.utils.get_marshmallow" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="seattle_flu_incidence_mapper.utils.get_model_id">
-<code class="descclassname">seattle_flu_incidence_mapper.utils.</code><code class="descname">get_model_id</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/utils.html#get_model_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.utils.get_model_id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="seattle_flu_incidence_mapper.utils.set_marshmallow">
-<code class="descclassname">seattle_flu_incidence_mapper.utils.</code><code class="descname">set_marshmallow</code><span class="sig-paren">(</span><em>app</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/utils.html#set_marshmallow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.utils.set_marshmallow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">seattle_flu_incidence_mapper.utils.</code><code class="sig-name descname">get_model_id</code><span class="sig-paren">(</span><em class="sig-param">query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/seattle_flu_incidence_mapper/utils.html#get_model_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seattle_flu_incidence_mapper.utils.get_model_id" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -264,9 +299,12 @@ with the complete lists of models
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seattle Flu Incidence Mapper API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#production-environment-file">Production Environment File:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#migrations">Migrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#setup">Setup</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">seattle_flu_incidence_mapper</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">seattle_flu_incidence_mapper package</a></li>
 </ul>
@@ -289,10 +327,10 @@ with the complete lists of models
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -314,7 +352,7 @@ with the complete lists of models
       &copy;.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
