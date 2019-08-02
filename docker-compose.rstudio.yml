@@ -47,7 +47,7 @@ services:
       # Here we hap host 8787 to container 8787.
       # Within the container RStudio runs on Port 8787
       ports:
-        - "8787:8787"
+        - "${HTTP_PORT:-8787}:8787"
       # Here we map host volumes to container volumes
       #
       # Notice in this compose we map in scripts and data even though
