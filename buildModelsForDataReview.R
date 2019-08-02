@@ -118,16 +118,16 @@ for (SOURCE in names(geoLevels)){
             saveModel(model)
             
             if(FACTOR == 'all'){
-              dir.create('/home/rstudio/seattle_flu/july_22_plots/', showWarnings = FALSE)
-              fname <- paste('/home/rstudio/seattle_flu/july_22_plots/',paste('inla_observed',PATHOGEN,SOURCE,GEO,sep='-'),'.png',sep='')
+              dir.create('/home/rstudio/seattle_flu/roytest/', showWarnings = FALSE)
+              fname <- paste('/home/rstudio/seattle_flu/roytest/',paste('inla_observed',PATHOGEN,SOURCE,GEO,sep='-'),'.png',sep='')
               png(filename = fname,width = 6, height = 5, units = "in", res = 300)
               ggplotSmoothMap(model,shp,title=FACTOR,shape_level = GEO)
               dev.off()
             }else {
               for(k in unique(model$modeledData[[FACTOR]])){
                 tmp<-list(modeledData = model$modeledData[model$modeledData[[FACTOR]]==k,])
-                dir.create('/home/rstudio/seattle_flu/july_22_plots/', showWarnings = FALSE)
-                fname <- paste('/home/rstudio/seattle_flu/july_22_plots/',paste('inla_observed',PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
+                dir.create('/home/rstudio/seattle_flu/roytest/', showWarnings = FALSE)
+                fname <- paste('/home/rstudio/seattle_flu/roytest/',paste('inla_observed',PATHOGEN,SOURCE,GEO,FACTOR,k,sep='-'),'.png',sep='')
                 png(filename = fname,width = 6, height = 5, units = "in", res = 300)
                 ggplotSmoothMap(tmp,shp,title=k,shape_level = GEO)
                 dev.off()
@@ -188,8 +188,8 @@ for (SOURCE in names(geoLevels)){
             
             saveModel(model)
             
-            dir.create('/home/rstudio/seattle_flu/july_22_plots/', showWarnings = FALSE)
-            fname <- paste('/home/rstudio/seattle_flu/july_22_plots/',paste('inla_latent',PATHOGEN,SOURCE,GEO,'encountered_week',sep='-'),'.png',sep='')
+            dir.create('/home/rstudio/seattle_flu/roytest/', showWarnings = FALSE)
+            fname <- paste('/home/rstudio/seattle_flu/roytest/',paste('inla_latent',PATHOGEN,SOURCE,GEO,'encountered_week',sep='-'),'.png',sep='')
             png(filename = fname,width = 7, height = 5, units = "in", res = 300)
             print(
               ggplot(model$latentField) + 
@@ -202,7 +202,7 @@ for (SOURCE in names(geoLevels)){
               )
             dev.off()
             
-            fname <- paste('/home/rstudio/seattle_flu/july_22_plots/',paste('inla_latent',PATHOGEN,SOURCE,GEO,'median_encountered_week',sep='-'),'.png',sep='')
+            fname <- paste('/home/rstudio/seattle_flu/roytest/',paste('inla_latent',PATHOGEN,SOURCE,GEO,'median_encountered_week',sep='-'),'.png',sep='')
             png(filename = fname,width = 4, height = 5, units = "in", res = 300)
             
             

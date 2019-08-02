@@ -224,5 +224,6 @@ test_jobs/*
 plots/*
 july_22_plots/*
 may_22_plots/*
+roytest/*
 .modelStoreToken
 .Rproj.user
