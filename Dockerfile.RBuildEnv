@@ -42,6 +42,10 @@ RUN Rscript -e "install.packages(c('rgeos'), type='source')"
 RUN Rscript -e "install.packages(c('geojsonio'))"
 RUN Rscript -e "install.packages(c('logging'))"
 RUN Rscript -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
+RUN Rscript -e "install.packages(c('tidycensus'))"
+RUN Rscript -e "devtools::install_github('timcdlucas/INLAutils')"
+
+
 
 # Our Organization(as others do) map Active Directory to LDAP for linux
 # These means when mapping in our userids
