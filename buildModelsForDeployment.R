@@ -4,7 +4,7 @@
 library(dbViewR)
 library(incidenceMapR)
 library(modelServR)
-library(modelTestR)
+library(modelVisualizeR)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
