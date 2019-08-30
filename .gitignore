@@ -228,3 +228,4 @@ roytest/*
 .modelStoreToken
 .Rproj.user
 SFS-08052019-1649-distinct_from_shipping.incidence_model_observation_v1_join_shipping.presence_absence_result_v1.csv
+model_diagnostic_plots
