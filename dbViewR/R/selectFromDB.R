@@ -106,6 +106,8 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     db$pathogen[idx] <- 'not_yet_tested'
     db$present[idx] <- TRUE
     
+    # fix missing self-test until repaired in db
+    db$site_type[db$site == 'self-test']<-'self-test'
     
     DBI::dbDisconnect(rawData)
 

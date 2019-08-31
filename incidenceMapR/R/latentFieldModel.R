@@ -100,20 +100,16 @@ latentFieldModel <- function(db , shp, family = NULL, neighborGraph = NULL){
       
       #INLA needs one column per random effect
       inputData$time_row_rw2 <- inputData$time_row
-      inputData$time_row_IID <- inputData$time_row
-      
-      formula <- update(formula,  ~ . + f(time_row_rw2, model='rw2', hyper=modelDefinition$hyper$time, replicate=replicateIdx) +
-                          f(time_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+
+      formula <- update(formula,  ~ . + f(time_row_rw2, model='rw2', hyper=modelDefinition$hyper$time, replicate=replicateIdx) )
       validLatentFieldColumns <- c(validLatentFieldColumns,'time_row_rw2','time_row_IID')
     }
     
     if(COLUMN == 'age_row'){
       
       inputData$age_row_rw2 <- inputData$age_row
-      inputData$age_row_IID <- inputData$age_row
-      
-      formula <- update(formula,  ~ . + f(age_row_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) +
-                          f(age_row_IID, model='iid', hyper=modelDefinition$hyper$local, replicate=replicateIdx, constr = TRUE) )
+
+      formula <- update(formula,  ~ . + f(age_row_rw2, model='rw2', hyper=modelDefinition$hyper$age, replicate=replicateIdx) )
       validLatentFieldColumns <- c(validLatentFieldColumns,'age_row_rw2','age_row_IID')
     }
     
