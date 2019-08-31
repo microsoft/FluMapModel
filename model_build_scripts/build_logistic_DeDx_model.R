@@ -36,7 +36,7 @@ for (SOURCE in names(geoLevels)){
     
     queryIn <- list(
       SELECT   =list(COLUMN=c('pathogen',factors, GEO,'encountered_week')),
-      GROUP_BY =list(COLUMN=c(factors,GEO,'encountered_week','age_range_coarse_upper')),
+      GROUP_BY =list(COLUMN=c(factors,GEO,'encountered_week','age_range_coarse')),
       SUMMARIZE=list(COLUMN='pathogen', IN= fluPathogens)
     )
     
