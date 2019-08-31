@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggplotWrappers.R
 \name{ggplotSmoothEffects}
 \alias{ggplotSmoothEffects}
-\title{ggplotSmoothEffects: function for plotting data, smoothed model, and fixed effects model next to each other}
+\title{ggplotSmoothEffects: function for plotting smoothed model and fixed effects model next to each other}
 \usage{
 ggplotSmoothEffects(model_smooth, model_effects, shp, censusdb = NULL,
   title = "", shape_level = "residence_census_tract")
@@ -14,12 +14,9 @@ ggplotSmoothEffects(model_smooth, model_effects, shp, censusdb = NULL,
 ggplot object
 }
 \description{
-NOT YET IMPLEMENTED!
+ggplotSmoothEffects: function for plotting smoothed model and fixed effects model next to each other
 }
 \examples{
-plotDat <- right_join(model$modeledData,shp, by=c('residence_census_tract'))
-plotDat$positive[plotDat$positive==0]<-NaN
-ggplotSmoothSequential(plotDat)
 
 
 }

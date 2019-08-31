@@ -3,7 +3,7 @@
 
 library(dbViewR)
 library(incidenceMapR)
-library(modelTestR)
+library(modelVisualizeR)
 library(dplyr)
 
 shp <- masterSpatialDB()  # census-tract shapefiles

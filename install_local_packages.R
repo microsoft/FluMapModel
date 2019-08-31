@@ -1,6 +1,6 @@
 # install_local_packages
 
-pkgs <- c('dbViewR','incidenceMapR','modelTestR','modelServR')
+pkgs <- c('dbViewR','incidenceMapR','modelVisualizeR','workflowTestR','modelServR')
 
 for(pkg in pkgs){
   roxygen2::roxygenise(pkg)

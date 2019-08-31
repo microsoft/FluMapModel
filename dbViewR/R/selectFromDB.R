@@ -38,7 +38,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
                               GROUP_BY =list(COLUMN=c('encountered_week','residence_puma','residence_census_tract')),
                               SUMMARIZE=list(COLUMN='pathogen', IN= c('h1n1pdm'))
                             )
-                          ), source = 'simulated_data', 
+                          ), source = 'production', 
                           credentials_path = '/home/rstudio/seattle_flu',
                           na.rm = FALSE
                           ){
@@ -71,12 +71,7 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # defined by the environment variables above.
     rawData <- DBI::dbConnect(RPostgres::Postgres(), service = "seattleflu-production")
 
-    db <- DBI::dbGetQuery(rawData, "select distinct * from shipping.incidence_model_observation_v1;")
-    
-    # fake pathogen field until db is ready
-    # if (!('pathogen' %in% names(db))){
-    #   db$pathogen <- 'unknown'
-    # }
+    db <- DBI::dbGetQuery(rawData, "select distinct * from shipping.incidence_model_observation_v2;")
     
     # db <- DBI::dbGetQuery(rawData, paste('select distinct * from shipping.incidence_model_observation_v1 encounter',
     #                                      'left join shipping.presence_absence_result_v1 taq',
@@ -86,40 +81,35 @@ selectFromDB <- function( queryIn = jsonlite::toJSON(
     # this logic should be substantially rethought, as I'm mixing sql and dplyr in confusing ways, but it will have to do for now!
     
     # get all samples and nest
-    db3 <- DBI::dbGetQuery(rawData, paste('select distinct * from shipping.presence_absence_result_v1',
+    db2 <- DBI::dbGetQuery(rawData, paste('select distinct * from shipping.presence_absence_result_v1',
                                           ';'),sep=' ') 
 
-    names(db3)[names(db3)=='target'] <- 'pathogen'
+    names(db2)[names(db2)=='target'] <- 'pathogen'
     
-    db3 <- db3 %>% group_by(sample) %>%
-      mutate(number_pathogens_found = sum(present), number_pathogens_tested = n()) %>% 
-      filter(present == TRUE | number_pathogens_found==0) %>%
-      group_by(sample,number_pathogens_found,number_pathogens_tested) %>% 
-      tidyr::nest() 
-
-      for (k in which(db3$number_pathogens_found==0)){
-        db3$data[[k]] <- tibble(pathogen='undetected',present=TRUE)
-      }
+    # count pathogens found and tests performed
+    db2 <- db2 %>% group_by(sample) %>%
+      mutate(number_pathogens_found = sum(present), number_pathogens_tested = n())
     
-    names(db3)[names(db3) == 'data'] <- 'pathogens_found'    
+    # add in "undetected" pathogen for samples that were tested but had no detections
+    db3 <- db2 %>% group_by(sample) %>% filter(all(present == FALSE) &  all(number_pathogens_tested>0)) %>%
+      summarize(pathogen = 'undetected') %>% mutate(present=TRUE)
     
+    # join undetecteds with positives
+    db4 <- bind_rows(db2 %>% filter(present == TRUE), db3)
     
     # join with encounter list, using nice formatting
-    db <- db %>% left_join(db3)
+    db <- db %>% left_join(db4) 
+    
+    # put in "not_yet_tested" for samples with no test results
     idx<-is.na(db$number_pathogens_tested)
     db$number_pathogens_tested[idx] <- 0
-    for (k in which(idx)){
-      db$pathogens_found[[k]] <- tibble(pathogen='not_yet_tested',present=TRUE)
-    }
-
-    db <- db %>% tidyr::unnest()  # nice flat file like simulated data, but with repeated encounters for multiple positives
+    db$pathogen[idx] <- 'not_yet_tested'
+    db$present[idx] <- TRUE
     
-    ## wacky thing in census tract
-    db$residence_census_tract <- sub('\\.0','',db$residence_census_tract)
-    db$work_census_tract <- sub('\\.0','',db$work_census_tract)
+    # fix missing self-test until repaired in db
+    db$site_type[db$site == 'self-test']<-'self-test'
     
     DBI::dbDisconnect(rawData)
-
 
 
   } else {

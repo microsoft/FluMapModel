@@ -10,7 +10,7 @@ selectFromDB(queryIn = jsonlite::toJSON(list(SELECT = list(COLUMN =
   "residence_census_tract")), GROUP_BY = list(COLUMN =
   c("encountered_week", "residence_puma", "residence_census_tract")),
   SUMMARIZE = list(COLUMN = "pathogen", IN = c("h1n1pdm")))),
-  source = "simulated_data",
+  source = "production",
   credentials_path = "/home/rstudio/seattle_flu", na.rm = FALSE)
 }
 \arguments{
